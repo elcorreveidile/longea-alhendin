@@ -20,6 +20,24 @@ export function isAdminEmail(email: string): boolean {
   return adminEmails().includes(email.trim().toLowerCase());
 }
 
+export function adminPhones(): string[] {
+  return (process.env.ADMIN_PHONES ?? "")
+    .split(",")
+    .map((p) => p.replace(/[\s\-().]/g, ""))
+    .filter(Boolean);
+}
+
+export function isAdminPhone(phoneE164: string): boolean {
+  return adminPhones().includes(phoneE164);
+}
+
+// --- Twilio Verify (SMS) ---
+export const twilioAccountSid = () => process.env.TWILIO_ACCOUNT_SID ?? "";
+export const twilioAuthToken = () => process.env.TWILIO_AUTH_TOKEN ?? "";
+export const twilioVerifyServiceSid = () => process.env.TWILIO_VERIFY_SERVICE_SID ?? "";
+export const twilioConfigured = () =>
+  !!(twilioAccountSid() && twilioAuthToken() && twilioVerifyServiceSid());
+
 export function authSecret(): string {
   const s = process.env.AUTH_SECRET;
   if (!s || s.length < 16) {

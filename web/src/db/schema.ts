@@ -26,6 +26,7 @@ export const workers = pgTable("workers", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   jobRole: jobRole("job_role").notNull().default("gerocultora"),
+  phone: text("phone"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -35,7 +36,8 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    email: text("email").notNull(),
+    email: text("email"),
+    phone: text("phone"),
     name: text("name"),
     role: appRole("role").notNull().default("worker"),
     // Enlaza el login con su ficha de plantilla (para "mi turno")
@@ -43,7 +45,10 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("users_email_idx").on(t.email)],
+  (t) => [
+    uniqueIndex("users_email_idx").on(t.email),
+    uniqueIndex("users_phone_idx").on(t.phone),
+  ],
 );
 
 /** Tokens de magic link (de un solo uso, se guarda solo el hash). */
