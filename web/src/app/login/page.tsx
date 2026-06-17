@@ -60,7 +60,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     const ok = await loginByPhone(phone!, code);
     if (!ok) redirect("/login?m=sms&step=code&error=codigo");
     store.delete(PENDING_PHONE);
-    redirect("/panel");
+    const s = await getSession();
+    redirect(s && isStaffAdmin(s.role) ? "/panel" : "/mi-turno");
   }
 
   // --- Vistas ---
