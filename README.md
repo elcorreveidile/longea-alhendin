@@ -7,9 +7,10 @@ de Alhendín (Granada). Sustituye el Excel actual por:
 2. Una **web** donde la supervisora revisa/ajusta el cuadrante y cada
    trabajadora consulta su turno.
 
-> Estado: **prototipo funcional**. El motor ya genera un mes válido y la web ya
-> muestra el cuadrante. Faltan login, edición manual y afinar reglas del
-> convenio (ver _Preguntas abiertas_).
+> Estado: **prototipo funcional**. El motor genera un mes válido, la web muestra
+> el cuadrante y ya hay **login por magic link** (Neon + Resend) con roles
+> (administradora / trabajadora). Faltan: conectar el motor a la web, edición
+> manual y afinar reglas del convenio (ver _Preguntas abiertas_).
 
 ## Estructura
 
@@ -48,7 +49,37 @@ npm run dev      # http://localhost:3000
 
 Muestra el cuadrante generado con colores por turno y una fila que comprueba la
 cobertura en vivo. (De momento carga un cuadrante de muestra; el siguiente paso
-es conectarla al motor y añadir login.)
+es conectarla al motor.)
+
+### Autenticación y base de datos
+
+- **Login por magic link**: la usuaria introduce su correo y recibe un enlace de
+  acceso (sin contraseña). Token de un solo uso, hasheado en BD, caduca en 15
+  min. La sesión es un JWT firmado (`jose`) en cookie `httpOnly`.
+- **Roles**: `admin` (Diana: monta cuadrantes y gestiona plantilla) y `worker`
+  (cada trabajadora ve su turno). El correo que figure en `ADMIN_EMAILS` entra
+  automáticamente como admin la primera vez.
+- **Base de datos**: Neon (Postgres) con Drizzle ORM. Tablas: `workers`,
+  `users`, `magic_tokens`, `vacations`, `cuadrantes`.
+- **Correo**: Resend.
+
+#### Puesta en marcha (web)
+
+```bash
+cd web
+cp .env.example .env        # rellena DATABASE_URL, AUTH_SECRET, RESEND_API_KEY, ADMIN_EMAILS
+npm install
+npm run db:push             # crea las tablas en Neon
+npm run db:seed             # carga la plantilla inicial (revisar nombres)
+npm run dev
+```
+
+Variables de entorno (ver `web/.env.example`): `DATABASE_URL`, `AUTH_SECRET`
+(`openssl rand -base64 32`), `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_EMAILS`
+(aquí el correo de Diana), `APP_URL`.
+
+> ⚠️ La autenticación es a medida (magic link). Antes de producción conviene una
+> **revisión de seguridad** y añadir **rate-limiting** al envío de enlaces.
 
 ## Leyenda de turnos (según la plantilla actual)
 
