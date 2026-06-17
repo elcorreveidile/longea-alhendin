@@ -71,8 +71,9 @@ export default async function MiTurnoPage() {
       <main className="mx-auto max-w-md space-y-4 p-4 sm:p-6">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-semibold text-slate-800">Mi turno</h2>
-          <span className="text-sm text-slate-500">{MONTH_NAMES[month]} {year}</span>
+          <a href="/mi-ficha" className="text-sm font-medium text-cyan-700 hover:underline">Mi ficha →</a>
         </div>
+        <p className="-mt-2 text-sm text-slate-500">{MONTH_NAMES[month]} {year}</p>
 
         {!linked && (
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
