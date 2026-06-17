@@ -1,6 +1,6 @@
 export default function TopBar({ name, role }: { name: string | null; role: string }) {
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 print:hidden">
       <div>
         <h1 className="text-lg font-bold text-cyan-900">
           Cuadrantes · Residencia Alhendín

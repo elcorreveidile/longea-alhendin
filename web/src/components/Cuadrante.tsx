@@ -51,7 +51,7 @@ export default function Cuadrante({ data }: { data: CuadranteData }) {
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+    <div className="cuadrante-scroll overflow-x-auto rounded-lg border border-slate-200 shadow-sm print:overflow-visible">
       <table className="border-collapse text-[11px]">
         <thead>
           <tr className="bg-cyan-700 text-white">
