@@ -65,12 +65,22 @@ def solve(cfg):
 
     model = cp_model.CpModel()
 
-    # Estados permitidos por rol
+    # Estados permitidos por rol y por restricciones individuales.
     def allowed_states(w):
         role = w["role"]
         if role == "supervisora":
-            return ["M", "T", "D"]
-        return ["M", "T", "N", "D"]
+            base = ["M", "T", "D"]
+        else:
+            base = ["M", "T", "N", "D"]
+
+        # only_shift: la persona solo hace un turno concreto (p. ej. Noemí, solo T)
+        only = w.get("only_shift")
+        if only:
+            base = [s for s in base if s == only or s == "D"]
+        # no_night: la persona no hace noches (Rocío, Mar, Diego, Noemí...)
+        if w.get("no_night") and "N" in base:
+            base = [s for s in base if s != "N"]
+        return base
 
     # Días de vacaciones (fijados) por trabajadora
     vac = {w["id"]: set(w.get("vacations", [])) for w in workers}
@@ -104,6 +114,12 @@ def solve(cfg):
             return 0
         w = next(ww for ww in workers if ww["id"] == wid)
         return sum(x[wid, d, s] for s in allowed_states(w) if s in WORK_SHIFTS)
+
+    def rest_ind(wid, d):
+        """1 si descansa: descanso (D) o vacaciones (V) cuentan como descanso."""
+        if (d + 1) in vac[wid]:
+            return 1
+        return is_state(wid, d, "D")
 
     # --- M.Mar: solo L-V mañana ---
     for w in workers:
@@ -169,8 +185,8 @@ def solve(cfg):
         block = {}
         for d in range(days - 1):
             bd = model.NewBoolVar(f"block_{wid}_{d}")
-            d0 = is_state(wid, d, "D")
-            d1 = is_state(wid, d + 1, "D")
+            d0 = rest_ind(wid, d)
+            d1 = rest_ind(wid, d + 1)
             # bd <= d0, bd <= d1, bd >= d0+d1-1
             if isinstance(d0, int) and isinstance(d1, int):
                 model.Add(bd == (1 if d0 and d1 else 0))
@@ -189,10 +205,8 @@ def solve(cfg):
         wid = w["id"]
         if w["role"] == "gerocultora_lv":
             continue  # M.Mar libra todos los domingos
-        sunday_rest = [is_state(wid, sd, "D") for sd in sundays]
-        sunday_rest = [v for v in sunday_rest if not isinstance(v, int) or v == 1]
-        if sunday_rest:
-            model.Add(sum(is_state(wid, sd, "D") for sd in sundays) >= sundays_off_min)
+        # Un domingo de descanso/vacaciones al mes como mínimo.
+        model.Add(sum(rest_ind(wid, sd) for sd in sundays) >= sundays_off_min)
 
     # --- Supervisoras: patrón 3 mañanas / 2 tardes / 2 descansos, sin noches ---
     # (Diana: "2 mañanas, 2 tardes, 2 descansos y al 7º día entra de mañana".)
@@ -205,14 +219,19 @@ def solve(cfg):
             iso_week = (d + weekdays[0]) // 7
             weeks[iso_week].append(d)
         for wk, wdays in weeks.items():
+            avail = [d for d in wdays if (d + 1) not in vac[wid]]
             n_m = sum(is_state(wid, d, "M") for d in wdays)
             n_t = sum(is_state(wid, d, "T") for d in wdays)
-            if len(wdays) == 7:  # semana completa -> 3 mañanas / 2 tardes / 2 descansos
+            if len(wdays) == 7 and len(avail) == 7:
+                # semana completa sin vacaciones -> 3 mañanas / 2 tardes / 2 descansos
                 model.Add(n_m == 3)
                 model.Add(n_t == 2)
-            else:  # semana parcial (borde de mes) -> proporcional
+            else:
+                # semana parcial o con vacaciones -> topes + algo de trabajo si puede
                 model.Add(n_m <= 3)
                 model.Add(n_t <= 2)
+                if len(avail) >= 4:
+                    model.Add(n_m + n_t >= 2)
 
     # --- Objetivo: minimizar déficit de cobertura y equilibrar noches ---
     nights = []

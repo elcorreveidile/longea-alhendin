@@ -106,6 +106,10 @@ Variables de entorno (ver `web/.env.example`): `DATABASE_URL`, `AUTH_SECRET`
 - ✅ **Patrón de supervisora**: 3 mañanas / 2 tardes / 2 descansos por semana
   (2M+2T+2D y el 7º día entra de mañana), sin noches.
 - ✅ **Horarios**: mañana 7:00–14:30 · tarde 14:30–22:00 · noche 22:00–7:00.
+- ✅ **Sin noches**: Rocío, Mar, Diego, Noemí.
+- ✅ **Noemí**: solo tardes (si no se va).
+- ✅ **Vacaciones julio**: Cloe 1–15, Diana 1–15, Mar 16–30, Isabel 16–30,
+  Toñi 16–30. _(Agosto: Azblais 1–15, Ana Montoro 1–15, Mónica 16–30.)_
 
 ## Preguntas abiertas (pendientes de confirmar con Diana)
 
@@ -113,9 +117,9 @@ Variables de entorno (ver `web/.env.example`): `DATABASE_URL`, `AUTH_SECRET`
    config de ejemplo lleva nombres leídos de la foto (hay que repasarlos) y una
    "sustituta" para la plaza que deja Diana. ¿Ana Muñoz sigue como gerocultora
    o causa baja?
-2. **Descanso semanal**: ¿36 h se garantizan cada semana o se promedian en 14
+2. **Nota cortada**: en el papel pone "2 personas solo hacen turno de…" (no se
+   ve el final). ¿Qué turno hacen en exclusiva esas 2 personas? ¿Quiénes son?
+3. **Descanso semanal**: ¿36 h se garantizan cada semana o se promedian en 14
    días? ¿Máximo de días seguidos trabajando según convenio?
-3. **¿Los subtipos M1–M4 necesitan un mínimo por día** (p. ej. siempre alguien
+4. **¿Los subtipos M1–M4 necesitan un mínimo por día** (p. ej. siempre alguien
    en cada grupo de ducha) o basta con sumar 9 de mañana?
-4. **Vacaciones**: Diana las tiene apuntadas y las enviará. El motor las
-   respetará (entrada fija). _(Pendiente: recibir el listado.)_
