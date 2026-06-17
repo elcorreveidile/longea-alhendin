@@ -108,6 +108,9 @@ export default async function PanelPage({
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
         <div className="flex justify-end gap-4 print:hidden">
+          <a href="/panel/semana" className="text-sm font-medium text-cyan-700 hover:underline">
+            Por semanas →
+          </a>
           <a href="/panel/plantilla" className="text-sm font-medium text-cyan-700 hover:underline">
             Plantilla →
           </a>
