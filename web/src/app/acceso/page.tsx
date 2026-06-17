@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSession, isStaffAdmin } from "@/lib/session";
+import { getCurrentTenant } from "@/lib/tenant";
 import {
   verifyAccessCode,
   listActiveWorkers,
@@ -44,7 +45,8 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
   async function codeAction(formData: FormData) {
     "use server";
     const code = String(formData.get("code") ?? "");
-    if (!(await verifyAccessCode(code))) redirect("/acceso?error=codigo");
+    const t = await getCurrentTenant();
+    if (!t || !(await verifyAccessCode(t.id, code))) redirect("/acceso?error=codigo");
     const store = await cookies();
     store.set(WAC, "1", cookieOpts);
     redirect("/acceso?step=nombre");
@@ -87,11 +89,12 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
   }
 
   // --- Vistas ---
+  const tenant = await getCurrentTenant();
   const store = await cookies();
   let body: React.ReactNode;
 
   if (step === "nombre" && store.get(WAC)?.value === "1") {
-    const workers = await listActiveWorkers();
+    const workers = await listActiveWorkers(tenant?.id ?? "");
     workers.sort((a, b) => a.name.localeCompare(b.name, "es"));
     body = (
       <form action={nameAction} className="space-y-4">
@@ -118,7 +121,7 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
     );
   } else if (step === "pin" && store.get(WAC)?.value === "1" && store.get(WSEL)?.value) {
     const workerId = store.get(WSEL)!.value;
-    const workers = await listActiveWorkers();
+    const workers = await listActiveWorkers(tenant?.id ?? "");
     const me = workers.find((w) => w.id === workerId);
     const hasPin = await workerHasPin(workerId);
     body = (
@@ -186,9 +189,9 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-longea.png" alt="Longea · Grupo Aconser" className="mb-5 h-10 w-auto" />
+        <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
         <h1 className="text-xl font-bold text-slate-800">Acceso trabajadoras</h1>
-        <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín</p>
+        <p className="mt-1 mb-6 text-sm text-slate-500">{tenant?.name ?? "PlanTurnos"}</p>
         {body}
         <p className="mt-6 text-center text-xs text-slate-400">
           ¿Eres administradora?{" "}

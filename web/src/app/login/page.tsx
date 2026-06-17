@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { requestMagicLink, requestSmsCode, loginByPhone } from "@/lib/auth";
 import { getSession, isStaffAdmin } from "@/lib/session";
+import { getCurrentTenant } from "@/lib/tenant";
 import { normalizePhone, maskPhone } from "@/lib/phone";
 import DevCredit from "@/components/DevCredit";
 
@@ -27,6 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const method = sp.m === "sms" ? "sms" : "email";
   const errorMsg = sp.error ? ERRORS[sp.error] ?? "Ha ocurrido un error." : null;
+  const tenant = await getCurrentTenant();
 
   // --- Acciones de servidor ---
   async function emailAction(formData: FormData) {
@@ -177,9 +179,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-longea.png" alt="Longea · Grupo Aconser" className="mb-5 h-10 w-auto" />
+        <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
         <h1 className="text-xl font-bold text-slate-800">Cuadrantes</h1>
-        <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín</p>
+        <p className="mt-1 mb-6 text-sm text-slate-500">{tenant?.name ?? "PlanTurnos"}</p>
         {sp.enviado !== "1" && tabs}
         {body}
         <p className="mt-6 text-center text-xs text-slate-400">

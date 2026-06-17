@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { getSession, isStaffAdmin } from "@/lib/session";
+import { getCurrentTenant } from "@/lib/tenant";
 import { getLatestCuadrante, getCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 
 const MONTHS = [
@@ -20,10 +21,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    return NextResponse.json({ error: "Sin residencia" }, { status: 404 });
+  }
   const sp = req.nextUrl.searchParams;
   const y = Number(sp.get("year"));
   const m = Number(sp.get("month"));
-  const row = y && m ? await getCuadrante(y, m) : await getLatestCuadrante();
+  const row = y && m ? await getCuadrante(tenant.id, y, m) : await getLatestCuadrante(tenant.id);
   if (!row) {
     return NextResponse.json({ error: "No hay cuadrante guardado" }, { status: 404 });
   }

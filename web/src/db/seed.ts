@@ -7,8 +7,12 @@
  */
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
-import { workers, vacations } from "./schema";
+import { workers, vacations, tenants } from "./schema";
+
+const TENANT_SLUG = "alhendin";
+const TENANT_NAME = "Residencia Alhendín";
 
 type Role = "gerocultora" | "gerocultora_lv" | "supervisora";
 
@@ -66,9 +70,18 @@ async function main() {
   if (!url) throw new Error("Define DATABASE_URL para hacer seed.");
   const db = drizzle(neon(url));
 
+  // Tenant (residencia) — lo crea si no existe.
+  let tenant = (await db.select().from(tenants).where(eq(tenants.slug, TENANT_SLUG)).limit(1))[0];
+  if (!tenant) {
+    tenant = (
+      await db.insert(tenants).values({ slug: TENANT_SLUG, name: TENANT_NAME }).returning()
+    )[0];
+  }
+  console.log(`✓ tenant: ${tenant.name} (${tenant.slug})`);
+
   const inserted = await db
     .insert(workers)
-    .values(ROSTER)
+    .values(ROSTER.map((w) => ({ ...w, tenantId: tenant.id })))
     .returning({ id: workers.id, name: workers.name });
   console.log(`✓ ${inserted.length} trabajadoras insertadas.`);
 

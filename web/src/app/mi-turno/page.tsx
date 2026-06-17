@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { getCurrentTenant } from "@/lib/tenant";
 import TopBar from "@/components/TopBar";
 import { shiftDef } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
@@ -26,7 +27,8 @@ export default async function MiTurnoPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const saved = await getLatestCuadrante();
+  const tenant = await getCurrentTenant();
+  const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
   const linked = !!(session.workerId && data.assignments[session.workerId]);
   const myId = linked ? session.workerId! : Object.keys(data.assignments)[3];
@@ -65,7 +67,7 @@ export default async function MiTurnoPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <TopBar name={session.name} role={session.role} />
+      <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-md space-y-4 p-4 sm:p-6">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-semibold text-slate-800">Mi turno</h2>
