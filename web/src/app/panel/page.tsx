@@ -24,6 +24,7 @@ const MONTH_NAMES = [
 const GEN_MSG: Record<string, { ok: boolean; text: string }> = {
   ok: { ok: true, text: "✓ Cuadrante generado y guardado." },
   error: { ok: false, text: "No se pudo generar (la generación tardó demasiado o falló). Puedes reintentar o usar Importar." },
+  infeasible: { ok: false, text: "Las reglas no se pueden cumplir con la plantilla actual. Relájalas en «Reglas de generación» (p. ej. sube el máximo de días seguidos o baja los descansos exigidos) y vuelve a generar." },
   sinplantilla: { ok: false, text: "No hay trabajadoras activas en la base de datos. Carga la plantilla primero." },
 };
 
@@ -62,9 +63,9 @@ async function generarMesAction(formData: FormData) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cfg),
       });
-      const result = (await res.json()) as CuadranteJSON & { ok?: boolean; names?: unknown };
+      const result = (await res.json()) as CuadranteJSON & { ok?: boolean; status?: string; names?: unknown };
       if (!result?.ok) {
-        outcome = "error";
+        outcome = result?.status === "INFEASIBLE" ? "infeasible" : "error";
       } else {
         result.names = names;
         await saveCuadrante(tenant.id, year, month, result);
