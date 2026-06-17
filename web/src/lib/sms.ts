@@ -34,13 +34,15 @@ export async function sendSms(phoneE164: string, text: string): Promise<void> {
     body: JSON.stringify(body),
   });
 
+  // Un fallo del proveedor se registra pero NO rompe el login (sin error 500).
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`LabsMobile: ${res.status} ${txt}`);
+    console.error(`[sms] LabsMobile ${res.status}: ${txt}`);
+    return;
   }
   const data = (await res.json()) as { code?: string | number; message?: string };
   // LabsMobile devuelve code "0" cuando el envío es correcto.
   if (data.code !== undefined && String(data.code) !== "0") {
-    throw new Error(`LabsMobile error ${data.code}: ${data.message ?? ""}`);
+    console.error(`[sms] LabsMobile error ${data.code}: ${data.message ?? ""}`);
   }
 }
