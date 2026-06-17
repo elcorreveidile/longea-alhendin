@@ -1,4 +1,5 @@
 import "server-only";
+import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -9,6 +10,21 @@ import { sendSms } from "./sms";
 import { createOtp, verifyOtp } from "./otp";
 import { appUrl } from "./env";
 import { createSession } from "./session";
+
+/** Base del enlace según el dominio desde el que se pide (subdominio incluido). */
+async function requestBaseUrl(): Promise<string> {
+  try {
+    const h = await headers();
+    const host = h.get("host");
+    if (host) {
+      const proto = h.get("x-forwarded-proto") ?? "https";
+      return `${proto}://${host}`;
+    }
+  } catch {
+    // fuera de contexto de petición
+  }
+  return appUrl();
+}
 
 /**
  * Solicita un magic link. Solo se envía si el correo está dado de alta como
@@ -23,7 +39,8 @@ export async function requestMagicLink(rawEmail: string): Promise<void> {
   if (!allowed) return; // silenciosamente, sin enviar nada
 
   const token = await createMagicToken(email);
-  const url = `${appUrl()}/api/auth/verify?token=${encodeURIComponent(token)}`;
+  const base = await requestBaseUrl();
+  const url = `${base}/api/auth/verify?token=${encodeURIComponent(token)}`;
   await sendMagicLink(email, url);
 }
 
