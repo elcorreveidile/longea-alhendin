@@ -110,6 +110,8 @@ def _attempt(cfg, hard_coverage):
     rest_after = rules.get("rest_after_streak") or {}
     streak_threshold = int(rest_after.get("threshold", 5))
     streak_min_rest = int(rest_after.get("min_rest", 2))
+    # Máximo de descansos (D) seguidos; 0 = sin límite. Las vacaciones (V) no cuentan.
+    max_rest_run = int(rules.get("max_consecutive_rest_days", 0))
     sup_in_coverage = cfg.get("supervisors_count_in_coverage", False)
 
     model = cp_model.CpModel()
@@ -279,6 +281,19 @@ def _attempt(cfg, hard_coverage):
                     model.Add(window + mids + works(wid, d + r) <= T + (r - 1) + slack)
                     streak_slacks.append(slack)
 
+    # --- Tope de descansos (D) seguidos (preferencia fuerte, no obligación) ---
+    # Evita "demasiados descansos juntos" (p. ej. 3 seguidos). Las vacaciones (V)
+    # no cuentan como descanso aquí. Es SOFT: penaliza pero no impide generar.
+    rest_run_slacks = []
+    if max_rest_run >= 1:
+        for w in workers:
+            wid = w["id"]
+            for start in range(days - max_rest_run):
+                window = sum(is_state(wid, start + k, "D") for k in range(max_rest_run + 1))
+                slack = model.NewBoolVar(f"restrun_{wid}_{start}")
+                model.Add(window <= max_rest_run + slack)
+                rest_run_slacks.append(slack)
+
     # --- Bloque de 36h (2 días seguidos de descanso) cada 'rest_block_window' días ---
     # Mínimo legal (suelo). Además, en el objetivo se incentivan más bloques para
     # acercarse al descanso semanal. Las semanas sin 36h se reportan después.
@@ -364,6 +379,7 @@ def _attempt(cfg, hard_coverage):
     model.Minimize(
         1000 * sum(deficit_terms)
         + 300 * sum(streak_slacks)
+        + 200 * sum(rest_run_slacks)
         + 15 * night_balance
         - 5 * sum(all_blocks)
         + 1 * sum(surplus_terms)

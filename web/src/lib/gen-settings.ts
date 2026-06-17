@@ -6,6 +6,7 @@ import { settings } from "@/db/schema";
 export interface GenConfig {
   coverage: { M: number; T: number; N: number };
   maxConsecutive: number;
+  maxConsecutiveRest: number;
   restAfterStreak: { threshold: number; minRest: number };
   sundayOff: number;
   supervisorsCountInCoverage: boolean;
@@ -14,6 +15,7 @@ export interface GenConfig {
 export const DEFAULT_GEN: GenConfig = {
   coverage: { M: 9, T: 9, N: 2 },
   maxConsecutive: 6,
+  maxConsecutiveRest: 2,
   restAfterStreak: { threshold: 5, minRest: 2 },
   sundayOff: 1,
   supervisorsCountInCoverage: true,

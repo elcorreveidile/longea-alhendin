@@ -71,6 +71,7 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     shift_hours: SHIFT_HOURS,
     rules: {
       max_consecutive_work_days: gen.maxConsecutive,
+      max_consecutive_rest_days: gen.maxConsecutiveRest,
       rest_block_window_days: 14,
       sunday_off_per_month: gen.sundayOff,
       no_morning_or_afternoon_after_night: true,
