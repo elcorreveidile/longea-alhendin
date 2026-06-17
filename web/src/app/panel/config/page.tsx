@@ -21,6 +21,7 @@ async function saveConfigAction(formData: FormData) {
       N: num(formData, "covN", DEFAULT_GEN.coverage.N),
     },
     maxConsecutive: num(formData, "maxConsec", DEFAULT_GEN.maxConsecutive, 1, 14),
+    maxConsecutiveRest: num(formData, "maxRest", DEFAULT_GEN.maxConsecutiveRest, 0, 7),
     restAfterStreak: {
       threshold: num(formData, "streakThreshold", DEFAULT_GEN.restAfterStreak.threshold, 0, 14),
       minRest: num(formData, "streakMinRest", DEFAULT_GEN.restAfterStreak.minRest, 1, 4),
@@ -86,6 +87,11 @@ export default async function ConfigPage({
               <label className="block text-sm">
                 Máximo de días seguidos trabajando
                 <input name="maxConsec" type="number" min={1} max={14} defaultValue={cfg.maxConsecutive} className={numCls} />
+              </label>
+              <label className="block text-sm">
+                Máximo de descansos seguidos
+                <input name="maxRest" type="number" min={0} max={7} defaultValue={cfg.maxConsecutiveRest} className={numCls} />
+                <span className="ml-2 text-xs text-slate-400">0 = sin límite. Las vacaciones no cuentan.</span>
               </label>
               <div className="rounded-lg bg-slate-50 p-3">
                 <p className="text-sm font-medium text-slate-700">Descanso tras una racha larga</p>
