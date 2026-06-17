@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { requestMagicLink, requestSmsCode, loginByPhone } from "@/lib/auth";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { normalizePhone, maskPhone } from "@/lib/phone";
+import DevCredit from "@/components/DevCredit";
 
 const PENDING_PHONE = "pending_phone";
 
@@ -181,6 +182,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín</p>
         {sp.enviado !== "1" && tabs}
         {body}
+        <DevCredit />
       </div>
     </main>
   );
