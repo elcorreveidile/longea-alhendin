@@ -8,6 +8,7 @@ import { SHIFTS } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { buildGenerateConfig } from "@/lib/generate-config";
+import GenerateButton from "@/components/GenerateButton";
 
 const MONTH_NAMES = [
   "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -119,9 +120,7 @@ export default async function PanelPage({
               <span className="block text-slate-600">Año</span>
               <input name="year" type="number" defaultValue={defYear} className="mt-1 w-24 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             </label>
-            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-              Generar mes
-            </button>
+            <GenerateButton />
           </form>
         </section>
 
