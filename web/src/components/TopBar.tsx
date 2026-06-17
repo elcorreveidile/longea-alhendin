@@ -1,11 +1,15 @@
 export default function TopBar({ name, role }: { name: string | null; role: string }) {
   return (
     <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 print:hidden">
-      <div>
-        <h1 className="text-lg font-bold text-cyan-900">
-          Cuadrantes · Residencia Alhendín
-        </h1>
-        <p className="text-xs text-slate-500">Grupo Longea</p>
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-longea.png" alt="Longea · Grupo Aconser" className="h-9 w-auto" />
+        <div className="border-l border-slate-200 pl-3">
+          <h1 className="text-sm font-semibold text-slate-800 leading-tight">
+            Cuadrantes
+          </h1>
+          <p className="text-xs text-slate-500 leading-tight">Residencia Alhendín</p>
+        </div>
       </div>
       <div className="flex items-center gap-4 text-sm">
         <span className="text-slate-600">

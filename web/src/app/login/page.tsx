@@ -175,8 +175,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-cyan-900">Cuadrantes</h1>
-        <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín · Grupo Longea</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-longea.png" alt="Longea · Grupo Aconser" className="mb-5 h-10 w-auto" />
+        <h1 className="text-xl font-bold text-slate-800">Cuadrantes</h1>
+        <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín</p>
         {sp.enviado !== "1" && tabs}
         {body}
       </div>
