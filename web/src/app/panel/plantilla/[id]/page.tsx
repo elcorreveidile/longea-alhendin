@@ -71,7 +71,6 @@ async function addVacationAction(formData: FormData) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || end < start) {
     redirect(`/panel/plantilla/${id}?m=vacbad`);
   }
-  // Verifica que la trabajadora es del tenant antes de insertar.
   const w = (await db.select().from(workersT).where(and(eq(workersT.id, id), eq(workersT.tenantId, tenant.id))).limit(1))[0];
   if (!w) redirect("/panel/plantilla");
   await db.insert(vacationsT).values({ workerId: id, startDate: start, endDate: end, note });
@@ -87,6 +86,13 @@ async function deleteVacationAction(formData: FormData) {
   await db.delete(vacationsT).where(eq(vacationsT.id, vacId));
   redirect(`/panel/plantilla/${id}?m=vacdel`);
 }
+
+// --- Estilos "ficha de personal" vintage ---
+const label = "block text-[10px] font-bold uppercase tracking-[0.15em] text-[#8a6d3b]";
+const field =
+  "mt-0.5 w-full border-0 border-b border-dotted border-[#a08a5e] bg-transparent px-1 py-1 font-mono text-sm text-[#3a2f1d] focus:border-[#8b2e22] focus:outline-none focus:ring-0";
+const stamp =
+  "rounded-lg bg-[#7a4a3a] px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest text-[#f4ecd8] shadow hover:bg-[#693e30]";
 
 export default async function FichaPage({
   params,
@@ -118,84 +124,116 @@ export default async function FichaPage({
 
   const access = (await db.select().from(usersT).where(eq(usersT.workerId, id)).limit(1))[0];
 
-  // Turnos del último cuadrante.
   const saved = await getLatestCuadrante(tenant.id);
   const data = saved ? (saved.data as CuadranteJSON & { names?: Record<string, string> }) : null;
   const row = data ? data.assignments[id] ?? data.assignments[worker.name] ?? null : null;
   const counts = { M: 0, T: 0, N: 0, D: 0, V: 0 } as Record<string, number>;
   if (row) for (const c of row) counts[c[0] as string] = (counts[c[0] as string] ?? 0) + 1;
 
-  const inputCls = "mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm";
+  const initials = worker.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#e8ddc4]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
-      <main className="mx-auto max-w-3xl space-y-5 p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">
-            {worker.name} <span className="text-sm font-normal text-slate-400">· {ROLE_LABEL[worker.jobRole]}</span>
-          </h2>
-          <a href="/panel/plantilla" className="text-sm font-medium text-cyan-700 hover:underline">← Plantilla</a>
+      <main className="mx-auto max-w-3xl p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <a href="/panel/plantilla" className="font-mono text-sm font-medium text-[#7a4a3a] hover:underline">← Plantilla</a>
+          {msg && (
+            <span className={`rounded px-3 py-1 font-mono text-xs ${msg.ok ? "bg-[#3f6f4f] text-[#f4ecd8]" : "bg-[#8b2e22] text-[#f4ecd8]"}`}>
+              {msg.text}
+            </span>
+          )}
         </div>
 
-        {msg && (
-          <div className={`rounded-lg border p-3 text-sm ${msg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-700"}`}>
-            {msg.text}
+        {/* TARJETA */}
+        <div
+          className="relative border-[3px] border-double border-[#7a6a45] bg-[#f4ecd8] p-7 shadow-[0_10px_30px_rgba(80,60,20,0.25)]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(122,106,69,0.10) 28px)",
+          }}
+        >
+          {/* sello rojo */}
+          <div className="pointer-events-none absolute right-6 top-16 -rotate-12 rounded-md border-2 border-[#8b2e22] px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-[#8b2e22] opacity-70">
+            Personal
           </div>
-        )}
 
-        {/* Datos y preferencias */}
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-slate-800">Datos y preferencias</h3>
-          <form action={updateAction} className="flex flex-wrap items-end gap-3">
+          {/* cabecera */}
+          <div className="mb-5 border-b-2 border-[#7a6a45] pb-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#8a6d3b]">
+              {tenant?.name ?? "Residencia"} — Departamento de Personal
+            </p>
+            <h2 className="font-serif text-2xl font-bold tracking-wide text-[#3a2f1d]">FICHA DE PERSONAL</h2>
+          </div>
+
+          {/* datos + foto */}
+          <form action={updateAction} className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto]">
             <input type="hidden" name="id" value={worker.id} />
-            <label className="flex flex-col text-sm">Nombre
-              <input name="name" defaultValue={worker.name} className={`${inputCls} w-52`} />
-            </label>
-            <label className="flex flex-col text-sm">Puesto
-              <select name="role" defaultValue={worker.jobRole} className={inputCls}>
-                {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
-            </label>
-            <label className="flex flex-col text-sm">Turno fijo
-              <select name="onlyShift" defaultValue={worker.onlyShift ?? ""} className={inputCls}>
-                {SHIFTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </label>
-            <label className="flex flex-col text-sm">Teléfono
-              <input name="phone" defaultValue={worker.phone ?? ""} className={`${inputCls} w-36`} placeholder="612345678" />
-            </label>
-            <label className="flex items-center gap-2 pb-2 text-sm">
-              <input type="checkbox" name="noNight" defaultChecked={worker.noNight} className="h-4 w-4 rounded border-slate-300 text-cyan-700" />
-              Sin noches
-            </label>
-            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-              Guardar
-            </button>
-          </form>
-          <p className="mt-3 text-xs text-slate-400">
-            Acceso: {access?.email || access?.phone || "sin asignar"} ·{" "}
-            <a href="/panel/accesos" className="text-cyan-700 hover:underline">Gestionar accesos</a>
-          </p>
-        </section>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="sm:col-span-2">
+                <span className={label}>Nombre y apellidos</span>
+                <input name="name" defaultValue={worker.name} className={field} />
+              </label>
+              <label>
+                <span className={label}>Puesto</span>
+                <select name="role" defaultValue={worker.jobRole} className={field}>
+                  {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+              </label>
+              <label>
+                <span className={label}>Turno asignado</span>
+                <select name="onlyShift" defaultValue={worker.onlyShift ?? ""} className={field}>
+                  {SHIFTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </label>
+              <label>
+                <span className={label}>Teléfono</span>
+                <input name="phone" defaultValue={worker.phone ?? ""} className={field} placeholder="612345678" />
+              </label>
+              <label className="flex items-end gap-2 pb-1">
+                <input type="checkbox" name="noNight" defaultChecked={worker.noNight}
+                  className="h-4 w-4 rounded-none border-[#a08a5e] text-[#7a4a3a]" />
+                <span className="font-mono text-sm text-[#3a2f1d]">No realiza turno de noche</span>
+              </label>
+            </div>
 
-        {/* Vacaciones */}
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-slate-800">Vacaciones</h3>
+            {/* recuadro foto */}
+            <div className="flex flex-col items-center">
+              <div className="flex h-32 w-28 items-center justify-center border-2 border-dashed border-[#a08a5e] bg-[#efe5c9] font-serif text-3xl font-bold text-[#bfae84]">
+                {initials || "FOTO"}
+              </div>
+              <span className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#8a6d3b]">Fotografía</span>
+            </div>
+
+            <div className="sm:col-span-2">
+              <button className={stamp}>Guardar datos</button>
+              <span className="ml-3 font-mono text-[11px] text-[#8a6d3b]">
+                Acceso: {access?.email || access?.phone || "sin asignar"} ·{" "}
+                <a href="/panel/accesos" className="underline">gestionar</a>
+              </span>
+            </div>
+          </form>
+        </div>
+
+        {/* VACACIONES */}
+        <div className="relative mt-6 border-[3px] border-double border-[#7a6a45] bg-[#f4ecd8] p-7 shadow-[0_10px_30px_rgba(80,60,20,0.2)]">
+          <h3 className="mb-3 border-b border-[#a08a5e] pb-2 font-serif text-lg font-bold uppercase tracking-wide text-[#3a2f1d]">
+            Registro de vacaciones
+          </h3>
           {vacs.length === 0 ? (
-            <p className="mb-3 text-sm text-slate-400">No tiene periodos de vacaciones registrados.</p>
+            <p className="mb-3 font-mono text-sm text-[#8a6d3b]">— Sin periodos anotados —</p>
           ) : (
-            <ul className="mb-3 space-y-2">
+            <ul className="mb-3 divide-y divide-[#cdbd95]">
               {vacs.map((v) => (
-                <li key={v.id} className="flex items-center justify-between border-b border-slate-100 pb-2 text-sm">
-                  <span className="text-slate-700">
-                    {fmt(v.startDate)} → {fmt(v.endDate)}
-                    {v.note ? <span className="text-slate-400"> · {v.note}</span> : null}
+                <li key={v.id} className="flex items-center justify-between py-2 font-mono text-sm text-[#3a2f1d]">
+                  <span>
+                    {fmt(v.startDate)} &nbsp;→&nbsp; {fmt(v.endDate)}
+                    {v.note ? <span className="text-[#8a6d3b]"> · {v.note}</span> : null}
                   </span>
                   <form action={deleteVacationAction}>
                     <input type="hidden" name="id" value={worker.id} />
                     <input type="hidden" name="vacId" value={v.id} />
-                    <button className="rounded-lg border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100">
+                    <button className="rounded border border-[#8b2e22] px-3 py-1 text-xs font-semibold text-[#8b2e22] hover:bg-[#8b2e22] hover:text-[#f4ecd8]">
                       Quitar
                     </button>
                   </form>
@@ -203,52 +241,50 @@ export default async function FichaPage({
               ))}
             </ul>
           )}
-          <form action={addVacationAction} className="flex flex-wrap items-end gap-3">
+          <form action={addVacationAction} className="flex flex-wrap items-end gap-4">
             <input type="hidden" name="id" value={worker.id} />
-            <label className="flex flex-col text-sm">Desde
-              <input type="date" name="start" required className={inputCls} />
+            <label><span className={label}>Desde</span>
+              <input type="date" name="start" required className={field} />
             </label>
-            <label className="flex flex-col text-sm">Hasta
-              <input type="date" name="end" required className={inputCls} />
+            <label><span className={label}>Hasta</span>
+              <input type="date" name="end" required className={field} />
             </label>
-            <label className="flex flex-col text-sm">Nota (opcional)
-              <input name="note" className={`${inputCls} w-40`} placeholder="p. ej. verano" />
+            <label><span className={label}>Concepto</span>
+              <input name="note" className={field} placeholder="p. ej. verano" />
             </label>
-            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-              Añadir vacaciones
-            </button>
+            <button className={stamp}>Anotar vacaciones</button>
           </form>
-          <p className="mt-3 text-xs text-slate-400">
-            Las vacaciones se respetan automáticamente al generar los cuadrantes (mes y semana) de esas fechas.
+          <p className="mt-3 font-mono text-[11px] text-[#8a6d3b]">
+            Las vacaciones se respetan automáticamente al generar los cuadrantes de esas fechas.
           </p>
-        </section>
+        </div>
 
-        {/* Turnos del último cuadrante */}
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-slate-800">
-            Turnos {data ? `· ${MONTHS[data.month]} ${data.year}` : ""}
+        {/* TURNOS */}
+        <div className="mt-6 border-[3px] border-double border-[#7a6a45] bg-[#f4ecd8] p-7 shadow-[0_10px_30px_rgba(80,60,20,0.2)]">
+          <h3 className="mb-3 border-b border-[#a08a5e] pb-2 font-serif text-lg font-bold uppercase tracking-wide text-[#3a2f1d]">
+            Hoja de servicio {data ? `· ${MONTHS[data.month]} ${data.year}` : ""}
           </h3>
           {row ? (
             <>
-              <div className="mb-3 flex flex-wrap gap-3 text-sm">
-                <span className="rounded bg-emerald-100 px-2 py-1">Mañanas: <strong>{counts.M}</strong></span>
-                <span className="rounded bg-amber-100 px-2 py-1">Tardes: <strong>{counts.T}</strong></span>
-                <span className="rounded bg-indigo-100 px-2 py-1">Noches: <strong>{counts.N}</strong></span>
-                <span className="rounded bg-slate-100 px-2 py-1">Descansos: <strong>{counts.D}</strong></span>
-                <span className="rounded bg-sky-100 px-2 py-1">Vacaciones: <strong>{counts.V}</strong></span>
+              <div className="mb-3 flex flex-wrap gap-2 font-mono text-xs text-[#3a2f1d]">
+                <span className="rounded bg-[#d8e9dc] px-2 py-1">Mañanas: <strong>{counts.M}</strong></span>
+                <span className="rounded bg-[#f6e7c4] px-2 py-1">Tardes: <strong>{counts.T}</strong></span>
+                <span className="rounded bg-[#dcdcf0] px-2 py-1">Noches: <strong>{counts.N}</strong></span>
+                <span className="rounded bg-[#e7e0cf] px-2 py-1">Descansos: <strong>{counts.D}</strong></span>
+                <span className="rounded bg-[#cfe6f2] px-2 py-1">Vacaciones: <strong>{counts.V}</strong></span>
               </div>
               <div className="flex flex-wrap gap-1">
                 {row.map((c, i) => (
-                  <span key={i} className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-xs font-semibold">
+                  <span key={i} className="inline-flex h-7 w-7 items-center justify-center rounded-none border border-[#a08a5e] bg-[#efe5c9] font-mono text-xs font-semibold text-[#3a2f1d]">
                     {c}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <p className="text-sm text-slate-400">No aparece en el último cuadrante generado.</p>
+            <p className="font-mono text-sm text-[#8a6d3b]">No aparece en el último cuadrante generado.</p>
           )}
-        </section>
+        </div>
       </main>
     </div>
   );
