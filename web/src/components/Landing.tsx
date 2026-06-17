@@ -2,7 +2,7 @@ import Link from "next/link";
 
 function Logo() {
   return (
-    <span className="flex items-center gap-2 font-bold text-slate-800">
+    <Link href="/" className="flex items-center gap-2 font-bold text-slate-800">
       <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-700 text-white">
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
           <rect x="3" y="4" width="18" height="17" rx="2" />
@@ -10,7 +10,7 @@ function Logo() {
         </svg>
       </span>
       <span className="text-lg">Plan<span className="text-cyan-700">Turnos</span></span>
-    </span>
+    </Link>
   );
 }
 

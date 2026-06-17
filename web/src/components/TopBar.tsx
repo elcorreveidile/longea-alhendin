@@ -11,7 +11,7 @@ export default function TopBar({
 }) {
   return (
     <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 print:hidden">
-      <div className="flex items-center gap-3">
+      <a href="/" className="flex items-center gap-3" title="Ir al inicio">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoUrl || "/logo-longea.png"} alt={tenantName ?? "PlanTurnos"} className="h-9 w-auto" />
         <div className="border-l border-slate-200 pl-3">
@@ -20,7 +20,7 @@ export default function TopBar({
           </h1>
           <p className="text-xs text-slate-500 leading-tight">{tenantName ?? "PlanTurnos"}</p>
         </div>
-      </div>
+      </a>
       <div className="flex items-center gap-4 text-sm">
         {(role === "admin" || role === "superadmin") && (
           <nav className="hidden items-center gap-3 sm:flex">

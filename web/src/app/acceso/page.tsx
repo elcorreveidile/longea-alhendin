@@ -188,14 +188,19 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
+        <a href="/" className="inline-block" title="Ir al inicio">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
+        </a>
         <h1 className="text-xl font-bold text-slate-800">Acceso trabajadoras</h1>
         <p className="mt-1 mb-6 text-sm text-slate-500">{tenant?.name ?? "PlanTurnos"}</p>
         {body}
         <p className="mt-6 text-center text-xs text-slate-400">
           ¿Eres administradora?{" "}
           <a href="/login" className="font-medium text-cyan-700 hover:underline">Entra por aquí</a>
+        </p>
+        <p className="mt-2 text-center text-xs text-slate-400">
+          <a href="/" className="hover:text-cyan-700 hover:underline">← Volver a la página principal</a>
         </p>
         <DevCredit />
       </div>
