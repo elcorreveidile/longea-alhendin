@@ -95,7 +95,7 @@ def weekly_rest_warnings(assignments, weekdays, shift_hours, workers):
     return warnings
 
 
-def solve(cfg):
+def _attempt(cfg, hard_coverage):
     year, month = cfg["year"], cfg["month"]
     days, weekdays, sundays = build_calendar(year, month)
     workers = cfg["workers"]
@@ -185,6 +185,7 @@ def solve(cfg):
         return True
 
     deficit_terms = []
+    surplus_terms = []
     for d in range(days):
         for s in WORK_SHIFTS:
             req = cov.get(s, 0)
@@ -195,12 +196,17 @@ def solve(cfg):
                 if s == "N" and w["role"] == "supervisora":
                     continue
                 assigned.append(is_state(w["id"], d, s))
-            deficit = model.NewIntVar(0, req, f"def_{d}_{s}")
             surplus = model.NewIntVar(0, len(workers), f"sur_{d}_{s}")
-            model.Add(sum(assigned) + deficit - surplus == req)
-            deficit_terms.append(deficit)
+            if hard_coverage:
+                # Cobertura mínima GARANTIZADA: nunca por debajo de lo requerido.
+                model.Add(sum(assigned) - surplus == req)
+            else:
+                # Modo de respaldo (mes imposible): se permite déficit y se reporta.
+                deficit = model.NewIntVar(0, req, f"def_{d}_{s}")
+                model.Add(sum(assigned) + deficit - surplus == req)
+                deficit_terms.append(deficit)
             # Pequeña penalización al exceso para no malgastar personal
-            deficit_terms.append(surplus)
+            surplus_terms.append(surplus)
 
     # --- Tras noche, descanso (no mañana/tarde al día siguiente) ---
     if night_then_rest:
@@ -324,16 +330,24 @@ def solve(cfg):
         sq_terms.append(sq)
     night_balance = sum(sq_terms) if sq_terms else 0
 
-    # Coberturas (1000) >> equilibrio de noches (15) > bloques de 36h (5).
-    model.Minimize(1000 * sum(deficit_terms) + 15 * night_balance - 5 * sum(all_blocks))
+    # Déficit (1000, solo en respaldo) >> equilibrio de noches (15) > bloques de
+    # 36h (5) > exceso de personal (1, para no malgastar).
+    model.Minimize(
+        1000 * sum(deficit_terms)
+        + 15 * night_balance
+        - 5 * sum(all_blocks)
+        + 1 * sum(surplus_terms)
+    )
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = cfg.get("time_limit_seconds", 30)
     solver.parameters.num_search_workers = 8
     status = solver.Solve(model)
 
+    if status == cp_model.INFEASIBLE:
+        return "INFEASIBLE"
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        return {"ok": False, "status": solver.StatusName(status)}
+        return None  # sin solución dentro del tiempo
 
     # --- Extraer solución ---
     assignments = {}
@@ -382,7 +396,24 @@ def solve(cfg):
         "assignments": assignments,
         "violations": violations,
         "objective": solver.ObjectiveValue(),
+        "coverage_guaranteed": hard_coverage,
     }
+
+
+def solve(cfg):
+    """Resuelve garantizando la cobertura 9/9/2. Si un mes es imposible por
+    falta de personal, reintenta permitiendo déficit y lo reporta en
+    'violations' (en vez de devolver nada)."""
+    want_hard = cfg.get("hard_coverage", True)
+    res = _attempt(cfg, hard_coverage=want_hard)
+    if want_hard and res == "INFEASIBLE":
+        # Cobertura garantizada imposible: respaldo con déficit reportado.
+        res = _attempt(cfg, hard_coverage=False)
+        if isinstance(res, dict):
+            res["coverage_relaxed"] = True
+    if not isinstance(res, dict):
+        return {"ok": False, "status": res or "UNKNOWN"}
+    return res
 
 
 
