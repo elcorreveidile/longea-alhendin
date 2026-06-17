@@ -5,7 +5,8 @@ import { getCurrentTenant } from "@/lib/tenant";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 import { getLatestCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
-import { getPhotoUrl } from "@/lib/photos";
+import { getPhotoUrl, setPhotoUrl, clearPhotoUrl } from "@/lib/photos";
+import { put } from "@vercel/blob";
 import TopBar from "@/components/TopBar";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -27,9 +28,45 @@ function fmt(iso: string): string {
 const label = "block text-[10px] font-bold uppercase tracking-[0.15em] text-[#8a6d3b]";
 const value = "font-mono text-sm text-[#3a2f1d] border-b border-dotted border-[#a08a5e] pb-1";
 
-export default async function MiFichaPage() {
+async function uploadMyPhotoAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  const tenant = await getCurrentTenant();
+  if (!session?.workerId || !tenant) redirect("/mi-ficha");
+  const file = formData.get("photo") as File | null;
+  if (!file || file.size === 0 || !file.type.startsWith("image/") || file.size > 8_000_000) {
+    redirect("/mi-ficha?m=badimg");
+  }
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const blob = await put(`fichas/${tenant.id}/${session.workerId}.${ext}`, file, { access: "public", addRandomSuffix: true });
+  await setPhotoUrl(tenant.id, session.workerId, blob.url);
+  redirect("/mi-ficha?m=photo");
+}
+
+async function deleteMyPhotoAction() {
+  "use server";
+  const session = await getSession();
+  const tenant = await getCurrentTenant();
+  if (!session?.workerId || !tenant) redirect("/mi-ficha");
+  await clearPhotoUrl(tenant.id, session.workerId);
+  redirect("/mi-ficha?m=photodel");
+}
+
+const MSG: Record<string, { ok: boolean; text: string }> = {
+  photo: { ok: true, text: "✓ Foto actualizada." },
+  photodel: { ok: true, text: "✓ Foto eliminada." },
+  badimg: { ok: false, text: "La imagen no es válida o supera 8 MB." },
+};
+
+export default async function MiFichaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ m?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
+  const sp = await searchParams;
+  const msg = sp.m ? MSG[sp.m] : null;
 
   const tenant = await getCurrentTenant();
   const id = session.workerId;
@@ -67,6 +104,12 @@ export default async function MiFichaPage() {
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-2xl p-4 sm:p-6">
         <a href="/mi-turno" className="font-mono text-sm font-medium text-[#7a4a3a] hover:underline">← Mi turno</a>
+
+        {msg && (
+          <div className={`mt-3 rounded-lg border p-3 font-mono text-sm ${msg.ok ? "border-[#3f6f4f] bg-[#e3efe6] text-[#2f5f3f]" : "border-[#8b2e22] bg-[#f3e0dd] text-[#8b2e22]"}`}>
+            {msg.text}
+          </div>
+        )}
 
         {/* TARJETA */}
         <div
@@ -118,6 +161,23 @@ export default async function MiFichaPage() {
                 )}
               </div>
               <span className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#8a6d3b]">Fotografía</span>
+              <form action={uploadMyPhotoAction} className="mt-2 flex flex-col items-center gap-1">
+                <input
+                  type="file"
+                  name="photo"
+                  accept="image/*"
+                  required
+                  className="w-28 font-mono text-[10px] text-[#3a2f1d] file:mr-1 file:cursor-pointer file:rounded file:border-0 file:bg-[#7a4a3a] file:px-2 file:py-1 file:font-mono file:text-[10px] file:text-[#f4ecd8]"
+                />
+                <button className="rounded bg-[#7a4a3a] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-[#f4ecd8] hover:bg-[#693e30]">
+                  Subir foto
+                </button>
+              </form>
+              {photoUrl && (
+                <form action={deleteMyPhotoAction}>
+                  <button className="mt-1 font-mono text-[10px] text-[#8b2e22] underline">Quitar</button>
+                </form>
+              )}
             </div>
           </div>
         </div>
