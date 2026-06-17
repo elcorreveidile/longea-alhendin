@@ -4,6 +4,7 @@ import {
   twilioAuthToken,
   twilioVerifyServiceSid,
   twilioConfigured,
+  verifyChannel,
 } from "./env";
 
 const DEV_CODE = "000000"; // solo cuando Twilio NO está configurado (desarrollo)
@@ -13,10 +14,11 @@ function authHeader(): string {
   return "Basic " + Buffer.from(creds).toString("base64");
 }
 
-/** Pide a Twilio Verify que envíe un código por SMS al número (E.164). */
+/** Pide a Twilio Verify que envíe un código al número (E.164) por el canal configurado. */
 export async function startSmsVerification(phoneE164: string): Promise<void> {
+  const channel = verifyChannel();
   if (!twilioConfigured()) {
-    console.log(`[sms] (sin Twilio) Código de desarrollo para ${phoneE164}: ${DEV_CODE}`);
+    console.log(`[verify] (sin Twilio) Código de desarrollo para ${phoneE164} [${channel}]: ${DEV_CODE}`);
     return;
   }
   const sid = twilioVerifyServiceSid();
@@ -26,7 +28,7 @@ export async function startSmsVerification(phoneE164: string): Promise<void> {
       Authorization: authHeader(),
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ To: phoneE164, Channel: "sms" }),
+    body: new URLSearchParams({ To: phoneE164, Channel: channel }),
   });
   if (!res.ok) {
     const txt = await res.text();

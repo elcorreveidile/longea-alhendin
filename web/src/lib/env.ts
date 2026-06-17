@@ -42,12 +42,18 @@ export function isAdminPhone(phoneE164: string): boolean {
   return adminPhones().includes(phoneE164);
 }
 
-// --- Twilio Verify (SMS) ---
+// --- Twilio Verify (SMS / WhatsApp / llamada) ---
 export const twilioAccountSid = () => process.env.TWILIO_ACCOUNT_SID ?? "";
 export const twilioAuthToken = () => process.env.TWILIO_AUTH_TOKEN ?? "";
 export const twilioVerifyServiceSid = () => process.env.TWILIO_VERIFY_SERVICE_SID ?? "";
 export const twilioConfigured = () =>
   !!(twilioAccountSid() && twilioAuthToken() && twilioVerifyServiceSid());
+
+/** Canal de envío del código: whatsapp (por defecto, funciona en España), sms o call. */
+export function verifyChannel(): "whatsapp" | "sms" | "call" {
+  const c = (process.env.TWILIO_VERIFY_CHANNEL ?? "whatsapp").toLowerCase();
+  return c === "sms" || c === "call" ? c : "whatsapp";
+}
 
 export function authSecret(): string {
   const s = process.env.AUTH_SECRET;

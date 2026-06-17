@@ -76,7 +76,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         href="/login?m=sms"
         className={`flex-1 rounded-md py-1.5 text-center font-medium ${method === "sms" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}
       >
-        Móvil (SMS)
+        Móvil
       </a>
     </div>
   );
@@ -97,7 +97,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <form action={smsVerifyAction} className="space-y-4">
         {errorMsg && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{errorMsg}</p>}
         <p className="text-sm text-slate-600">
-          Te hemos enviado un código por SMS{phone ? ` al ${maskPhone(phone)}` : ""}.
+          Te hemos enviado un código a tu móvil{phone ? ` (${maskPhone(phone)})` : ""}.
           Introdúcelo aquí:
         </p>
         <input
@@ -136,10 +136,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           />
         </div>
         <button className="w-full rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-          Enviarme un código por SMS
+          Enviarme un código
         </button>
         <p className="text-center text-xs text-slate-400">
-          Recibirás un código de 6 dígitos. No necesitas contraseña.
+          Recibirás un código de 6 dígitos en tu móvil (WhatsApp o SMS). Sin contraseña.
         </p>
       </form>
     );
