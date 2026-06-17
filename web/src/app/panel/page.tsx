@@ -166,6 +166,22 @@ export default async function PanelPage({
 
         <Cuadrante data={data} />
 
+        {data.violations && data.violations.length > 0 && (
+          <section className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900">
+            <strong>⚠️ Cobertura sin cubrir (falta personal):</strong> no hay
+            suficientes trabajadoras disponibles para el mínimo 9/9/2 en estos
+            turnos. Revisa vacaciones o refuerzos:
+            <ul className="mt-2 grid grid-cols-2 gap-x-6 sm:grid-cols-3 md:grid-cols-4">
+              {data.violations.map((v, i) => (
+                <li key={i}>
+                  Día {v.day} ·{" "}
+                  {v.shift === "M" ? "mañana" : v.shift === "T" ? "tarde" : "noche"}: faltan {v.short}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {data.rest_warnings && data.rest_warnings.length > 0 && (
           <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             <strong>Descanso semanal &lt; 36 h:</strong> el motor no pudo dar 36 h
