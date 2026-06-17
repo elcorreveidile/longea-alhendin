@@ -27,6 +27,8 @@ export const workers = pgTable("workers", {
   name: text("name").notNull(),
   jobRole: jobRole("job_role").notNull().default("gerocultora"),
   phone: text("phone"),
+  noNight: boolean("no_night").notNull().default(false),
+  onlyShift: text("only_shift"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

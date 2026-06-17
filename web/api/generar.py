@@ -383,30 +383,35 @@ def solve(cfg):
     }
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Generador de cuadrantes (CP-SAT)")
-    ap.add_argument("config", help="Ruta al JSON de configuración")
-    ap.add_argument("-o", "--output", default="output.json", help="Fichero de salida")
-    args = ap.parse_args()
 
-    cfg = load_config(args.config)
-    result = solve(cfg)
-
-    if not result["ok"]:
-        print(f"❌ No se encontró solución: {result['status']}", file=sys.stderr)
-        sys.exit(1)
-
-    with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-
-    n_viol = len(result["violations"])
-    print(f"✅ Cuadrante generado ({result['status']}) -> {args.output}")
-    print(f"   {result['days']} días, {len(result['assignments'])} trabajadoras")
-    if n_viol:
-        print(f"   ⚠️  {n_viol} déficit(s) de cobertura (ver 'violations' en el JSON)")
-    else:
-        print("   ✓ Cobertura cumplida todos los días")
+# ---------------------------------------------------------------------------
+# Manejador HTTP para Vercel (función serverless Python).
+# Recibe por POST la configuración (workers, vacations, coverage, etc.) y
+# devuelve el cuadrante generado en JSON.
+# ---------------------------------------------------------------------------
+from http.server import BaseHTTPRequestHandler
 
 
-if __name__ == "__main__":
-    main()
+class handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            length = int(self.headers.get("content-length", 0))
+            raw = self.rfile.read(length) if length else b"{}"
+            cfg = json.loads(raw or b"{}")
+            cfg.setdefault("time_limit_seconds", 8)  # límite seguro para serverless
+            result = solve(cfg)
+            code = 200 if result.get("ok") else 422
+        except Exception as e:  # noqa: BLE001
+            result = {"ok": False, "error": str(e)}
+            code = 500
+        body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(b'{"ok": true, "msg": "POST con la configuracion para generar."}')
