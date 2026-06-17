@@ -22,6 +22,12 @@ export default function TopBar({
         </div>
       </div>
       <div className="flex items-center gap-4 text-sm">
+        {(role === "admin" || role === "superadmin") && (
+          <nav className="hidden items-center gap-3 sm:flex">
+            <a href="/panel" className="text-slate-600 hover:text-cyan-700">Panel</a>
+            <a href="/mi-turno" className="text-slate-600 hover:text-cyan-700">Mi turno</a>
+          </nav>
+        )}
         <span className="text-slate-600">
           {name ?? "Usuaria"}{" "}
           <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
