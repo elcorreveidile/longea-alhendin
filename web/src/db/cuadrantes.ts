@@ -13,6 +13,20 @@ export interface CuadranteJSON {
   rest_warnings?: unknown[];
 }
 
+/** Lista de meses con cuadrante guardado (más recientes primero). */
+export async function listCuadranteMonths(tenantId: string): Promise<{ year: number; month: number }[]> {
+  try {
+    const rows = await db
+      .select({ year: cuadrantes.year, month: cuadrantes.month })
+      .from(cuadrantes)
+      .where(eq(cuadrantes.tenantId, tenantId))
+      .orderBy(desc(cuadrantes.year), desc(cuadrantes.month));
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
 /** Devuelve el cuadrante guardado de un mes, o null si no hay (o no hay BD). */
 export async function getCuadrante(tenantId: string, year: number, month: number) {
   try {

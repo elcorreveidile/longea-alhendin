@@ -5,7 +5,8 @@ import TopBar from "@/components/TopBar";
 import { shiftDef } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { CuadranteData } from "@/components/Cuadrante";
-import { getLatestCuadrante } from "@/db/cuadrantes";
+import { getCuadrante, listCuadranteMonths } from "@/db/cuadrantes";
+import DownloadMyMonthButton from "@/components/DownloadMyMonthButton";
 
 const MONTH_NAMES = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -23,12 +24,21 @@ function isWork(code: string) {
   return !!code && (code.startsWith("M") || code === "T" || code === "N");
 }
 
-export default async function MiTurnoPage() {
+export default async function MiTurnoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ y?: string; m?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const sp = await searchParams;
   const tenant = await getCurrentTenant();
-  const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
+  const months = tenant ? await listCuadranteMonths(tenant.id) : [];
+  const wantY = Number(sp.y);
+  const wantM = Number(sp.m);
+  const pick = months.find((x) => x.year === wantY && x.month === wantM) ?? months[0] ?? null;
+  const saved = tenant && pick ? await getCuadrante(tenant.id, pick.year, pick.month) : null;
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
   const linked = !!(session.workerId && data.assignments[session.workerId]);
   const myId = linked ? session.workerId! : Object.keys(data.assignments)[3];
@@ -74,6 +84,32 @@ export default async function MiTurnoPage() {
           <a href="/mi-ficha" className="text-sm font-medium text-cyan-700 hover:underline">Mi ficha →</a>
         </div>
         <p className="-mt-2 text-sm text-slate-500">{MONTH_NAMES[month]} {year}</p>
+
+        {(months.length > 1 || (saved && linked)) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {months.length > 1 && (
+              <div className="flex flex-1 flex-wrap gap-1.5">
+                {months.map((mo) => {
+                  const on = mo.year === year && mo.month === month;
+                  return (
+                    <a
+                      key={`${mo.year}-${mo.month}`}
+                      href={`/mi-turno?y=${mo.year}&m=${mo.month}`}
+                      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
+                        on ? "border-cyan-600 bg-cyan-50 text-cyan-800" : "border-slate-300 bg-white text-slate-600"
+                      }`}
+                    >
+                      {MONTH_NAMES[mo.month].slice(0, 3)} {String(mo.year).slice(2)}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+            {saved && linked && row.length > 0 && (
+              <DownloadMyMonthButton name={session.name ?? ""} year={year} month={month} weekdays={weekdays} row={row} />
+            )}
+          </div>
+        )}
 
         {!linked && (
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
