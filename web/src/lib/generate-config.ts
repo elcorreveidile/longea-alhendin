@@ -2,17 +2,10 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
+import { getGenConfig } from "./gen-settings";
 
-// Constantes del convenio confirmadas con Diana.
-const COVERAGE = { M: 9, T: 9, N: 2 };
+// Horarios reales (fijos): mañana 7-14:30, tarde 14:30-22, noche 22-7.
 const SHIFT_HOURS = { M: [7, 14.5], T: [14.5, 22], N: [22, 31] };
-const RULES = {
-  max_consecutive_work_days: 6,
-  rest_block_window_days: 14,
-  sunday_off_per_month: 1,
-  no_morning_or_afternoon_after_night: true,
-  min_hours_between_shifts: 12,
-};
 
 interface EngineWorker {
   id: string;
@@ -69,13 +62,21 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     return ew;
   });
 
+  const gen = await getGenConfig(tenantId);
   const cfg = {
     year,
     month,
-    coverage: COVERAGE,
-    supervisors_count_in_coverage: true,
+    coverage: gen.coverage,
+    supervisors_count_in_coverage: gen.supervisorsCountInCoverage,
     shift_hours: SHIFT_HOURS,
-    rules: RULES,
+    rules: {
+      max_consecutive_work_days: gen.maxConsecutive,
+      rest_block_window_days: 14,
+      sunday_off_per_month: gen.sundayOff,
+      no_morning_or_afternoon_after_night: true,
+      min_hours_between_shifts: 12,
+      rest_after_streak: { threshold: gen.restAfterStreak.threshold, min_rest: gen.restAfterStreak.minRest },
+    },
     time_limit_seconds: 35,
     workers,
   };
