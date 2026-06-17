@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { getLatestCuadrante, getCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
+import { getWeek } from "@/lib/week-cuadrantes";
 
 const MONTHS = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -26,25 +27,50 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Sin residencia" }, { status: 404 });
   }
   const sp = req.nextUrl.searchParams;
-  const y = Number(sp.get("year"));
-  const m = Number(sp.get("month"));
-  const row = y && m ? await getCuadrante(tenant.id, y, m) : await getLatestCuadrante(tenant.id);
-  if (!row) {
-    return NextResponse.json({ error: "No hay cuadrante guardado" }, { status: 404 });
-  }
+  const weekStart = sp.get("week");
 
-  const data = row.data as CuadranteJSON & { names?: Record<string, string> };
-  const { year, month, days, weekdays, assignments } = data;
-  const names = data.names ?? {};
+  // Datos normalizados (sirve para mes o semana).
+  let sheetName: string;
+  let filename: string;
+  let dayLabels: string[]; // número de día por columna
+  let weekdays: string[];
+  let assignments: Record<string, string[]>;
+  let names: Record<string, string>;
+
+  if (weekStart) {
+    const week = await getWeek(tenant.id, weekStart);
+    if (!week) return NextResponse.json({ error: "No hay semana guardada" }, { status: 404 });
+    weekdays = week.weekdays;
+    assignments = week.assignments;
+    names = week.names ?? {};
+    dayLabels = week.dates.map((iso) => String(Number(iso.split("-")[2])));
+    sheetName = `Semana ${weekStart}`;
+    filename = `cuadrante-semana-${weekStart}.xlsx`;
+  } else {
+    const y = Number(sp.get("year"));
+    const m = Number(sp.get("month"));
+    const row = y && m ? await getCuadrante(tenant.id, y, m) : await getLatestCuadrante(tenant.id);
+    if (!row) {
+      return NextResponse.json({ error: "No hay cuadrante guardado" }, { status: 404 });
+    }
+    const data = row.data as CuadranteJSON & { names?: Record<string, string> };
+    weekdays = data.weekdays;
+    assignments = data.assignments;
+    names = data.names ?? {};
+    dayLabels = Array.from({ length: data.days }, (_, i) => String(i + 1));
+    sheetName = `${MONTHS[data.month]} ${data.year}`;
+    filename = `cuadrante-${MONTHS[data.month]}-${data.year}.xlsx`;
+  }
+  const days = dayLabels.length;
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet(`${MONTHS[month]} ${year}`, {
+  const ws = wb.addWorksheet(sheetName, {
     views: [{ state: "frozen", xSplit: 1, ySplit: 2 }],
     pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
   });
 
   // Cabecera: dos filas (número de día / letra del día de la semana).
-  const dayNums = ["Trabajadora", ...Array.from({ length: days }, (_, i) => String(i + 1))];
+  const dayNums = ["Trabajadora", ...dayLabels];
   const dayLetters = ["", ...weekdays];
   const hdr1 = ws.addRow(dayNums);
   const hdr2 = ws.addRow(dayLetters);
@@ -86,7 +112,6 @@ export async function GET(req: NextRequest) {
   for (let c = 2; c <= days + 1; c++) ws.getColumn(c).width = 3.5;
 
   const buf = await wb.xlsx.writeBuffer();
-  const filename = `cuadrante-${MONTHS[month]}-${year}.xlsx`;
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
