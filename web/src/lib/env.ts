@@ -20,6 +20,17 @@ export function isAdminEmail(email: string): boolean {
   return adminEmails().includes(email.trim().toLowerCase());
 }
 
+export function superAdminEmails(): string[] {
+  return (process.env.SUPERADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isSuperAdminEmail(email: string): boolean {
+  return superAdminEmails().includes(email.trim().toLowerCase());
+}
+
 export function adminPhones(): string[] {
   return (process.env.ADMIN_PHONES ?? "")
     .split(",")

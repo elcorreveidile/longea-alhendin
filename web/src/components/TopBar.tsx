@@ -11,7 +11,11 @@ export default function TopBar({ name, role }: { name: string | null; role: stri
         <span className="text-slate-600">
           {name ?? "Usuaria"}{" "}
           <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-            {role === "admin" ? "Administradora" : "Trabajadora"}
+            {role === "superadmin"
+              ? "Súper administrador"
+              : role === "admin"
+                ? "Administradora"
+                : "Trabajadora"}
           </span>
         </span>
         <a href="/logout" className="text-cyan-700 hover:underline">

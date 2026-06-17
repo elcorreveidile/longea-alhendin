@@ -15,6 +15,13 @@
       "when": 1781697604021,
       "tag": "0001_fearless_tenebrous",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781698477696,
+      "tag": "0002_eager_prism",
+      "breakpoints": true
     }
   ]
 }

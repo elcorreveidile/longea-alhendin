@@ -6,12 +6,19 @@ import { authSecret } from "./env";
 const COOKIE = "session";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 días
 
+export type AppRole = "superadmin" | "admin" | "worker";
+
 export interface SessionData {
   userId: string;
   email: string;
   name: string | null;
-  role: "admin" | "worker";
+  role: AppRole;
   workerId: string | null;
+}
+
+/** ¿Tiene acceso al panel de administración? (admin o superadmin) */
+export function isStaffAdmin(role: AppRole): boolean {
+  return role === "admin" || role === "superadmin";
 }
 
 function key(): Uint8Array {
@@ -45,7 +52,12 @@ export async function getSession(): Promise<SessionData | null> {
       userId: String(payload.userId),
       email: String(payload.email),
       name: (payload.name as string | null) ?? null,
-      role: payload.role === "admin" ? "admin" : "worker",
+      role:
+        payload.role === "superadmin"
+          ? "superadmin"
+          : payload.role === "admin"
+            ? "admin"
+            : "worker",
       workerId: (payload.workerId as string | null) ?? null,
     };
   } catch {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { requestMagicLink, requestSmsCode, loginByPhone } from "@/lib/auth";
-import { getSession } from "@/lib/session";
+import { getSession, isStaffAdmin } from "@/lib/session";
 import { normalizePhone, maskPhone } from "@/lib/phone";
 
 const PENDING_PHONE = "pending_phone";
@@ -21,7 +21,7 @@ type SP = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<SP> }) {
   const session = await getSession();
-  if (session) redirect(session.role === "admin" ? "/panel" : "/mi-turno");
+  if (session) redirect(isStaffAdmin(session.role) ? "/panel" : "/mi-turno");
 
   const sp = await searchParams;
   const method = sp.m === "sms" ? "sms" : "email";

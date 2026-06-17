@@ -12,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 // Permiso dentro de la app (distinto del puesto laboral)
-export const appRole = pgEnum("app_role", ["admin", "worker"]);
+export const appRole = pgEnum("app_role", ["superadmin", "admin", "worker"]);
 // Puesto laboral en la residencia
 export const jobRole = pgEnum("job_role", [
   "gerocultora",
