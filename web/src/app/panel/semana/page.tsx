@@ -130,6 +130,17 @@ export default async function SemanaPage({
           </div>
         )}
 
+        {data && selected && (
+          <div className="flex justify-end print:hidden">
+            <a
+              href={`/panel/semana/editar?d=${selected}`}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Editar a mano
+            </a>
+          </div>
+        )}
+
         {data ? (
           <WeekCuadrante data={data} />
         ) : (
