@@ -194,8 +194,8 @@ def solve(cfg):
         if sunday_rest:
             model.Add(sum(is_state(wid, sd, "D") for sd in sundays) >= sundays_off_min)
 
-    # --- Supervisoras: patrón ligero (mañanas y tardes, sin noches) ---
-    # Aproximación: como mucho 3 mañanas y 3 tardes por semana natural.
+    # --- Supervisoras: patrón 3 mañanas / 2 tardes / 2 descansos, sin noches ---
+    # (Diana: "2 mañanas, 2 tardes, 2 descansos y al 7º día entra de mañana".)
     for w in workers:
         if w["role"] != "supervisora":
             continue
@@ -207,11 +207,11 @@ def solve(cfg):
         for wk, wdays in weeks.items():
             n_m = sum(is_state(wid, d, "M") for d in wdays)
             n_t = sum(is_state(wid, d, "T") for d in wdays)
-            if len(wdays) >= 6:  # semana completa -> patrón 2 mañanas / 2 tardes
-                model.Add(n_m == 2)
+            if len(wdays) == 7:  # semana completa -> 3 mañanas / 2 tardes / 2 descansos
+                model.Add(n_m == 3)
                 model.Add(n_t == 2)
             else:  # semana parcial (borde de mes) -> proporcional
-                model.Add(n_m <= 2)
+                model.Add(n_m <= 3)
                 model.Add(n_t <= 2)
 
     # --- Objetivo: minimizar déficit de cobertura y equilibrar noches ---

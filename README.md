@@ -100,21 +100,22 @@ Variables de entorno (ver `web/.env.example`): `DATABASE_URL`, `AUTH_SECRET`
   PDF/imprimir.
 - **Fase 3 — Despliegue** para la residencia y formación.
 
+## Reglas confirmadas por Diana
+
+- ✅ **Las supervisoras SÍ cuentan** dentro de los 9 de cada turno.
+- ✅ **Patrón de supervisora**: 3 mañanas / 2 tardes / 2 descansos por semana
+  (2M+2T+2D y el 7º día entra de mañana), sin noches.
+- ✅ **Horarios**: mañana 7:00–14:30 · tarde 14:30–22:00 · noche 22:00–7:00.
+
 ## Preguntas abiertas (pendientes de confirmar con Diana)
 
 1. **Plantilla exacta**: la lista real es 26 gerocultoras + 2 supervisoras. La
    config de ejemplo lleva nombres leídos de la foto (hay que repasarlos) y una
    "sustituta" para la plaza que deja Diana. ¿Ana Muñoz sigue como gerocultora
    o causa baja?
-2. **¿Las supervisoras cuentan dentro de las 9 de cada turno, o van aparte?**
-   (ahora mismo: aparte).
-3. **Patrón exacto de las supervisoras**: "2 mañanas, 2 tardes, 2 descansos"
-   ¿es por semana? ¿qué pasa con el 7º día?
-4. **Horarios reales** de cada turno (mañana/tarde/noche) para calcular bien las
-   36 h de descanso. (asumido: M 8–15, T 15–22, N 22–8).
-5. **Descanso semanal**: ¿36 h se garantizan cada semana o se promedian en 14
+2. **Descanso semanal**: ¿36 h se garantizan cada semana o se promedian en 14
    días? ¿Máximo de días seguidos trabajando según convenio?
-6. **¿Los subtipos M1–M4 necesitan un mínimo por día** (p. ej. siempre alguien
+3. **¿Los subtipos M1–M4 necesitan un mínimo por día** (p. ej. siempre alguien
    en cada grupo de ducha) o basta con sumar 9 de mañana?
-7. **Vacaciones**: ¿las fija la supervisora y el motor las respeta, o el motor
-   también las reparte?
+4. **Vacaciones**: Diana las tiene apuntadas y las enviará. El motor las
+   respetará (entrada fija). _(Pendiente: recibir el listado.)_

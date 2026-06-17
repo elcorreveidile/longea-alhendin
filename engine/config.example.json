@@ -2,12 +2,12 @@
   "year": 2026,
   "month": 7,
   "coverage": { "M": 9, "T": 9, "N": 2 },
-  "supervisors_count_in_coverage": false,
+  "supervisors_count_in_coverage": true,
   "time_limit_seconds": 30,
   "shift_hours": {
-    "M": [8, 15],
-    "T": [15, 22],
-    "N": [22, 32]
+    "M": [7, 14.5],
+    "T": [14.5, 22],
+    "N": [22, 31]
   },
   "rules": {
     "max_consecutive_work_days": 6,

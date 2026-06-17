@@ -37,9 +37,9 @@ export default function Cuadrante({ data }: { data: CuadranteData }) {
   // recuento de cobertura por día
   const supervisors = new Set(["diana", "sup2"]);
   const coverage = dayNums.map((_, d) => {
+    // Las supervisoras también cuentan en la cobertura de mañana/tarde.
     let m = 0, t = 0, n = 0;
-    for (const [id, row] of Object.entries(data.assignments)) {
-      if (supervisors.has(id)) continue;
+    for (const row of Object.values(data.assignments)) {
       const c = row[d];
       if (c?.startsWith("M")) m++;
       else if (c === "T") t++;
