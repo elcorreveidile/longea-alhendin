@@ -249,15 +249,22 @@ def _attempt(cfg, hard_coverage):
                     model.Add(x[wid, d + 1, s2] == 0).OnlyEnforceIf(x[wid, d, s1])
 
     # --- Máximo de días seguidos trabajando ---
+    # M.Mar (L-V fijo) y supervisoras tienen patrón propio; se eximen para que
+    # bajar el máximo no genere conflictos imposibles.
     for w in workers:
+        if w["role"] in ("gerocultora_lv", "supervisora"):
+            continue
         wid = w["id"]
         for start in range(days - max_consec):
             window = [works(wid, d) for d in range(start, start + max_consec + 1)]
             model.Add(sum(window) <= max_consec)
 
-    # --- Descanso tras racha larga ---
+    # --- Descanso tras racha larga (preferencia fuerte, no obligación) ---
     # Tras 'streak_threshold' días seguidos trabajando, si se descansa, el
-    # descanso debe ser de al menos 'streak_min_rest' días seguidos (no 1 suelto).
+    # descanso debería ser de al menos 'streak_min_rest' días seguidos (no 1
+    # suelto). Es SOFT: si no hay forma de cumplirlo, se penaliza pero el
+    # cuadrante se genera igualmente (nunca lo deja sin solución).
+    streak_slacks = []
     if streak_threshold and streak_min_rest >= 2:
         T = streak_threshold
         for w in workers:
@@ -268,7 +275,9 @@ def _attempt(cfg, hard_coverage):
                     if d + r >= days:
                         break
                     mids = sum(rest_ind(wid, d + k) for k in range(1, r))
-                    model.Add(window + mids + works(wid, d + r) <= T + (r - 1))
+                    slack = model.NewBoolVar(f"streakslack_{wid}_{d}_{r}")
+                    model.Add(window + mids + works(wid, d + r) <= T + (r - 1) + slack)
+                    streak_slacks.append(slack)
 
     # --- Bloque de 36h (2 días seguidos de descanso) cada 'rest_block_window' días ---
     # Mínimo legal (suelo). Además, en el objetivo se incentivan más bloques para
@@ -354,6 +363,7 @@ def _attempt(cfg, hard_coverage):
     # 36h (5) > exceso de personal (1, para no malgastar).
     model.Minimize(
         1000 * sum(deficit_terms)
+        + 300 * sum(streak_slacks)
         + 15 * night_balance
         - 5 * sum(all_blocks)
         + 1 * sum(surplus_terms)
