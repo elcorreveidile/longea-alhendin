@@ -15,6 +15,7 @@ export interface CuadranteData {
   assignments: Record<string, string[]>;
   violations: { day: number; shift: string; required: number; assigned: number; short: number }[];
   rest_warnings?: { worker: string; name: string; from_day: number; to_day: number }[];
+  names?: Record<string, string>;
 }
 
 // Nombre legible a partir del id (de momento; vendrá del modelo de datos real)
@@ -75,7 +76,7 @@ export default function Cuadrante({ data }: { data: CuadranteData }) {
             return (
               <tr key={id} className={isSup ? "bg-slate-200/60" : ""}>
                 <td className={`sticky left-0 z-10 whitespace-nowrap px-3 py-1 font-medium ${isSup ? "bg-slate-200" : "bg-white"}`}>
-                  {nameFor(id)}
+                  {data.names?.[id] ?? nameFor(id)}
                 </td>
                 {row.map((code, d) => {
                   const def = shiftDef(code);

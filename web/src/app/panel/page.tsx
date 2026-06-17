@@ -1,16 +1,24 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession, isStaffAdmin } from "@/lib/session";
+import { appUrl } from "@/lib/env";
 import TopBar from "@/components/TopBar";
 import Cuadrante, { CuadranteData } from "@/components/Cuadrante";
 import { SHIFTS } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
+import { buildGenerateConfig } from "@/lib/generate-config";
 
 const MONTH_NAMES = [
   "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
+
+const GEN_MSG: Record<string, { ok: boolean; text: string }> = {
+  ok: { ok: true, text: "✓ Cuadrante generado y guardado." },
+  error: { ok: false, text: "No se pudo generar (la generación tardó demasiado o falló). Puedes reintentar o usar Importar." },
+  sinplantilla: { ok: false, text: "No hay trabajadoras activas en la base de datos. Carga la plantilla primero." },
+};
 
 async function importCuadranteAction(formData: FormData) {
   "use server";
@@ -22,39 +30,110 @@ async function importCuadranteAction(formData: FormData) {
     await saveCuadrante(json.year, json.month, json);
     revalidatePath("/panel");
   } catch {
-    // JSON inválido: se ignora (en una versión futura mostraremos el error)
+    // JSON inválido: se ignora
   }
 }
 
-export default async function PanelPage() {
+async function generarMesAction(formData: FormData) {
+  "use server";
+  const year = Number(formData.get("year"));
+  const month = Number(formData.get("month"));
+  let outcome = "ok";
+  try {
+    const { cfg, names } = await buildGenerateConfig(year, month);
+    if (!cfg.workers.length) {
+      outcome = "sinplantilla";
+    } else {
+      const base = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : appUrl();
+      const res = await fetch(`${base}/api/generar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cfg),
+      });
+      const result = (await res.json()) as CuadranteJSON & { ok?: boolean; names?: unknown };
+      if (!result?.ok) {
+        outcome = "error";
+      } else {
+        result.names = names;
+        await saveCuadrante(year, month, result);
+      }
+    }
+  } catch {
+    outcome = "error";
+  }
+  redirect(`/panel?gen=${outcome}`);
+}
+
+export default async function PanelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ gen?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+
+  const sp = await searchParams;
+  const genMsg = sp.gen ? GEN_MSG[sp.gen] : null;
 
   const saved = await getLatestCuadrante();
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
   const isReal = !!saved;
   const legend = ["M", "T", "N", "D", "V", "H", "HD"];
 
+  // Por defecto, el mes siguiente al actual.
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const defYear = next.getFullYear();
+  const defMonth = next.getMonth() + 1;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <TopBar name={session.name} role={session.role} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
+        {genMsg && (
+          <section
+            className={`rounded-lg border p-3 text-sm ${genMsg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
+          >
+            {genMsg.text}
+          </section>
+        )}
+
+        {/* Generar mes */}
+        <section className="rounded-lg border border-cyan-200 bg-white p-4 shadow-sm">
+          <h2 className="font-semibold text-slate-800">Generar cuadrante</h2>
+          <p className="mt-1 mb-3 text-sm text-slate-500">
+            El motor genera el mes con la plantilla y vacaciones de la base de datos,
+            respetando el convenio, y lo guarda. Puede tardar unos segundos.
+          </p>
+          <form action={generarMesAction} className="flex flex-wrap items-end gap-3">
+            <label className="text-sm">
+              <span className="block text-slate-600">Mes</span>
+              <select name="month" defaultValue={defMonth} className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                {MONTH_NAMES.slice(1).map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="block text-slate-600">Año</span>
+              <input name="year" type="number" defaultValue={defYear} className="mt-1 w-24 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            </label>
+            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+              Generar mes
+            </button>
+          </form>
+        </section>
+
         <section className="rounded-lg bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold text-slate-800">
               Cuadrante · {MONTH_NAMES[data.month]} {data.year}
             </h2>
-            <span
-              className={`rounded px-2 py-1 text-xs font-medium ${isReal ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}
-            >
+            <span className={`rounded px-2 py-1 text-xs font-medium ${isReal ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
               {isReal ? "Guardado en la base de datos" : "Ejemplo (sin datos cargados)"}
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
-            Cobertura 9 mañana / 9 tarde / 2 noche, descansos legales, domingo libre al
-            mes y reglas de M.Mar y supervisoras. La fila inferior comprueba la cobertura.
-          </p>
         </section>
 
         <section className="flex flex-wrap gap-2">
@@ -88,18 +167,11 @@ export default async function PanelPage() {
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-slate-800">Importar cuadrante</h3>
           <p className="mt-1 mb-3 text-sm text-slate-500">
-            Sube el fichero <code>output.json</code> generado por el motor para
-            guardarlo como cuadrante del mes. (Próximamente: generar desde aquí.)
+            Alternativa: sube el fichero <code>output.json</code> del motor para guardarlo.
           </p>
           <form action={importCuadranteAction} className="flex items-center gap-3">
-            <input
-              type="file"
-              name="file"
-              accept="application/json,.json"
-              required
-              className="text-sm"
-            />
-            <button className="rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+            <input type="file" name="file" accept="application/json,.json" required className="text-sm" />
+            <button className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
               Guardar
             </button>
           </form>
