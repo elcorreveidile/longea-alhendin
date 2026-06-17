@@ -1,0 +1,44 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+import TopBar from "@/components/TopBar";
+import Cuadrante, { CuadranteData } from "@/components/Cuadrante";
+import { SHIFTS } from "@/data/shifts";
+import sample from "@/data/sample-cuadrante.json";
+
+export default async function PanelPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.role !== "admin") redirect("/mi-turno");
+
+  const data = sample as unknown as CuadranteData;
+  const legend = ["M", "T", "N", "D", "V", "H", "HD"];
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <TopBar name={session.name} role={session.role} />
+      <main className="mx-auto max-w-[1400px] space-y-5 p-6">
+        <section className="rounded-lg bg-white p-4 shadow-sm">
+          <h2 className="font-semibold text-slate-800">Cuadrante (muestra)</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Generado por el motor automático respetando cobertura 9/9/2, descansos
+            legales, domingo libre al mes y reglas de M.Mar y supervisoras. La fila
+            inferior comprueba la cobertura en vivo.
+          </p>
+        </section>
+
+        <section className="flex flex-wrap gap-2">
+          {legend.map((c) => {
+            const def = SHIFTS[c];
+            return (
+              <span key={c} className={`rounded px-2 py-1 text-xs font-medium ${def.className}`}>
+                <strong>{c}</strong> · {def.label}
+              </span>
+            );
+          })}
+        </section>
+
+        <Cuadrante data={data} />
+      </main>
+    </div>
+  );
+}
