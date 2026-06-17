@@ -51,6 +51,50 @@ def build_calendar(year, month):
     return days, weekdays, sundays
 
 
+def weekly_rest_warnings(assignments, weekdays, shift_hours, workers):
+    """Comprueba, con los horarios reales, qué semanas (L-D completas) no tienen
+    un descanso continuo de >=36h por persona. Devuelve la lista de avisos."""
+    name_by_id = {w["id"]: w.get("name", w["id"]) for w in workers}
+    days = len(weekdays)
+    wd0 = weekdays[0]
+
+    def busy_intervals(row):
+        ivs = []
+        for d, s in enumerate(row):
+            hrs = shift_hours.get(s)
+            if hrs:  # solo turnos de trabajo (M/T/N); D/V no tienen horario
+                ivs.append((d * 24 + hrs[0], d * 24 + hrs[1]))
+        ivs.sort()
+        return ivs
+
+    # Semanas L-D completas
+    weeks = {}
+    for d in range(days):
+        weeks.setdefault((d + wd0) // 7, []).append(d)
+    full_weeks = [ds for ds in weeks.values() if len(ds) == 7]
+
+    warnings = []
+    for wid, row in assignments.items():
+        ivs = busy_intervals(row)
+        # Sentinelas en los límites del mes: el descanso al principio/fin (p. ej.
+        # antes de empezar tras vacaciones) también cuenta.
+        bounds = [(0, 0)] + ivs + [(days * 24, days * 24)]
+        gaps = [(bounds[i][1], bounds[i + 1][0]) for i in range(len(bounds) - 1)]
+        rest36 = [(g0, g1) for (g0, g1) in gaps if g1 - g0 >= 36]
+        for ds in full_weeks:
+            ws_h, we_h = ds[0] * 24, (ds[-1] + 1) * 24
+            all_rest = all(row[d] in ("D", "V") for d in ds)
+            covered = all_rest or any(g0 < we_h and g1 > ws_h for (g0, g1) in rest36)
+            if not covered:
+                warnings.append({
+                    "worker": wid,
+                    "name": name_by_id.get(wid, wid),
+                    "from_day": ds[0] + 1,
+                    "to_day": ds[-1] + 1,
+                })
+    return warnings
+
+
 def solve(cfg):
     year, month = cfg["year"], cfg["month"]
     days, weekdays, sundays = build_calendar(year, month)
@@ -179,6 +223,9 @@ def solve(cfg):
             model.Add(sum(window) <= max_consec)
 
     # --- Bloque de 36h (2 días seguidos de descanso) cada 'rest_block_window' días ---
+    # Mínimo legal (suelo). Además, en el objetivo se incentivan más bloques para
+    # acercarse al descanso semanal. Las semanas sin 36h se reportan después.
+    all_blocks = []
     for w in workers:
         wid = w["id"]
         # variable bloque b[d] = D[d] AND D[d+1]
@@ -195,6 +242,7 @@ def solve(cfg):
                 model.Add(bd <= d1) if not isinstance(d1, int) else None
                 model.Add(bd >= d0 + d1 - 1)
             block[d] = bd
+            all_blocks.append(bd)
         for start in range(0, max(1, days - rest_block_window + 1)):
             window = [block[d] for d in range(start, min(start + rest_block_window - 1, days - 1))]
             if window:
@@ -252,7 +300,8 @@ def solve(cfg):
     else:
         spread = model.NewConstant(0)
 
-    model.Minimize(1000 * sum(deficit_terms) + 10 * spread)
+    # Incentivar más bloques de 36h (acercarse al descanso semanal real).
+    model.Minimize(1000 * sum(deficit_terms) + 10 * spread - 5 * sum(all_blocks))
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = cfg.get("time_limit_seconds", 30)
@@ -295,10 +344,16 @@ def solve(cfg):
                     "required": req, "assigned": count, "short": req - count,
                 })
 
+    # --- Reportar semanas sin 36h de descanso continuo ---
+    rest_warnings = weekly_rest_warnings(
+        assignments, weekdays, cfg.get("shift_hours", {}), workers
+    )
+
     return {
         "ok": True,
         "status": solver.StatusName(status),
         "year": year, "month": month, "days": days,
+        "rest_warnings": rest_warnings,
         "weekdays": [WEEKDAY_LETTERS[wd] for wd in weekdays],
         "assignments": assignments,
         "violations": violations,

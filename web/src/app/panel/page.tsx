@@ -38,6 +38,20 @@ export default async function PanelPage() {
         </section>
 
         <Cuadrante data={data} />
+
+        {data.rest_warnings && data.rest_warnings.length > 0 && (
+          <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <strong>Descanso semanal &lt; 36 h:</strong> el motor no pudo dar 36 h
+            seguidas de descanso en estas semanas (revísalas o compénsalas en 14 días):
+            <ul className="mt-2 list-disc pl-5">
+              {data.rest_warnings.map((w, i) => (
+                <li key={i}>
+                  <strong>{w.name}</strong> — días {w.from_day} a {w.to_day}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
     </div>
   );
