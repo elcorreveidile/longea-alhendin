@@ -182,6 +182,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="mt-1 mb-6 text-sm text-slate-500">Residencia Alhendín</p>
         {sp.enviado !== "1" && tabs}
         {body}
+        <p className="mt-6 text-center text-xs text-slate-400">
+          ¿Eres trabajadora?{" "}
+          <a href="/acceso" className="font-medium text-cyan-700 hover:underline">
+            Entra con tu código
+          </a>
+        </p>
         <DevCredit />
       </div>
     </main>

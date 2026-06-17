@@ -44,6 +44,8 @@ export const users = pgTable(
     role: appRole("role").notNull().default("worker"),
     // Enlaza el login con su ficha de plantilla (para "mi turno")
     workerId: uuid("worker_id").references(() => workers.id, { onDelete: "set null" }),
+    // PIN de acceso de la trabajadora (hash), para el acceso por código + nombre + PIN
+    pinHash: text("pin_hash"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   },
@@ -101,6 +103,13 @@ export const cuadrantes = pgTable(
   },
   (t) => [uniqueIndex("cuadrantes_year_month_idx").on(t.year, t.month)],
 );
+
+/** Ajustes de la aplicación (clave/valor). P. ej. el código de acceso de trabajadoras. */
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export type Worker = typeof workers.$inferSelect;
 export type User = typeof users.$inferSelect;
