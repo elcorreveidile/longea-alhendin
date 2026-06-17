@@ -304,26 +304,28 @@ def solve(cfg):
                     model.Add(n_m + n_t >= 2)
 
     # --- Objetivo: minimizar déficit de cobertura y equilibrar noches ---
+    # Solo se equilibran las noches entre quienes PUEDEN hacerlas (excluye
+    # supervisoras, M.Mar y quienes no hacen noches); si no, su "0" falseaba
+    # el reparto.
     nights = []
     for w in workers:
-        if w["role"] in ("supervisora", "gerocultora_lv"):
+        if "N" not in allowed_states(w):
             continue
         wid = w["id"]
         n = model.NewIntVar(0, days, f"nights_{wid}")
         model.Add(n == sum(is_state(wid, d, "N") for d in range(days)))
         nights.append(n)
-    night_spread = model.NewIntVar(0, days, "night_spread")
-    if nights:
-        model.AddMaxEquality(night_spread, nights)  # max
-        min_n = model.NewIntVar(0, days, "min_nights")
-        model.AddMinEquality(min_n, nights)
-        spread = model.NewIntVar(0, days, "spread")
-        model.Add(spread == night_spread - min_n)
-    else:
-        spread = model.NewConstant(0)
+    # Minimizar la suma de cuadrados de las noches reparte de forma uniforme
+    # (penaliza tanto al que tiene de más como al que tiene de menos).
+    sq_terms = []
+    for i, n in enumerate(nights):
+        sq = model.NewIntVar(0, days * days, f"nightsq_{i}")
+        model.AddMultiplicationEquality(sq, [n, n])
+        sq_terms.append(sq)
+    night_balance = sum(sq_terms) if sq_terms else 0
 
-    # Incentivar más bloques de 36h (acercarse al descanso semanal real).
-    model.Minimize(1000 * sum(deficit_terms) + 10 * spread - 5 * sum(all_blocks))
+    # Coberturas (1000) >> equilibrio de noches (15) > bloques de 36h (5).
+    model.Minimize(1000 * sum(deficit_terms) + 15 * night_balance - 5 * sum(all_blocks))
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = cfg.get("time_limit_seconds", 30)

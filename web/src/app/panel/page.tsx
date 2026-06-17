@@ -11,6 +11,10 @@ import { buildGenerateConfig } from "@/lib/generate-config";
 import GenerateButton from "@/components/GenerateButton";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
 
+// La generación llama al motor (Python) y espera su respuesta; ampliamos el
+// tiempo máximo de la función para que dé tiempo a resolver el cuadrante.
+export const maxDuration = 60;
+
 const MONTH_NAMES = [
   "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
