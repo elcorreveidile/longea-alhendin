@@ -72,7 +72,7 @@ export async function buildGenerateConfig(year: number, month: number) {
     supervisors_count_in_coverage: true,
     shift_hours: SHIFT_HOURS,
     rules: RULES,
-    time_limit_seconds: 8,
+    time_limit_seconds: 35,
     workers,
   };
 
