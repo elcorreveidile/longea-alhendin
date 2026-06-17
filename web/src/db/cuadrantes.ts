@@ -36,11 +36,13 @@ export async function getCuadrante(tenantId: string, year: number, month: number
 /** Devuelve el cuadrante más reciente guardado del tenant, o null. */
 export async function getLatestCuadrante(tenantId: string) {
   try {
+    // El más recientemente generado/editado (no el de mes mayor), para que
+    // el panel muestre justo el que se acaba de generar.
     const rows = await db
       .select()
       .from(cuadrantes)
       .where(eq(cuadrantes.tenantId, tenantId))
-      .orderBy(desc(cuadrantes.year), desc(cuadrantes.month))
+      .orderBy(desc(cuadrantes.updatedAt))
       .limit(1);
     return rows[0] ?? null;
   } catch {
