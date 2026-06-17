@@ -9,6 +9,7 @@ import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { buildGenerateConfig } from "@/lib/generate-config";
 import { getGenConfig } from "@/lib/gen-settings";
+import { notifyNewCuadrante } from "@/lib/notify";
 import { getCurrentTenant } from "@/lib/tenant";
 import GenerateButton from "@/components/GenerateButton";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
@@ -78,10 +79,25 @@ async function generarMesAction(formData: FormData) {
   redirect(`/panel?gen=${outcome}`);
 }
 
+const MONTH_LABEL = [
+  "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+async function publishAction(formData: FormData) {
+  "use server";
+  const year = Number(formData.get("year"));
+  const month = Number(formData.get("month"));
+  const tenant = await getCurrentTenant();
+  if (!tenant || !year || !month) redirect("/panel");
+  const r = await notifyNewCuadrante(tenant.id, `${MONTH_LABEL[month]} ${year}`);
+  redirect(`/panel?pub=${r.email}_${r.sms}_${r.skipped}`);
+}
+
 export default async function PanelPage({
   searchParams,
 }: {
-  searchParams: Promise<{ gen?: string }>;
+  searchParams: Promise<{ gen?: string; pub?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -89,6 +105,14 @@ export default async function PanelPage({
 
   const sp = await searchParams;
   const genMsg = sp.gen ? GEN_MSG[sp.gen] : null;
+  let pubMsg: { ok: boolean; text: string } | null = null;
+  if (sp.pub) {
+    const [em, sm, sk] = sp.pub.split("_").map(Number);
+    pubMsg = {
+      ok: true,
+      text: `✓ Avisadas ${em + sm} trabajadoras (${em} por email, ${sm} por SMS)${sk ? ` · ${sk} sin email ni móvil` : ""}.`,
+    };
+  }
 
   const tenant = await getCurrentTenant();
   const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
@@ -130,6 +154,12 @@ export default async function PanelPage({
             className={`print:hidden rounded-lg border p-3 text-sm ${genMsg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
           >
             {genMsg.text}
+          </section>
+        )}
+
+        {pubMsg && (
+          <section className="print:hidden rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+            {pubMsg.text}
           </section>
         )}
 
@@ -177,6 +207,11 @@ export default async function PanelPage({
               </span>
               {isReal && (
                 <div className="flex items-center gap-2 print:hidden">
+                  <form action={publishAction}>
+                    <input type="hidden" name="year" value={data.year} />
+                    <input type="hidden" name="month" value={data.month} />
+                    <GenerateButton idle="Publicar y avisar" busy="Avisando…" />
+                  </form>
                   <a
                     href="/panel/editar"
                     className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"

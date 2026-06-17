@@ -39,6 +39,38 @@ export async function sendContactEmail(data: {
   }
 }
 
+export async function sendCuadranteEmail(
+  email: string,
+  name: string,
+  label: string,
+  url: string,
+): Promise<void> {
+  const apiKey = resendApiKey();
+  if (!apiKey) {
+    console.log(`[email] (sin RESEND_API_KEY) Aviso cuadrante (${label}) para ${email}: ${url}`);
+    return;
+  }
+  const resend = new Resend(apiKey);
+  const { error } = await resend.emails.send({
+    from: emailFrom(),
+    to: email,
+    subject: `Nuevo cuadrante publicado · ${label}`,
+    html: `
+      <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#0e7490">Cuadrante de ${label}</h2>
+        <p>${name ? `Hola ${name}, ` : ""}ya está disponible el cuadrante de <strong>${label}</strong>.</p>
+        <p style="margin:28px 0">
+          <a href="${url}" style="background:#0e7490;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">
+            Ver mi turno
+          </a>
+        </p>
+        <p style="color:#64748b;font-size:13px">Residencia Alhendín · Cuadrantes</p>
+      </div>
+    `,
+  });
+  if (error) throw new Error(`Resend: ${error.message}`);
+}
+
 export async function sendMagicLink(email: string, url: string): Promise<void> {
   const apiKey = resendApiKey();
   if (!apiKey) {
