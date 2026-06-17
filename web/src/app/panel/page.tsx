@@ -9,7 +9,7 @@ import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { buildGenerateConfig } from "@/lib/generate-config";
 import GenerateButton from "@/components/GenerateButton";
-import PrintButton from "@/components/PrintButton";
+import DownloadPdfButton from "@/components/DownloadPdfButton";
 
 const MONTH_NAMES = [
   "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -142,7 +142,7 @@ export default async function PanelPage({
                   >
                     Descargar Excel
                   </a>
-                  <PrintButton />
+                  <DownloadPdfButton data={data} />
                 </div>
               )}
             </div>
