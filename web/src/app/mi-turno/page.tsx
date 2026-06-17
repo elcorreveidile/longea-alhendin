@@ -4,6 +4,7 @@ import TopBar from "@/components/TopBar";
 import { shiftDef } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { CuadranteData } from "@/components/Cuadrante";
+import { getLatestCuadrante } from "@/db/cuadrantes";
 
 const MONTH_NAMES = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -14,8 +15,9 @@ export default async function MiTurnoPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const data = sample as unknown as CuadranteData;
-  // De momento, demo: si el usuario no tiene ficha enlazada, mostramos la primera fila.
+  const saved = await getLatestCuadrante();
+  const data = (saved ? saved.data : sample) as unknown as CuadranteData;
+  // Si el usuario tiene ficha enlazada y existe en el cuadrante, mostramos su fila.
   const ids = Object.keys(data.assignments);
   const myId = session.workerId && data.assignments[session.workerId] ? session.workerId : ids[3];
   const row = data.assignments[myId] ?? [];
