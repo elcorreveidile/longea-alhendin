@@ -51,6 +51,19 @@ def build_calendar(year, month):
     return days, weekdays, sundays
 
 
+def build_calendar_range(start_iso, num_days):
+    """Calendario para un rango arbitrario (p. ej. una semana) a partir de una
+    fecha ISO 'YYYY-MM-DD'. Devuelve también la lista de fechas ISO por día."""
+    import datetime
+
+    y, m, d = (int(p) for p in start_iso.split("-"))
+    d0 = datetime.date(y, m, d)
+    dates = [d0 + datetime.timedelta(days=i) for i in range(num_days)]
+    weekdays = [dt.weekday() for dt in dates]
+    sundays = [i for i, wd in enumerate(weekdays) if wd == 6]
+    return num_days, weekdays, sundays, [dt.isoformat() for dt in dates]
+
+
 def weekly_rest_warnings(assignments, weekdays, shift_hours, workers):
     """Comprueba, con los horarios reales, qué semanas (L-D completas) no tienen
     un descanso continuo de >=36h por persona. Devuelve la lista de avisos."""
@@ -96,8 +109,16 @@ def weekly_rest_warnings(assignments, weekdays, shift_hours, workers):
 
 
 def _attempt(cfg, hard_coverage):
-    year, month = cfg["year"], cfg["month"]
-    days, weekdays, sundays = build_calendar(year, month)
+    if cfg.get("start_date"):
+        # Modo semana (o rango de N días) a partir de una fecha.
+        year = month = None
+        days, weekdays, sundays, dates = build_calendar_range(
+            cfg["start_date"], int(cfg.get("num_days", 7))
+        )
+    else:
+        year, month = cfg["year"], cfg["month"]
+        days, weekdays, sundays = build_calendar(year, month)
+        dates = None
     workers = cfg["workers"]
     cov = cfg["coverage"]
     rules = cfg.get("rules", {})
@@ -437,6 +458,8 @@ def _attempt(cfg, hard_coverage):
         "ok": True,
         "status": solver.StatusName(status),
         "year": year, "month": month, "days": days,
+        "start_date": cfg.get("start_date"),
+        "dates": dates,
         "rest_warnings": rest_warnings,
         "weekdays": [WEEKDAY_LETTERS[wd] for wd in weekdays],
         "assignments": assignments,

@@ -1,0 +1,339 @@
+{
+  "ok": true,
+  "status": "FEASIBLE",
+  "year": null,
+  "month": null,
+  "days": 7,
+  "start_date": "2026-07-06",
+  "dates": [
+    "2026-07-06",
+    "2026-07-07",
+    "2026-07-08",
+    "2026-07-09",
+    "2026-07-10",
+    "2026-07-11",
+    "2026-07-12"
+  ],
+  "rest_warnings": [
+    {
+      "worker": "Isabel María",
+      "name": "Isabel María",
+      "from_day": 1,
+      "to_day": 7
+    },
+    {
+      "worker": "Yolanda",
+      "name": "Yolanda",
+      "from_day": 1,
+      "to_day": 7
+    },
+    {
+      "worker": "Susana",
+      "name": "Susana",
+      "from_day": 1,
+      "to_day": 7
+    }
+  ],
+  "weekdays": [
+    "L",
+    "M",
+    "X",
+    "J",
+    "V",
+    "S",
+    "D"
+  ],
+  "assignments": {
+    "Diana": [
+      "M",
+      "M",
+      "T",
+      "D",
+      "D",
+      "M",
+      "T"
+    ],
+    "Supervisora 2": [
+      "D",
+      "D",
+      "M",
+      "M",
+      "M",
+      "T",
+      "T"
+    ],
+    "M.Mar": [
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "D",
+      "D"
+    ],
+    "Mónica": [
+      "T",
+      "N",
+      "D",
+      "T",
+      "T",
+      "D",
+      "D"
+    ],
+    "Bárbara": [
+      "T",
+      "T",
+      "D",
+      "D",
+      "T",
+      "D",
+      "D"
+    ],
+    "Rocío": [
+      "T",
+      "T",
+      "D",
+      "D",
+      "M",
+      "T",
+      "T"
+    ],
+    "Pamela": [
+      "N",
+      "D",
+      "D",
+      "T",
+      "T",
+      "T",
+      "D"
+    ],
+    "Irene León": [
+      "M",
+      "M",
+      "T",
+      "D",
+      "D",
+      "M",
+      "T"
+    ],
+    "Desiree": [
+      "M",
+      "T",
+      "N",
+      "D",
+      "D",
+      "M",
+      "M"
+    ],
+    "Cloe": [
+      "D",
+      "M",
+      "M",
+      "M",
+      "M",
+      "D",
+      "D"
+    ],
+    "Laura Padilla": [
+      "D",
+      "D",
+      "M",
+      "D",
+      "D",
+      "T",
+      "T"
+    ],
+    "Montse": [
+      "D",
+      "D",
+      "M",
+      "T",
+      "D",
+      "D",
+      "N"
+    ],
+    "Mar": [
+      "T",
+      "T",
+      "T",
+      "T",
+      "D",
+      "D",
+      "M"
+    ],
+    "Melody": [
+      "D",
+      "M",
+      "T",
+      "T",
+      "N",
+      "D",
+      "D"
+    ],
+    "Mª José": [
+      "D",
+      "T",
+      "T",
+      "T",
+      "N",
+      "D",
+      "D"
+    ],
+    "Sandra": [
+      "M",
+      "M",
+      "D",
+      "D",
+      "M",
+      "M",
+      "N"
+    ],
+    "Ana Montoro": [
+      "T",
+      "N",
+      "D",
+      "D",
+      "T",
+      "T",
+      "T"
+    ],
+    "Isabel": [
+      "D",
+      "D",
+      "M",
+      "M",
+      "T",
+      "N",
+      "D"
+    ],
+    "Noemí": [
+      "D",
+      "D",
+      "T",
+      "D",
+      "D",
+      "T",
+      "T"
+    ],
+    "Ainhoa": [
+      "N",
+      "D",
+      "D",
+      "M",
+      "D",
+      "D",
+      "M"
+    ],
+    "Conce": [
+      "T",
+      "T",
+      "D",
+      "D",
+      "M",
+      "M",
+      "M"
+    ],
+    "Ana Isabel": [
+      "D",
+      "M",
+      "D",
+      "D",
+      "M",
+      "M",
+      "M"
+    ],
+    "Sara": [
+      "D",
+      "D",
+      "M",
+      "M",
+      "T",
+      "T",
+      "D"
+    ],
+    "Azblais": [
+      "D",
+      "D",
+      "M",
+      "M",
+      "M",
+      "D",
+      "D"
+    ],
+    "Diego": [
+      "M",
+      "T",
+      "T",
+      "T",
+      "D",
+      "D",
+      "M"
+    ],
+    "Isabel María": [
+      "T",
+      "T",
+      "D",
+      "M",
+      "M",
+      "T",
+      "T"
+    ],
+    "Yolanda": [
+      "T",
+      "T",
+      "T",
+      "N",
+      "D",
+      "M",
+      "M"
+    ],
+    "Laura": [
+      "T",
+      "D",
+      "D",
+      "M",
+      "T",
+      "T",
+      "T"
+    ],
+    "Toñi": [
+      "M",
+      "D",
+      "D",
+      "T",
+      "T",
+      "N",
+      "D"
+    ],
+    "Wisan": [
+      "M",
+      "M",
+      "N",
+      "D",
+      "D",
+      "M",
+      "M"
+    ],
+    "Nuria": [
+      "D",
+      "D",
+      "M",
+      "T",
+      "T",
+      "D",
+      "D"
+    ],
+    "Susana": [
+      "M",
+      "M",
+      "T",
+      "N",
+      "D",
+      "M",
+      "M"
+    ]
+  },
+  "violations": [],
+  "objective": 30.0,
+  "coverage_guaranteed": true
+}

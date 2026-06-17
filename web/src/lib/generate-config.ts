@@ -84,3 +84,71 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
 
   return { cfg, names, count: workers.length };
 }
+
+/** Lista de fechas ISO (YYYY-MM-DD) de un rango que empieza en `startDate`. */
+function rangeDates(startDate: string, numDays: number): string[] {
+  const [y, m, d] = startDate.split("-").map(Number);
+  const out: string[] = [];
+  for (let i = 0; i < numDays; i++) {
+    const dt = new Date(Date.UTC(y, m - 1, d + i));
+    out.push(dt.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+/**
+ * Igual que buildGenerateConfig pero para una SEMANA (o rango de N días) a
+ * partir de una fecha. Desactiva las reglas mensuales (domingo libre / bloque
+ * de 36h) que no aplican a un tramo corto.
+ */
+export async function buildGenerateConfigWeek(tenantId: string, startDate: string, numDays = 7) {
+  const rows = await db
+    .select()
+    .from(workersT)
+    .where(and(eq(workersT.tenantId, tenantId), eq(workersT.active, true)));
+  const ids = new Set(rows.map((w) => w.id));
+  const vacs = (await db.select().from(vacationsT)).filter((v) => ids.has(v.workerId));
+  const dates = rangeDates(startDate, numDays);
+
+  const vacByWorker = new Map<string, number[]>();
+  for (const v of vacs) {
+    for (let i = 0; i < dates.length; i++) {
+      if (dates[i] >= v.startDate && dates[i] <= v.endDate) {
+        vacByWorker.set(v.workerId, [...(vacByWorker.get(v.workerId) ?? []), i + 1]);
+      }
+    }
+  }
+
+  const names: Record<string, string> = {};
+  const workers: EngineWorker[] = rows.map((w) => {
+    names[w.id] = w.name;
+    const ew: EngineWorker = { id: w.id, name: w.name, role: w.jobRole };
+    const vd = vacByWorker.get(w.id);
+    if (vd && vd.length) ew.vacations = [...new Set(vd)].sort((a, b) => a - b);
+    if (w.noNight) ew.no_night = true;
+    if (w.onlyShift) ew.only_shift = w.onlyShift;
+    return ew;
+  });
+
+  const gen = await getGenConfig(tenantId);
+  const cfg = {
+    start_date: startDate,
+    num_days: numDays,
+    coverage: gen.coverage,
+    supervisors_count_in_coverage: gen.supervisorsCountInCoverage,
+    shift_hours: SHIFT_HOURS,
+    rules: {
+      max_consecutive_work_days: gen.maxConsecutive,
+      max_consecutive_rest_days: gen.maxConsecutiveRest,
+      rest_block_window_days: 0,
+      sunday_off_per_month: 0,
+      no_morning_or_afternoon_after_night: true,
+      min_hours_between_shifts: 12,
+      rest_after_streak: { threshold: gen.restAfterStreak.threshold, min_rest: gen.restAfterStreak.minRest },
+    },
+    time_limit_seconds: 25,
+    workers,
+  };
+
+  return { cfg, names, count: workers.length };
+}
