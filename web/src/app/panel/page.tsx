@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
+import { getSession, isStaffAdmin } from "@/lib/session";
 import TopBar from "@/components/TopBar";
 import Cuadrante, { CuadranteData } from "@/components/Cuadrante";
 import { SHIFTS } from "@/data/shifts";
@@ -8,7 +8,7 @@ import sample from "@/data/sample-cuadrante.json";
 export default async function PanelPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (session.role !== "admin") redirect("/mi-turno");
+  if (!isStaffAdmin(session.role)) redirect("/mi-turno");
 
   const data = sample as unknown as CuadranteData;
   const legend = ["M", "T", "N", "D", "V", "H", "HD"];

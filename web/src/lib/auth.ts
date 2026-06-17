@@ -2,9 +2,11 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { isAdminEmail } from "./env";
+import { isAdminEmail, isAdminPhone, isSuperAdminEmail } from "./env";
 import { createMagicToken } from "./magic";
 import { sendMagicLink } from "./email";
+import { sendSms } from "./sms";
+import { createOtp, verifyOtp } from "./otp";
 import { appUrl } from "./env";
 import { createSession } from "./session";
 
@@ -17,7 +19,7 @@ export async function requestMagicLink(rawEmail: string): Promise<void> {
   const email = rawEmail.trim().toLowerCase();
 
   const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
-  const allowed = existing.length > 0 || isAdminEmail(email);
+  const allowed = existing.length > 0 || isAdminEmail(email) || isSuperAdminEmail(email);
   if (!allowed) return; // silenciosamente, sin enviar nada
 
   const token = await createMagicToken(email);
@@ -32,30 +34,98 @@ export async function requestMagicLink(rawEmail: string): Promise<void> {
 export async function loginByEmail(email: string): Promise<void> {
   const normalized = email.trim().toLowerCase();
 
+  // Rol que corresponde según las listas de entorno (superadmin manda sobre admin).
+  const envRole: "superadmin" | "admin" | null = isSuperAdminEmail(normalized)
+    ? "superadmin"
+    : isAdminEmail(normalized)
+      ? "admin"
+      : null;
+
   let user = (
     await db.select().from(users).where(eq(users.email, normalized)).limit(1)
   )[0];
 
   if (!user) {
-    if (!isAdminEmail(normalized)) {
+    if (!envRole) {
       // No debería ocurrir (no se envía link a desconocidos), pero por si acaso.
       throw new Error("Correo no autorizado.");
     }
     user = (
       await db
         .insert(users)
-        .values({ email: normalized, role: "admin", name: "Administradora" })
+        .values({
+          email: normalized,
+          role: envRole,
+          name: envRole === "superadmin" ? "Súper administrador" : "Administradora",
+        })
         .returning()
+    )[0];
+  } else if (envRole && user.role !== envRole && rank(envRole) > rank(user.role)) {
+    // Eleva el rol si la lista de entorno le da más permisos de los que tenía.
+    user = (
+      await db.update(users).set({ role: envRole }).where(eq(users.id, user.id)).returning()
     )[0];
   }
 
   await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
+  await startSession(user);
+}
+
+function rank(role: string): number {
+  return role === "superadmin" ? 3 : role === "admin" ? 2 : 1;
+}
+
+async function startSession(user: typeof users.$inferSelect): Promise<void> {
   await createSession({
     userId: user.id,
-    email: user.email,
+    email: user.email ?? "",
     name: user.name,
     role: user.role,
     workerId: user.workerId,
   });
+}
+
+/**
+ * Solicita un código por SMS. Solo se envía si el teléfono está dado de alta
+ * o figura en ADMIN_PHONES. Respuesta siempre genérica (no revela si existe).
+ * Devuelve true si se ha enviado (para mostrar el paso de código).
+ */
+export async function requestSmsCode(phoneE164: string): Promise<boolean> {
+  const existing = await db.select().from(users).where(eq(users.phone, phoneE164)).limit(1);
+  const allowed = existing.length > 0 || isAdminPhone(phoneE164);
+  if (!allowed) return false;
+
+  const code = await createOtp(phoneE164); // null si se pidió hace muy poco (antiflood)
+  if (code) {
+    await sendSms(phoneE164, `Tu código de acceso a Cuadrantes (Residencia Alhendín) es: ${code}`);
+  }
+  return true;
+}
+
+/**
+ * Comprueba el código SMS e inicia sesión. Si el teléfono está en ADMIN_PHONES
+ * y aún no existe usuaria, la crea como admin.
+ */
+export async function loginByPhone(phoneE164: string, code: string): Promise<boolean> {
+  const ok = await verifyOtp(phoneE164, code);
+  if (!ok) return false;
+
+  let user = (
+    await db.select().from(users).where(eq(users.phone, phoneE164)).limit(1)
+  )[0];
+
+  if (!user) {
+    if (!isAdminPhone(phoneE164)) return false;
+    user = (
+      await db
+        .insert(users)
+        .values({ phone: phoneE164, role: "admin", name: "Administradora" })
+        .returning()
+    )[0];
+  }
+
+  await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+  await startSession(user);
+  return true;
 }

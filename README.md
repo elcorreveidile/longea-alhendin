@@ -53,9 +53,13 @@ es conectarla al motor.)
 
 ### Autenticación y base de datos
 
-- **Login por magic link**: la usuaria introduce su correo y recibe un enlace de
-  acceso (sin contraseña). Token de un solo uso, hasheado en BD, caduca en 15
-  min. La sesión es un JWT firmado (`jose`) en cookie `httpOnly`.
+- **Login por magic link (correo)**: la usuaria introduce su correo y recibe un
+  enlace de acceso (sin contraseña). Token de un solo uso, hasheado en BD,
+  caduca en 15 min. La sesión es un JWT firmado (`jose`) en cookie `httpOnly`.
+- **Login por SMS**: alternativa por móvil. Código de 6 dígitos vía **Twilio
+  Verify** (gestiona envío, caducidad, reintentos y anti-fraude). Las dos vías
+  conviven; cada persona entra como prefiera. Sin Twilio configurado, en
+  desarrollo el código es `000000`.
 - **Roles**: `admin` (Diana: monta cuadrantes y gestiona plantilla) y `worker`
   (cada trabajadora ve su turno). El correo que figure en `ADMIN_EMAILS` entra
   automáticamente como admin la primera vez.
@@ -76,7 +80,9 @@ npm run dev
 
 Variables de entorno (ver `web/.env.example`): `DATABASE_URL`, `AUTH_SECRET`
 (`openssl rand -base64 32`), `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_EMAILS`
-(aquí el correo de Diana), `APP_URL`.
+(correo de Diana), `APP_URL`. Para SMS: `TWILIO_ACCOUNT_SID`,
+`TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` y `ADMIN_PHONES` (móvil de
+Diana en formato `+34...`).
 
 > ⚠️ La autenticación es a medida (magic link). Antes de producción conviene una
 > **revisión de seguridad** y añadir **rate-limiting** al envío de enlaces.

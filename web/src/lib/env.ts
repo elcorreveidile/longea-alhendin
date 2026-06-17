@@ -20,6 +20,34 @@ export function isAdminEmail(email: string): boolean {
   return adminEmails().includes(email.trim().toLowerCase());
 }
 
+export function superAdminEmails(): string[] {
+  return (process.env.SUPERADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isSuperAdminEmail(email: string): boolean {
+  return superAdminEmails().includes(email.trim().toLowerCase());
+}
+
+export function adminPhones(): string[] {
+  return (process.env.ADMIN_PHONES ?? "")
+    .split(",")
+    .map((p) => p.replace(/[\s\-().]/g, ""))
+    .filter(Boolean);
+}
+
+export function isAdminPhone(phoneE164: string): boolean {
+  return adminPhones().includes(phoneE164);
+}
+
+// --- SMS (LabsMobile, proveedor español) ---
+export const labsmobileUsername = () => process.env.LABSMOBILE_USERNAME ?? "";
+export const labsmobileToken = () => process.env.LABSMOBILE_TOKEN ?? "";
+export const smsSender = () => process.env.SMS_SENDER ?? ""; // remitente opcional
+export const smsConfigured = () => !!(labsmobileUsername() && labsmobileToken());
+
 export function authSecret(): string {
   const s = process.env.AUTH_SECRET;
   if (!s || s.length < 16) {

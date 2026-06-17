@@ -12,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 // Permiso dentro de la app (distinto del puesto laboral)
-export const appRole = pgEnum("app_role", ["admin", "worker"]);
+export const appRole = pgEnum("app_role", ["superadmin", "admin", "worker"]);
 // Puesto laboral en la residencia
 export const jobRole = pgEnum("job_role", [
   "gerocultora",
@@ -26,6 +26,7 @@ export const workers = pgTable("workers", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   jobRole: jobRole("job_role").notNull().default("gerocultora"),
+  phone: text("phone"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -35,7 +36,8 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    email: text("email").notNull(),
+    email: text("email"),
+    phone: text("phone"),
     name: text("name"),
     role: appRole("role").notNull().default("worker"),
     // Enlaza el login con su ficha de plantilla (para "mi turno")
@@ -43,16 +45,30 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("users_email_idx").on(t.email)],
+  (t) => [
+    uniqueIndex("users_email_idx").on(t.email),
+    uniqueIndex("users_phone_idx").on(t.phone),
+  ],
 );
 
-/** Tokens de magic link (de un solo uso, se guarda solo el hash). */
+/** Tokens de magic link (correo). */
 export const magicTokens = pgTable("magic_tokens", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull(),
   tokenHash: text("token_hash").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Códigos OTP por SMS (de un solo uso, se guarda solo el hash). */
+export const otpCodes = pgTable("otp_codes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  phone: text("phone").notNull(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  attempts: integer("attempts").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
