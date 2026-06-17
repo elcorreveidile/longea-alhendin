@@ -4,6 +4,7 @@ import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { db } from "@/db";
 import { workers as workersT } from "@/db/schema";
+import { getPhotoUrls } from "@/lib/photos";
 import TopBar from "@/components/TopBar";
 
 const ROLES = [
@@ -105,13 +106,25 @@ const inputCls = "rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
 function WorkerForm({
   worker,
+  photo,
 }: {
   worker: { id: string; name: string; jobRole: string; noNight: boolean; onlyShift: string | null };
+  photo?: string;
 }) {
   return (
     <tr className="border-t border-slate-100">
       <td className="p-2">
-        <input name="name" defaultValue={worker.name} className={`${inputCls} w-44`} form={`w-${worker.id}`} />
+        <div className="flex items-center gap-2">
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-500">
+              {worker.name.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+          <input name="name" defaultValue={worker.name} className={`${inputCls} w-40`} form={`w-${worker.id}`} />
+        </div>
       </td>
       <td className="p-2">
         <select name="role" defaultValue={worker.jobRole} className={inputCls} form={`w-${worker.id}`}>
@@ -173,6 +186,7 @@ export default async function PlantillaPage({
     : [];
   const active = all.filter((w) => w.active);
   const inactive = all.filter((w) => !w.active);
+  const photos = tenant ? await getPhotoUrls(tenant.id, active.map((w) => w.id)) : {};
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -230,7 +244,7 @@ export default async function PlantillaPage({
             </thead>
             <tbody>
               {active.map((w) => (
-                <WorkerForm key={w.id} worker={w} />
+                <WorkerForm key={w.id} worker={w} photo={photos[w.id]} />
               ))}
               {active.length === 0 && (
                 <tr><td colSpan={5} className="p-4 text-center text-slate-400">No hay trabajadoras activas.</td></tr>

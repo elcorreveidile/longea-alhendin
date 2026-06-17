@@ -5,6 +5,8 @@ import { getCurrentTenant } from "@/lib/tenant";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT, users as usersT } from "@/db/schema";
 import { getLatestCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
+import { getPhotoUrl, setPhotoUrl, clearPhotoUrl } from "@/lib/photos";
+import { put } from "@vercel/blob";
 import TopBar from "@/components/TopBar";
 
 const ROLES = [
@@ -32,6 +34,9 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   vac: { ok: true, text: "✓ Vacaciones añadidas." },
   vacdel: { ok: true, text: "✓ Vacaciones eliminadas." },
   vacbad: { ok: false, text: "Fechas no válidas (la fin debe ser igual o posterior al inicio)." },
+  photo: { ok: true, text: "✓ Fotografía actualizada." },
+  photodel: { ok: true, text: "✓ Fotografía eliminada." },
+  badimg: { ok: false, text: "La imagen no es válida o supera 8 MB." },
 };
 
 function fmt(iso: string): string {
@@ -87,6 +92,32 @@ async function deleteVacationAction(formData: FormData) {
   redirect(`/panel/plantilla/${id}?m=vacdel`);
 }
 
+async function uploadPhotoAction(formData: FormData) {
+  "use server";
+  const tenant = await getCurrentTenant();
+  const id = String(formData.get("id") ?? "");
+  if (!tenant || !id) redirect("/panel/plantilla");
+  const file = formData.get("photo") as File | null;
+  if (!file || file.size === 0 || !file.type.startsWith("image/") || file.size > 8_000_000) {
+    redirect(`/panel/plantilla/${id}?m=badimg`);
+  }
+  const w = (await db.select().from(workersT).where(and(eq(workersT.id, id), eq(workersT.tenantId, tenant.id))).limit(1))[0];
+  if (!w) redirect("/panel/plantilla");
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const blob = await put(`fichas/${tenant.id}/${id}.${ext}`, file, { access: "public", addRandomSuffix: true });
+  await setPhotoUrl(tenant.id, id, blob.url);
+  redirect(`/panel/plantilla/${id}?m=photo`);
+}
+
+async function deletePhotoAction(formData: FormData) {
+  "use server";
+  const tenant = await getCurrentTenant();
+  const id = String(formData.get("id") ?? "");
+  if (!tenant || !id) redirect("/panel/plantilla");
+  await clearPhotoUrl(tenant.id, id);
+  redirect(`/panel/plantilla/${id}?m=photodel`);
+}
+
 // --- Estilos "ficha de personal" vintage ---
 const label = "block text-[10px] font-bold uppercase tracking-[0.15em] text-[#8a6d3b]";
 const field =
@@ -131,6 +162,7 @@ export default async function FichaPage({
   if (row) for (const c of row) counts[c[0] as string] = (counts[c[0] as string] ?? 0) + 1;
 
   const initials = worker.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const photoUrl = await getPhotoUrl(tenant.id, id);
 
   return (
     <div className="min-h-screen bg-[#e8ddc4]">
@@ -199,8 +231,13 @@ export default async function FichaPage({
 
             {/* recuadro foto */}
             <div className="flex flex-col items-center">
-              <div className="flex h-32 w-28 items-center justify-center border-2 border-dashed border-[#a08a5e] bg-[#efe5c9] font-serif text-3xl font-bold text-[#bfae84]">
-                {initials || "FOTO"}
+              <div className="flex h-32 w-28 items-center justify-center overflow-hidden border-2 border-dashed border-[#a08a5e] bg-[#efe5c9] font-serif text-3xl font-bold text-[#bfae84]">
+                {photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoUrl} alt={worker.name} className="h-full w-full object-cover" />
+                ) : (
+                  initials || "FOTO"
+                )}
               </div>
               <span className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#8a6d3b]">Fotografía</span>
             </div>
@@ -213,6 +250,30 @@ export default async function FichaPage({
               </span>
             </div>
           </form>
+
+          {/* subir/quitar fotografía */}
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dotted border-[#a08a5e] pt-3">
+            <span className={label}>Fotografía</span>
+            <form action={uploadPhotoAction} className="flex flex-wrap items-center gap-2">
+              <input type="hidden" name="id" value={worker.id} />
+              <input
+                type="file"
+                name="photo"
+                accept="image/*"
+                required
+                className="max-w-[230px] font-mono text-xs text-[#3a2f1d] file:mr-2 file:cursor-pointer file:rounded file:border-0 file:bg-[#7a4a3a] file:px-3 file:py-1.5 file:font-mono file:text-[#f4ecd8]"
+              />
+              <button className={stamp}>Subir</button>
+            </form>
+            {photoUrl && (
+              <form action={deletePhotoAction}>
+                <input type="hidden" name="id" value={worker.id} />
+                <button className="rounded border border-[#8b2e22] px-3 py-1.5 font-mono text-xs font-semibold text-[#8b2e22] hover:bg-[#8b2e22] hover:text-[#f4ecd8]">
+                  Quitar foto
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         {/* VACACIONES */}
