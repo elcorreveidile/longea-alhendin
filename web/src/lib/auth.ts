@@ -5,7 +5,8 @@ import { users } from "@/db/schema";
 import { isAdminEmail, isAdminPhone, isSuperAdminEmail } from "./env";
 import { createMagicToken } from "./magic";
 import { sendMagicLink } from "./email";
-import { startSmsVerification, checkSmsVerification } from "./sms";
+import { sendSms } from "./sms";
+import { createOtp, verifyOtp } from "./otp";
 import { appUrl } from "./env";
 import { createSession } from "./session";
 
@@ -95,7 +96,10 @@ export async function requestSmsCode(phoneE164: string): Promise<boolean> {
   const allowed = existing.length > 0 || isAdminPhone(phoneE164);
   if (!allowed) return false;
 
-  await startSmsVerification(phoneE164);
+  const code = await createOtp(phoneE164); // null si se pidió hace muy poco (antiflood)
+  if (code) {
+    await sendSms(phoneE164, `Tu código de acceso a Cuadrantes (Residencia Alhendín) es: ${code}`);
+  }
   return true;
 }
 
@@ -104,7 +108,7 @@ export async function requestSmsCode(phoneE164: string): Promise<boolean> {
  * y aún no existe usuaria, la crea como admin.
  */
 export async function loginByPhone(phoneE164: string, code: string): Promise<boolean> {
-  const ok = await checkSmsVerification(phoneE164, code);
+  const ok = await verifyOtp(phoneE164, code);
   if (!ok) return false;
 
   let user = (

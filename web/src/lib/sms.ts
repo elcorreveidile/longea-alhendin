@@ -1,56 +1,46 @@
 import "server-only";
-import {
-  twilioAccountSid,
-  twilioAuthToken,
-  twilioVerifyServiceSid,
-  twilioConfigured,
-  verifyChannel,
-} from "./env";
+import { labsmobileUsername, labsmobileToken, smsSender, smsConfigured } from "./env";
 
-const DEV_CODE = "000000"; // solo cuando Twilio NO está configurado (desarrollo)
-
-function authHeader(): string {
-  const creds = `${twilioAccountSid()}:${twilioAuthToken()}`;
-  return "Basic " + Buffer.from(creds).toString("base64");
-}
-
-/** Pide a Twilio Verify que envíe un código al número (E.164) por el canal configurado. */
-export async function startSmsVerification(phoneE164: string): Promise<void> {
-  const channel = verifyChannel();
-  if (!twilioConfigured()) {
-    console.log(`[verify] (sin Twilio) Código de desarrollo para ${phoneE164} [${channel}]: ${DEV_CODE}`);
+/**
+ * Envía un SMS con LabsMobile (proveedor español).
+ * API JSON: https://api.labsmobile.com/json/send  (auth básica usuario:token).
+ * Si no hay credenciales, en desarrollo se registra el mensaje por consola.
+ */
+export async function sendSms(phoneE164: string, text: string): Promise<void> {
+  if (!smsConfigured()) {
+    console.log(`[sms] (sin LabsMobile) SMS a ${phoneE164}: ${text}`);
     return;
   }
-  const sid = twilioVerifyServiceSid();
-  const res = await fetch(`https://verify.twilio.com/v2/Services/${sid}/Verifications`, {
+
+  const auth = Buffer.from(`${labsmobileUsername()}:${labsmobileToken()}`).toString("base64");
+  // LabsMobile espera el número sin el "+" inicial.
+  const msisdn = phoneE164.replace(/^\+/, "");
+
+  const body: Record<string, unknown> = {
+    message: text,
+    tac: 1,
+    recipient: [{ msisdn }],
+  };
+  const sender = smsSender();
+  if (sender) body.sender = sender;
+
+  const res = await fetch("https://api.labsmobile.com/json/send", {
     method: "POST",
     headers: {
-      Authorization: authHeader(),
-      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    body: new URLSearchParams({ To: phoneE164, Channel: channel }),
+    body: JSON.stringify(body),
   });
+
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`Twilio Verify (start): ${res.status} ${txt}`);
+    throw new Error(`LabsMobile: ${res.status} ${txt}`);
   }
-}
-
-/** Comprueba el código introducido. Devuelve true si es correcto. */
-export async function checkSmsVerification(phoneE164: string, code: string): Promise<boolean> {
-  if (!twilioConfigured()) {
-    return code === DEV_CODE;
+  const data = (await res.json()) as { code?: string | number; message?: string };
+  // LabsMobile devuelve code "0" cuando el envío es correcto.
+  if (data.code !== undefined && String(data.code) !== "0") {
+    throw new Error(`LabsMobile error ${data.code}: ${data.message ?? ""}`);
   }
-  const sid = twilioVerifyServiceSid();
-  const res = await fetch(`https://verify.twilio.com/v2/Services/${sid}/VerificationCheck`, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader(),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({ To: phoneE164, Code: code }),
-  });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { status?: string };
-  return data.status === "approved";
 }
