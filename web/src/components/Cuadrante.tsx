@@ -14,6 +14,7 @@ export interface CuadranteData {
   weekdays: string[];
   assignments: Record<string, string[]>;
   violations: { day: number; shift: string; required: number; assigned: number; short: number }[];
+  rest_warnings?: { worker: string; name: string; from_day: number; to_day: number }[];
 }
 
 // Nombre legible a partir del id (de momento; vendrá del modelo de datos real)
