@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cuadrantes · Residencia Alhendín",
-  description: "Gestión de turnos de la Residencia Alhendín — Grupo Longea (Aconser).",
+  title: "PlanTurnos · Cuadrantes para tu equipo",
+  description: "Genera los cuadrantes de tu equipo en segundos, cumpliendo el convenio.",
 };
 
 export default function RootLayout({
