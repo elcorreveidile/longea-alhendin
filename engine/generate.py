@@ -105,6 +105,11 @@ def _attempt(cfg, hard_coverage):
     rest_block_window = rules.get("rest_block_window_days", 14)
     sundays_off_min = rules.get("sunday_off_per_month", 1)
     night_then_rest = rules.get("no_morning_or_afternoon_after_night", True)
+    # Descanso tras racha larga: tras 'threshold' días seguidos trabajando se
+    # exigen 'min_rest' descansos seguidos (queja de Diana del "6 + 1 descanso").
+    rest_after = rules.get("rest_after_streak") or {}
+    streak_threshold = int(rest_after.get("threshold", 5))
+    streak_min_rest = int(rest_after.get("min_rest", 2))
     sup_in_coverage = cfg.get("supervisors_count_in_coverage", False)
 
     model = cp_model.CpModel()
@@ -249,6 +254,21 @@ def _attempt(cfg, hard_coverage):
         for start in range(days - max_consec):
             window = [works(wid, d) for d in range(start, start + max_consec + 1)]
             model.Add(sum(window) <= max_consec)
+
+    # --- Descanso tras racha larga ---
+    # Tras 'streak_threshold' días seguidos trabajando, si se descansa, el
+    # descanso debe ser de al menos 'streak_min_rest' días seguidos (no 1 suelto).
+    if streak_threshold and streak_min_rest >= 2:
+        T = streak_threshold
+        for w in workers:
+            wid = w["id"]
+            for d in range(T - 1, days - 1):
+                window = sum(works(wid, j) for j in range(d - T + 1, d + 1))
+                for r in range(2, streak_min_rest + 1):
+                    if d + r >= days:
+                        break
+                    mids = sum(rest_ind(wid, d + k) for k in range(1, r))
+                    model.Add(window + mids + works(wid, d + r) <= T + (r - 1))
 
     # --- Bloque de 36h (2 días seguidos de descanso) cada 'rest_block_window' días ---
     # Mínimo legal (suelo). Además, en el objetivo se incentivan más bloques para

@@ -104,7 +104,10 @@ export default async function PanelPage({
     <div className="min-h-screen bg-slate-50">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
-        <div className="flex justify-end print:hidden">
+        <div className="flex justify-end gap-4 print:hidden">
+          <a href="/panel/config" className="text-sm font-medium text-cyan-700 hover:underline">
+            Reglas de generación →
+          </a>
           <a href="/panel/accesos" className="text-sm font-medium text-cyan-700 hover:underline">
             Accesos de trabajadoras →
           </a>
