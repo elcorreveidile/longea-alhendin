@@ -175,9 +175,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     );
   }
 
+  const bg = tenant?.loginBgUrl;
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
+    <main
+      className="relative flex min-h-screen items-center justify-center bg-slate-50 p-6"
+      style={bg ? { backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+    >
+      {bg && <div className="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" />}
+      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
         <a href="/" className="inline-block" title="Ir al inicio">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />

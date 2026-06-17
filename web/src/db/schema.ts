@@ -18,6 +18,7 @@ export const tenants = pgTable("tenants", {
   slug: text("slug").notNull().unique(), // subdominio: alhendin, escoriza…
   name: text("name").notNull(), // "Residencia Alhendín"
   logoUrl: text("logo_url"), // por defecto el logo de Longea
+  loginBgUrl: text("login_bg_url"), // imagen de fondo del login/acceso
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
