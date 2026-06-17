@@ -97,6 +97,12 @@ export default async function PanelPage({
     <div className="min-h-screen bg-slate-50">
       <TopBar name={session.name} role={session.role} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
+        <div className="flex justify-end print:hidden">
+          <a href="/panel/accesos" className="text-sm font-medium text-cyan-700 hover:underline">
+            Accesos de trabajadoras →
+          </a>
+        </div>
+
         {genMsg && (
           <section
             className={`print:hidden rounded-lg border p-3 text-sm ${genMsg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
