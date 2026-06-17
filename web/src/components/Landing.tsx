@@ -34,7 +34,7 @@ const DOW = ["L", "M", "X", "J", "V", "S", "D"];
 
 function CuadranteMock() {
   return (
-    <div className="rotate-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+    <div className="rotate-1 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-700">Julio · Residencia</span>
         <span className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Generado ✓</span>
@@ -58,10 +58,10 @@ function CuadranteMock() {
 }
 
 const BENEFITS = [
-  { icon: "⚡", title: "Genera el mes en segundos", text: "El motor reparte mañanas, tardes y noches respetando las coberturas. Sin pelear con el Excel." },
-  { icon: "✅", title: "Cumple el convenio", text: "Descanso de 36 h semanales, 12 h entre jornadas, máximos de días seguidos, domingos y vacaciones." },
-  { icon: "📱", title: "Portal del trabajador", text: "Cada persona ve su turno en el móvil: hoy, mañana y el mes entero. Sin llamadas ni papeles." },
-  { icon: "📤", title: "Exporta e imprime", text: "Descarga el cuadrante en Excel o PDF, con colores, listo para colgar o enviar." },
+  { icon: "icon-generar", title: "Genera el mes en segundos", text: "El motor reparte mañanas, tardes y noches respetando las coberturas. Sin pelear con el Excel." },
+  { icon: "icon-reglas", title: "Cumple el convenio", text: "Descanso de 36 h semanales, 12 h entre jornadas, máximos de días seguidos, domingos y vacaciones." },
+  { icon: "icon-mi-turno", title: "Portal del trabajador", text: "Cada persona ve su turno en el móvil: hoy, mañana y el mes entero. Sin llamadas ni papeles." },
+  { icon: "icon-pdf", title: "Exporta e imprime", text: "Descarga el cuadrante en Excel o PDF, con colores, listo para colgar o enviar." },
 ];
 
 const STEPS = [
@@ -79,9 +79,9 @@ const FAQ = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white text-slate-800">
+    <div className="min-h-screen bg-[#faf6ee] text-slate-800">
       {/* Nav */}
-      <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-[#e7dcc4] bg-[#faf6ee]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <Logo />
           <nav className="flex items-center gap-5 text-sm">
@@ -94,41 +94,43 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-cyan-50 via-white to-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 sm:py-24 lg:grid-cols-2">
+      {/* Hero con foto fija "flotante" */}
+      <section className="relative isolate overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-bg.png')] bg-cover bg-center bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/20" />
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2">
           <div>
-            <span className="inline-block rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
+            <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
               Ya en uso en residencias
             </span>
-            <h1 className="mt-4 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white drop-shadow sm:text-5xl">
               Los cuadrantes de tu equipo,{" "}
-              <span className="text-cyan-700">listos en segundos</span>.
+              <span className="text-cyan-300">listos en segundos</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-600">
+            <p className="mt-5 max-w-xl text-lg text-slate-100/90">
               PlanTurnos genera los turnos automáticamente cumpliendo el convenio.
               Menos Excel, cero incumplimientos y cada trabajador ve su turno en el móvil.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contacto" className="rounded-lg bg-cyan-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-cyan-800">
+              <Link href="/contacto" className="rounded-lg bg-cyan-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-cyan-500">
                 Pruébalo gratis
               </Link>
-              <a href="#como" className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50">
+              <a href="#como" className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/20">
                 Cómo funciona
               </a>
             </div>
-            <p className="mt-4 text-sm text-slate-400">Sin permanencia · Listo para usar hoy mismo</p>
+            <p className="mt-4 text-sm text-slate-200/80">Sin permanencia · Listo para usar hoy mismo</p>
           </div>
-          <div className="lg:pl-6">
+          <div className="hidden lg:block lg:pl-6">
             <CuadranteMock />
           </div>
         </div>
       </section>
 
       {/* Sectores */}
-      <section className="border-y border-slate-100 bg-slate-50 py-8">
+      <section className="border-b border-[#e7dcc4] bg-[#f4ecd8] py-8">
         <div className="mx-auto max-w-5xl px-5 text-center">
-          <p className="text-sm font-medium text-slate-500">Para cualquier equipo a turnos</p>
+          <p className="text-sm font-medium text-[#8a6d3b]">Para cualquier equipo a turnos</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
             {["Residencias", "Clínicas", "Hostelería", "Seguridad", "Limpieza", "Industria"].map((t) => (
               <span key={t} className="rounded-full bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">{t}</span>
@@ -137,13 +139,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Beneficios */}
+      {/* Beneficios (con iconos) */}
       <section className="mx-auto max-w-6xl px-5 py-20">
         <h2 className="text-center text-3xl font-bold text-slate-900">Todo lo que necesitas, sin complicarte</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {BENEFITS.map((b) => (
-            <div key={b.title} className="rounded-2xl border border-slate-100 p-6 shadow-sm transition hover:shadow-md">
-              <div className="text-3xl">{b.icon}</div>
+            <div key={b.title} className="rounded-2xl border border-[#e7dcc4] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/icons/${b.icon}.png`} alt="" className="h-14 w-14" />
               <h3 className="mt-3 text-lg font-semibold text-slate-800">{b.title}</h3>
               <p className="mt-1 text-sm text-slate-600">{b.text}</p>
             </div>
@@ -151,34 +154,57 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Cómo funciona */}
-      <section id="como" className="bg-slate-50 py-20">
-        <div className="mx-auto max-w-5xl px-5">
-          <h2 className="text-center text-3xl font-bold text-slate-900">En 3 pasos</h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            {STEPS.map((s) => (
-              <div key={s.n} className="text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-cyan-700 text-xl font-bold text-white shadow">
-                  {s.n}
-                </div>
-                <h3 className="mt-4 font-semibold text-slate-800">{s.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{s.text}</p>
-              </div>
-            ))}
+      {/* Confianza: foto + texto */}
+      <section className="bg-[#f4ecd8] py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 lg:grid-cols-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/care-hands.png" alt="Cuidado cercano" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900">Pensado para el cuidado, no para el papeleo</h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Que la coordinación de turnos no te quite tiempo de lo importante. PlanTurnos cuadra el mes
+              respetando descansos y coberturas, y deja a tu equipo libre para cuidar.
+            </p>
+            <ul className="mt-6 space-y-2 text-slate-700">
+              <li className="flex items-center gap-2"><span className="text-cyan-700">✓</span> Reparto justo de noches, findes y festivos</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-700">✓</span> Vacaciones y preferencias de cada persona</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-700">✓</span> Avisos automáticos al publicar el cuadrante</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Cita */}
-      <section className="mx-auto max-w-3xl px-5 py-20 text-center">
-        <p className="text-2xl font-medium leading-relaxed text-slate-800">
-          “Hacer el cuadrante me llevaba <span className="text-cyan-700">medio día</span>. Ahora lo tengo en un par de minutos y sin errores.”
-        </p>
-        <p className="mt-4 text-sm text-slate-500">— Coordinadora de residencia</p>
+      {/* Cómo funciona */}
+      <section id="como" className="mx-auto max-w-5xl px-5 py-20">
+        <h2 className="text-center text-3xl font-bold text-slate-900">En 3 pasos</h2>
+        <div className="mt-10 grid gap-8 sm:grid-cols-3">
+          {STEPS.map((s) => (
+            <div key={s.n} className="text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-cyan-700 text-xl font-bold text-white shadow">
+                {s.n}
+              </div>
+              <h3 className="mt-4 font-semibold text-slate-800">{s.title}</h3>
+              <p className="mt-1 text-sm text-slate-600">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Cita sobre foto fija */}
+      <section className="relative isolate overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.png')] bg-cover bg-center bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-slate-900/60" />
+        <div className="mx-auto max-w-3xl px-5 py-24 text-center">
+          <p className="text-2xl font-medium leading-relaxed text-white drop-shadow sm:text-3xl">
+            “Hacer el cuadrante me llevaba <span className="text-cyan-300">medio día</span>. Ahora lo tengo en
+            un par de minutos y sin errores.”
+          </p>
+          <p className="mt-4 text-sm text-slate-200">— Coordinadora de residencia</p>
+        </div>
       </section>
 
       {/* Precios */}
-      <section id="precios" className="bg-slate-50 py-20">
+      <section id="precios" className="bg-[#f4ecd8] py-20">
         <div className="mx-auto max-w-4xl px-5">
           <h2 className="text-center text-3xl font-bold text-slate-900">Precios sencillos</h2>
           <p className="mt-2 text-center text-slate-600">Elige pago mensual o compra única. Prueba gratis para empezar.</p>
@@ -194,7 +220,7 @@ export default function Landing() {
                 <li>✓ Cancela cuando quieras</li>
               </ul>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+            <div className="rounded-2xl border border-[#e7dcc4] bg-white p-7 shadow-sm">
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Pago único</span>
               <h3 className="mt-3 text-xl font-bold text-slate-900">Compra</h3>
               <p className="mt-2 text-3xl font-extrabold text-slate-900">1.297 €<span className="text-base font-medium text-slate-500"> única</span></p>
@@ -215,7 +241,7 @@ export default function Landing() {
         <h2 className="text-center text-3xl font-bold text-slate-900">Preguntas frecuentes</h2>
         <div className="mt-8 space-y-3">
           {FAQ.map((f) => (
-            <details key={f.q} className="group rounded-xl border border-slate-200 p-4">
+            <details key={f.q} className="group rounded-xl border border-[#e7dcc4] bg-white p-4">
               <summary className="cursor-pointer list-none font-semibold text-slate-800 marker:hidden">
                 {f.q}
               </summary>
@@ -240,7 +266,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-100 py-8">
+      <footer className="border-t border-[#e7dcc4] bg-[#faf6ee] py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-5 text-center text-sm text-slate-500">
           <Logo />
           <DevCredit />
