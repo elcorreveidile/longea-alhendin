@@ -157,6 +157,12 @@ export default async function PanelPage({
               {isReal && (
                 <div className="flex items-center gap-2 print:hidden">
                   <a
+                    href="/panel/editar"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Editar
+                  </a>
+                  <a
                     href={`/api/export?year=${data.year}&month=${data.month}`}
                     className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
                   >
