@@ -3,9 +3,11 @@ import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { buildGenerateConfigWeek } from "@/lib/generate-config";
 import { getWeek, saveWeek, listWeekStarts, type WeekData } from "@/lib/week-cuadrantes";
+import { getGenConfig } from "@/lib/gen-settings";
 import { appUrl } from "@/lib/env";
 import TopBar from "@/components/TopBar";
 import WeekCuadrante from "@/components/WeekCuadrante";
+import GenerateButton from "@/components/GenerateButton";
 
 const GEN_MSG: Record<string, { ok: boolean; text: string }> = {
   ok: { ok: true, text: "✓ Semana generada." },
@@ -75,6 +77,7 @@ export default async function SemanaPage({
   const genMsg = sp.gen ? GEN_MSG[sp.gen] : null;
   const tenant = await getCurrentTenant();
   const weeks = tenant ? await listWeekStarts(tenant.id) : [];
+  const gen = tenant ? await getGenConfig(tenant.id) : null;
   const selected = sp.d && weeks.includes(sp.d) ? sp.d : weeks[0];
   const data = tenant && selected ? await getWeek(tenant.id, selected) : null;
   const defaultStart = nextMonday();
@@ -97,17 +100,22 @@ export default async function SemanaPage({
         {/* Generar semana */}
         <section className="print:hidden rounded-lg border border-cyan-200 bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-slate-800">Generar una semana</h3>
-          <p className="mt-1 mb-3 text-sm text-slate-500">
-            Elige el <strong>lunes</strong> de la semana. El motor genera 7 días con las mismas reglas
-            (cobertura, máximos, etc.).
+          <p className="mt-1 mb-2 text-sm text-slate-500">
+            Elige el <strong>lunes</strong> de la semana. El motor genera 7 días con las mismas reglas.
           </p>
+          {gen && (
+            <p className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-600">
+              <strong>Reglas activas (las mismas que el mes):</strong> cobertura {gen.coverage.M}/{gen.coverage.T}/{gen.coverage.N} ·
+              máx {gen.maxConsecutive} días seguidos · máx {gen.maxConsecutiveRest} descansos seguidos ·
+              tras {gen.restAfterStreak.threshold} → {gen.restAfterStreak.minRest} descansos.{" "}
+              <a href="/panel/config" className="font-medium text-cyan-700 hover:underline">Cambiar</a>
+            </p>
+          )}
           <form action={generarSemanaAction} className="flex flex-wrap items-end gap-3">
             <label className="text-sm">Lunes de la semana
               <input type="date" name="start" defaultValue={defaultStart} className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             </label>
-            <button className="rounded-lg bg-cyan-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-cyan-800">
-              Generar semana
-            </button>
+            <GenerateButton idle="Generar semana" />
           </form>
         </section>
 
