@@ -58,3 +58,5 @@ export function authSecret(): string {
 
 export const emailFrom = () => process.env.EMAIL_FROM ?? "Cuadrantes <onboarding@resend.dev>";
 export const resendApiKey = () => process.env.RESEND_API_KEY ?? "";
+/** Destino de los mensajes del formulario de contacto. */
+export const contactEmail = () => process.env.CONTACT_EMAIL ?? "javier@blablaele.com";
