@@ -133,6 +133,10 @@ function WorkerForm({
       </td>
       <td className="p-2">
         <div className="flex gap-2">
+          <a href={`/panel/plantilla/${worker.id}`}
+            className="rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700 hover:bg-cyan-100">
+            Ficha
+          </a>
           <form id={`w-${worker.id}`} action={updateWorkerAction}>
             <input type="hidden" name="id" value={worker.id} />
             <button className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white hover:bg-cyan-800">
