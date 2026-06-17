@@ -132,7 +132,7 @@ export default function Landing() {
         <div className="mx-auto max-w-5xl px-5 text-center">
           <p className="text-sm font-medium text-[#8a6d3b]">Para cualquier equipo a turnos</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            {["Residencias", "Clínicas", "Hostelería", "Seguridad", "Limpieza", "Industria"].map((t) => (
+            {["Residencias", "Clínicas", "Hostelería", "Seguridad", "Limpieza", "Industria", "Academia"].map((t) => (
               <span key={t} className="rounded-full bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">{t}</span>
             ))}
           </div>
