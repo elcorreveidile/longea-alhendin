@@ -8,6 +8,7 @@ import { SHIFTS } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { buildGenerateConfig } from "@/lib/generate-config";
+import { getGenConfig } from "@/lib/gen-settings";
 import { getCurrentTenant } from "@/lib/tenant";
 import GenerateButton from "@/components/GenerateButton";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
@@ -91,6 +92,7 @@ export default async function PanelPage({
 
   const tenant = await getCurrentTenant();
   const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
+  const gen = tenant ? await getGenConfig(tenant.id) : null;
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
   const isReal = !!saved;
   const legend = ["M", "T", "N", "D", "V", "H", "HD"];
@@ -125,7 +127,16 @@ export default async function PanelPage({
         {/* Generar mes */}
         <section className="print:hidden rounded-lg border border-cyan-200 bg-white p-4 shadow-sm">
           <h2 className="font-semibold text-slate-800">Generar cuadrante</h2>
-          <p className="mt-1 mb-3 text-sm text-slate-500">
+          {gen && (
+            <p className="mt-1 rounded-md bg-slate-50 p-2 text-xs text-slate-600">
+              <strong>Reglas activas:</strong> cobertura {gen.coverage.M}/{gen.coverage.T}/{gen.coverage.N} ·
+              máx {gen.maxConsecutive} días seguidos · máx {gen.maxConsecutiveRest} descansos seguidos ·
+              tras {gen.restAfterStreak.threshold} → {gen.restAfterStreak.minRest} descansos ·
+              {gen.sundayOff} domingo libre.{" "}
+              <a href="/panel/config" className="font-medium text-cyan-700 hover:underline">Cambiar</a>
+            </p>
+          )}
+          <p className="mt-2 mb-3 text-sm text-slate-500">
             El motor genera el mes con la plantilla y vacaciones de la base de datos,
             respetando el convenio, y lo guarda. Puede tardar unos segundos.
           </p>
