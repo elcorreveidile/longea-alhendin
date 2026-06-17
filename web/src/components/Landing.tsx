@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DevCredit from "@/components/DevCredit";
 
 function Logo({ light = false }: { light?: boolean }) {
   return (
@@ -109,9 +110,9 @@ export default function Landing() {
               Menos Excel, cero incumplimientos y cada trabajador ve su turno en el móvil.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#precios" className="rounded-lg bg-cyan-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-cyan-800">
+              <Link href="/contacto" className="rounded-lg bg-cyan-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-cyan-800">
                 Pruébalo gratis
-              </a>
+              </Link>
               <a href="#como" className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50">
                 Cómo funciona
               </a>
@@ -229,27 +230,21 @@ export default function Landing() {
         <div className="mx-auto max-w-3xl px-5 py-16 text-center text-white">
           <h2 className="text-3xl font-bold">¿Lo probamos en tu centro?</h2>
           <p className="mt-2 text-cyan-100">Te lo montamos y lo pruebas sin compromiso.</p>
-          <a
-            href="mailto:javier@blablaele.com?subject=Quiero%20probar%20PlanTurnos"
+          <Link
+            href="/contacto"
             className="mt-6 inline-block rounded-lg bg-white px-8 py-3 font-semibold text-cyan-800 hover:bg-cyan-50"
           >
             Escríbeme
-          </a>
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-slate-100 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 text-center text-sm text-slate-500">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-5 text-center text-sm text-slate-500">
           <Logo />
-          <p>
-            Desarrollado por{" "}
-            <a href="https://www.por2duros.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-600 hover:text-cyan-700 hover:underline">
-              POR 2 DUROS
-            </a>{" "}
-            · planturnos.com
-          </p>
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos</p>
+          <DevCredit />
+          <p className="mt-1 text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos · planturnos.com</p>
         </div>
       </footer>
     </div>
