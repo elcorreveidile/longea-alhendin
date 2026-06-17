@@ -9,7 +9,17 @@ import {
   boolean,
   pgEnum,
   uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/pg-core";
+
+/** Cliente (residencia). Cada tenant tiene su plantilla, cuadrantes y código. */
+export const tenants = pgTable("tenants", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(), // subdominio: alhendin, escoriza…
+  name: text("name").notNull(), // "Residencia Alhendín"
+  logoUrl: text("logo_url"), // por defecto el logo de Longea
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 // Permiso dentro de la app (distinto del puesto laboral)
 export const appRole = pgEnum("app_role", ["superadmin", "admin", "worker"]);
@@ -24,6 +34,9 @@ export const cuadranteStatus = pgEnum("cuadrante_status", ["draft", "published"]
 /** Plantilla: cada trabajadora de la residencia. */
 export const workers = pgTable("workers", {
   id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   jobRole: jobRole("job_role").notNull().default("gerocultora"),
   phone: text("phone"),
@@ -38,6 +51,8 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    // Trabajadora -> su residencia; admin global -> null
+    tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
     email: text("email"),
     phone: text("phone"),
     name: text("name"),
@@ -93,6 +108,9 @@ export const cuadrantes = pgTable(
   "cuadrantes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
     year: integer("year").notNull(),
     month: integer("month").notNull(),
     status: cuadranteStatus("status").notNull().default("draft"),
@@ -101,16 +119,24 @@ export const cuadrantes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("cuadrantes_year_month_idx").on(t.year, t.month)],
+  (t) => [uniqueIndex("cuadrantes_tenant_year_month_idx").on(t.tenantId, t.year, t.month)],
 );
 
 /** Ajustes de la aplicación (clave/valor). P. ej. el código de acceso de trabajadoras. */
-export const settings = pgTable("settings", {
-  key: text("key").primaryKey(),
-  value: text("value").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const settings = pgTable(
+  "settings",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.tenantId, t.key] })],
+);
 
+export type Tenant = typeof tenants.$inferSelect;
 export type Worker = typeof workers.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Cuadrante = typeof cuadrantes.$inferSelect;

@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 
@@ -42,9 +42,13 @@ function vacationDays(year: number, month: number, start: string, end: string): 
  * Construye la configuración del motor a partir de la plantilla y vacaciones
  * guardadas en la base de datos. Devuelve también el mapa de nombres por id.
  */
-export async function buildGenerateConfig(year: number, month: number) {
-  const rows = await db.select().from(workersT).where(eq(workersT.active, true));
-  const vacs = await db.select().from(vacationsT);
+export async function buildGenerateConfig(tenantId: string, year: number, month: number) {
+  const rows = await db
+    .select()
+    .from(workersT)
+    .where(and(eq(workersT.tenantId, tenantId), eq(workersT.active, true)));
+  const ids = new Set(rows.map((w) => w.id));
+  const vacs = (await db.select().from(vacationsT)).filter((v) => ids.has(v.workerId));
 
   const vacByWorker = new Map<string, number[]>();
   for (const v of vacs) {

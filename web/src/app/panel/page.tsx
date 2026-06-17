@@ -8,6 +8,7 @@ import { SHIFTS } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
 import { getLatestCuadrante, saveCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { buildGenerateConfig } from "@/lib/generate-config";
+import { getCurrentTenant } from "@/lib/tenant";
 import GenerateButton from "@/components/GenerateButton";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
 
@@ -30,10 +31,12 @@ async function importCuadranteAction(formData: FormData) {
   "use server";
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return;
+  const tenant = await getCurrentTenant();
+  if (!tenant) return;
   try {
     const json = JSON.parse(await file.text()) as CuadranteJSON;
     if (!json.year || !json.month || !json.assignments) return;
-    await saveCuadrante(json.year, json.month, json);
+    await saveCuadrante(tenant.id, json.year, json.month, json);
     revalidatePath("/panel");
   } catch {
     // JSON inválido: se ignora
@@ -46,9 +49,12 @@ async function generarMesAction(formData: FormData) {
   const month = Number(formData.get("month"));
   let outcome = "ok";
   try {
-    const { cfg, names } = await buildGenerateConfig(year, month);
-    if (!cfg.workers.length) {
-      outcome = "sinplantilla";
+    const tenant = await getCurrentTenant();
+    const { cfg, names } = tenant
+      ? await buildGenerateConfig(tenant.id, year, month)
+      : { cfg: { workers: [] as unknown[] }, names: {} };
+    if (!tenant || !cfg.workers.length) {
+      outcome = tenant ? "sinplantilla" : "error";
     } else {
       const base = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : appUrl();
       const res = await fetch(`${base}/api/generar`, {
@@ -61,7 +67,7 @@ async function generarMesAction(formData: FormData) {
         outcome = "error";
       } else {
         result.names = names;
-        await saveCuadrante(year, month, result);
+        await saveCuadrante(tenant.id, year, month, result);
       }
     }
   } catch {
@@ -82,7 +88,8 @@ export default async function PanelPage({
   const sp = await searchParams;
   const genMsg = sp.gen ? GEN_MSG[sp.gen] : null;
 
-  const saved = await getLatestCuadrante();
+  const tenant = await getCurrentTenant();
+  const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
   const isReal = !!saved;
   const legend = ["M", "T", "N", "D", "V", "H", "HD"];
@@ -95,7 +102,7 @@ export default async function PanelPage({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <TopBar name={session.name} role={session.role} />
+      <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
         <div className="flex justify-end print:hidden">
           <a href="/panel/accesos" className="text-sm font-medium text-cyan-700 hover:underline">

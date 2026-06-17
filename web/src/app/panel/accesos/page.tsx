@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
+import { getCurrentTenant } from "@/lib/tenant";
 import { db } from "@/db";
 import { workers as workersT, users as usersT } from "@/db/schema";
 import { normalizePhone } from "@/lib/phone";
@@ -21,7 +22,8 @@ async function setCodeAction(formData: FormData) {
   "use server";
   const code = String(formData.get("code") ?? "").trim();
   if (!code) redirect("/panel/accesos?m=codeempty");
-  await setAccessCode(code);
+  const tenant = await getCurrentTenant();
+  if (tenant) await setAccessCode(tenant.id, code);
   redirect("/panel/accesos?m=code");
 }
 
@@ -55,7 +57,7 @@ async function saveAccessAction(formData: FormData) {
     if (existing) {
       await db.update(usersT).set({ email, phone }).where(eq(usersT.id, existing.id));
     } else {
-      await db.insert(usersT).values({ email, phone, name: w.name, role: "worker", workerId });
+      await db.insert(usersT).values({ tenantId: w.tenantId, email, phone, name: w.name, role: "worker", workerId });
     }
   } catch {
     outcome = "dup"; // choca con el índice único de email/móvil
@@ -75,14 +77,17 @@ export default async function AccesosPage({
   const sp = await searchParams;
   const msg = sp.m ? MSG[sp.m] : null;
 
-  const workers = await db.select().from(workersT).where(eq(workersT.active, true));
+  const tenant = await getCurrentTenant();
+  const workers = tenant
+    ? await db.select().from(workersT).where(and(eq(workersT.tenantId, tenant.id), eq(workersT.active, true)))
+    : [];
   const users = await db.select().from(usersT);
   const userByWorker = new Map(users.filter((u) => u.workerId).map((u) => [u.workerId!, u]));
-  const code = await getAccessCode();
+  const code = tenant ? await getAccessCode(tenant.id) : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <TopBar name={session.name} role={session.role} />
+      <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-3xl space-y-5 p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800">Accesos de trabajadoras</h2>
