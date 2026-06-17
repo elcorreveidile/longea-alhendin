@@ -114,6 +114,9 @@ export default async function PanelPage({
           <a href="/panel/plantilla" className="text-sm font-medium text-cyan-700 hover:underline">
             Plantilla →
           </a>
+          <a href="/panel/vacaciones" className="text-sm font-medium text-cyan-700 hover:underline">
+            Vacaciones →
+          </a>
           <a href="/panel/config" className="text-sm font-medium text-cyan-700 hover:underline">
             Reglas de generación →
           </a>
