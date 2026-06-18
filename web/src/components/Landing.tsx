@@ -1,18 +1,7 @@
 import Link from "next/link";
-import DevCredit from "@/components/DevCredit";
-
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <Link href="/" className="flex items-center gap-2 font-bold">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-symbol.png" alt="PlanTurnos" className="h-9 w-9" />
-      <span className="text-xl lowercase tracking-tight">
-        <span className={light ? "text-white" : "text-[#0E7490]"}>plan</span>
-        <span className="text-[#E59A3C]">turnos</span>
-      </span>
-    </Link>
-  );
-}
+import Logo from "@/components/Logo";
+import MarketingFooter from "@/components/MarketingFooter";
+import { SECTORES } from "@/data/sectores";
 
 // Mini-cuadrante de muestra para el hero.
 const CELL: Record<string, string> = {
@@ -84,6 +73,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <Logo />
           <nav className="flex items-center gap-5 text-sm">
+            <a href="/sectores" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Sectores</a>
             <a href="#precios" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Precios</a>
             <a href="#faq" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Preguntas</a>
             <Link href="/login" className="rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800">
@@ -107,7 +97,7 @@ export default function Landing() {
               <span className="text-cyan-300">listos en segundos</span>.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-100/90">
-              PlanTurnos genera los turnos automáticamente cumpliendo el convenio.
+              PlanTurnos genera los turnos automáticamente cumpliendo el convenio del sector de tu empresa.
               Menos Excel, cero incumplimientos y cada trabajador ve su turno en el móvil.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -129,12 +119,17 @@ export default function Landing() {
       {/* Sectores */}
       <section className="border-b border-[#e7dcc4] bg-[#f4ecd8] py-8">
         <div className="mx-auto max-w-5xl px-5 text-center">
-          <p className="text-sm font-medium text-[#8a6d3b]">Para cualquier equipo a turnos</p>
+          <p className="text-sm font-medium text-[#8a6d3b]">Cuadrantes a la medida de tu sector</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            {["Residencias", "Clínicas", "Hostelería", "Seguridad", "Limpieza", "Industria", "Academia"].map((t) => (
-              <span key={t} className="rounded-full bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">{t}</span>
+            {SECTORES.map((s) => (
+              <Link key={s.slug} href={`/sectores/${s.slug}`} className="rounded-full bg-white px-4 py-2 font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:text-cyan-700">
+                {s.short}
+              </Link>
             ))}
           </div>
+          <p className="mt-3 text-xs">
+            <Link href="/sectores" className="font-medium text-cyan-700 hover:underline">Ver todos los sectores →</Link>
+          </p>
         </div>
       </section>
 
@@ -265,13 +260,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#e7dcc4] bg-[#faf6ee] py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-5 text-center text-sm text-slate-500">
-          <Logo />
-          <DevCredit />
-          <p className="mt-1 text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos · planturnos.com</p>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }
