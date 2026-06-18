@@ -17,7 +17,7 @@ export default function MarketingHeader() {
               Probar demo
             </Link>
           </div>
-          <Link href="/entrar" className="rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800">
+          <Link href="/login" className="rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800">
             Acceder
           </Link>
           <MobileNav />

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { tenants } from "@/db/schema";
+import { getSession } from "./session";
 
 // Tenant por defecto cuando no hay subdominio (dominio raíz, vercel.app, local).
 const DEFAULT_SLUG = process.env.DEFAULT_TENANT ?? "alhendin";
@@ -17,8 +18,24 @@ export function slugFromHost(host: string | null): string | null {
   return null;
 }
 
-/** Tenant (residencia) actual según el subdominio; si no, el por defecto / el primero. */
+/**
+ * Empresa (tenant) actual.
+ *
+ * 1. Si hay una sesión de admin o trabajadora con empresa propia, esa manda:
+ *    así el acceso por correo lleva a cada persona a SU empresa desde cualquier
+ *    dominio, sin depender del subdominio.
+ * 2. Si no (público, trabajadora antes de entrar, o superadmin que no tiene
+ *    empresa propia), se resuelve por el subdominio; y si no, la por defecto.
+ */
 export async function getCurrentTenant() {
+  const session = await getSession();
+  if (session?.tenantId) {
+    const own = (
+      await db.select().from(tenants).where(eq(tenants.id, session.tenantId)).limit(1)
+    )[0];
+    if (own) return own;
+  }
+
   const host = (await headers()).get("host");
   const slug = slugFromHost(host) ?? DEFAULT_SLUG;
   let t = (await db.select().from(tenants).where(eq(tenants.slug, slug)).limit(1))[0];

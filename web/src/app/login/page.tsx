@@ -187,12 +187,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     >
       {bg && <div className="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" />}
       <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
-        <a href={homeHref} className="inline-block" title="Ir al inicio">
+        <a href={homeHref} className="mb-5 inline-flex items-center gap-2" title="PlanTurnos">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
+          <img src="/logo-symbol.png" alt="" className="h-8 w-8" />
+          <span className="text-lg font-bold lowercase tracking-tight">
+            <span className="text-[#0E7490]">plan</span><span className="text-[#E59A3C]">turnos</span>
+          </span>
         </a>
-        <h1 className="text-xl font-bold text-slate-800">Cuadrantes</h1>
-        <p className="mt-1 mb-6 text-sm text-slate-500">{tenant?.name ?? "PlanTurnos"}</p>
+        <h1 className="text-xl font-bold text-slate-800">Acceder</h1>
+        <p className="mt-1 mb-6 text-sm text-slate-500">
+          Entra con tu correo y te enviamos un enlace de acceso.
+        </p>
         {sp.enviado !== "1" && tabs}
         {body}
         <p className="mt-6 text-center text-xs text-slate-400">
