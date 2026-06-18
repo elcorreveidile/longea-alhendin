@@ -42,7 +42,7 @@ export default async function ContactoPage({
 
   return (
     <main className="relative flex min-h-screen items-center justify-center p-6">
-      <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.png')] bg-cover bg-center bg-fixed" />
+      <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.webp')] bg-cover bg-center bg-fixed" />
       <div className="absolute inset-0 -z-10 bg-slate-900/55" />
       <div className="w-full max-w-md rounded-2xl border border-[#e7dcc4] bg-[#faf6ee] p-8 shadow-2xl">
         <a href="/" className="text-sm font-medium text-cyan-700 hover:underline">← Volver</a>

@@ -48,11 +48,14 @@ export default async function ConfigPage({
   const numCls = "mt-1 w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-2xl space-y-5 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Reglas de generación</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-reglas.png" alt="" className="h-7 w-7" />Reglas de generación
+          </h2>
           <a href="/panel" className="text-sm font-medium text-cyan-700 hover:underline">← Volver al panel</a>
         </div>
 

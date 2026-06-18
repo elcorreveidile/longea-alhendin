@@ -35,7 +35,7 @@ function CuadranteMock() {
   return (
     <div className="rotate-1 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-700">Julio · Residencia</span>
+        <span className="text-xs font-semibold text-slate-700">Julio · Tu equipo</span>
         <span className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Generado ✓</span>
       </div>
       <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-1 text-[10px]">
@@ -95,7 +95,7 @@ export default function Landing() {
 
       {/* Hero con foto fija "flotante" */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[url('/img/home-bg.png')] bg-cover bg-center bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-bg.webp')] bg-cover bg-center bg-fixed" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/20" />
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2">
           <div>
@@ -157,7 +157,7 @@ export default function Landing() {
       <section className="bg-[#f4ecd8] py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 lg:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/care-hands.png" alt="Equipo bien coordinado" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
+          <img src="/img/care-hands.webp" alt="Equipo bien coordinado" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
           <div>
             <h2 className="text-3xl font-bold text-slate-900">Pensado para tu equipo, no para el papeleo</h2>
             <p className="mt-4 text-lg text-slate-600">
@@ -191,7 +191,7 @@ export default function Landing() {
 
       {/* Cita sobre foto fija */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.png')] bg-cover bg-center bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.webp')] bg-cover bg-center bg-fixed" />
         <div className="absolute inset-0 -z-10 bg-slate-900/60" />
         <div className="mx-auto max-w-3xl px-5 py-24 text-center">
           <p className="text-2xl font-medium leading-relaxed text-white drop-shadow sm:text-3xl">
