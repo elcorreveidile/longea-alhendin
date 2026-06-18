@@ -81,7 +81,7 @@ export default function Landing() {
 
       {/* Hero con foto fija "flotante" */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[url('/img/home-bg.webp')] bg-cover bg-center bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-fixed" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/20" />
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2">
           <div>
@@ -148,7 +148,7 @@ export default function Landing() {
       <section className="bg-[#f4ecd8] py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 lg:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/care-hands.webp" alt="Equipo bien coordinado" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
+          <img src="/img/home-hero.webp" alt="Cada trabajador ve su turno en el móvil" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
           <div>
             <h2 className="text-3xl font-bold text-slate-900">Pensado para tu equipo, no para el papeleo</h2>
             <p className="mt-4 text-lg text-slate-600">

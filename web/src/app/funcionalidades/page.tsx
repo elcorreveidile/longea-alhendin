@@ -40,6 +40,11 @@ export default function FuncionalidadesPage() {
         </p>
       </section>
 
+      <section className="mx-auto max-w-5xl px-5 pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/home-hero3.webp" alt="El cuadrante en el ordenador y en el móvil" className="h-64 w-full rounded-3xl object-cover shadow-xl sm:h-80" />
+      </section>
+
       <section className="mx-auto max-w-6xl px-5 pb-12">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (

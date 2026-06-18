@@ -32,6 +32,11 @@ export default function CasosPage() {
         </p>
       </section>
 
+      <section className="mx-auto max-w-5xl px-5 pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/home-hero2.webp" alt="Planificando los turnos del equipo" className="h-64 w-full rounded-3xl object-cover shadow-xl sm:h-80" />
+      </section>
+
       <section className="mx-auto max-w-4xl px-5">
         <div className="grid gap-4 sm:grid-cols-3">
           {METRICAS.map((m) => (
