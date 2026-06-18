@@ -52,6 +52,22 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "PlanTurnos",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description:
+                "Software de cuadrantes y turnos que genera la planificación cumpliendo el convenio de tu sector.",
+              url: SITE_URL,
+              offers: { "@type": "Offer", price: "49", priceCurrency: "EUR" },
+            }),
+          }}
+        />
         {children}
         <CookieBanner />
       </body>

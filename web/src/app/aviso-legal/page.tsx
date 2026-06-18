@@ -16,14 +16,12 @@ export default function AvisoLegalPage() {
         <p className="mt-2 text-sm text-slate-500">Última actualización: junio de 2026</p>
 
         <div className="mt-8 space-y-6 text-slate-700 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900">
-          <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            ⚠️ Plantilla orientativa. Completa los datos entre corchetes <strong>[ ]</strong> con tu información real.
-          </p>
-
           <h2>1. Datos identificativos</h2>
           <p>
-            En cumplimiento de la Ley 34/2002 (LSSI-CE), se informa de que este sitio web es titularidad de
-            [NOMBRE / RAZÓN SOCIAL], con NIF/CIF [NIF] y domicilio en [DIRECCIÓN]. Contacto: [EMAIL DE CONTACTO].
+            En cumplimiento de la Ley 34/2002 (LSSI-CE), se informa de que este sitio web es titularidad de{" "}
+            <strong>Francisco Javier Benítez Láinez</strong>, con NIF 08916742X y domicilio en Calle María Magdalena, 5.
+            Puedes contactar a través de nuestro{" "}
+            <a href="/contacto" className="text-cyan-700 underline">formulario de contacto</a>.
           </p>
 
           <h2>2. Objeto</h2>
