@@ -40,7 +40,7 @@ export default async function SectorPage({
 
       {/* Hero con foto del sector */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: `url(/img/${s.photo}.webp)` }} />
+        <div className="absolute inset-0 -z-10 bg-cover bg-top" style={{ backgroundImage: `url(/img/${s.photo}.webp)` }} />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/25" />
         <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
           <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">

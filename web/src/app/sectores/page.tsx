@@ -40,7 +40,7 @@ export default function SectoresPage() {
               className="group overflow-hidden rounded-2xl border border-[#e7dcc4] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/img/${s.photo}.webp`} alt={s.short} className="h-40 w-full object-cover" />
+              <img src={`/img/${s.photo}.webp`} alt={s.short} className="h-40 w-full object-cover object-top" />
               <div className="p-6">
                 <h2 className="text-lg font-bold text-slate-900 group-hover:text-cyan-700">{s.short}</h2>
                 <p className="mt-1 text-sm text-slate-600">{s.tagline}</p>
