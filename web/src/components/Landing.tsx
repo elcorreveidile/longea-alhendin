@@ -81,8 +81,8 @@ export default function Landing() {
 
       {/* Hero con foto fija "flotante" */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-fixed" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/55 to-slate-900/10" />
+        <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-scroll lg:bg-fixed" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-900/80 to-slate-900/45 lg:bg-gradient-to-r lg:from-slate-900/85 lg:via-slate-900/55 lg:to-slate-900/10" />
         <div className="px-5 py-20 sm:px-10 sm:py-28">
           <div className="flex max-w-4xl flex-col gap-8 lg:ml-48 lg:flex-row lg:items-center xl:ml-72">
           <div className="max-w-md">
@@ -107,7 +107,7 @@ export default function Landing() {
             </div>
             <p className="mt-4 text-sm text-slate-200/80">Sin permanencia · Listo para usar hoy mismo</p>
           </div>
-          <div className="hidden w-96 shrink-0 lg:block">
+          <div className="w-full shrink-0 lg:w-96">
             <CuadranteMock />
           </div>
           </div>
