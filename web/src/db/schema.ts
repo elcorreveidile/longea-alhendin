@@ -33,6 +33,10 @@ export const jobRole = pgEnum("job_role", [
 export const cuadranteStatus = pgEnum("cuadrante_status", ["draft", "published"]);
 // Estado de un contacto/interesado llegado por el formulario público.
 export const leadStatus = pgEnum("lead_status", ["new", "contacted", "archived"]);
+// Estado de un apunte del libro de horas (profesorado).
+//  confirmed: declarado por la persona · locked: periodo cerrado por gestión ·
+//  voided: anulado (no se borra, queda traza). Correcciones = apunte nuevo.
+export const hourStatus = pgEnum("hour_status", ["confirmed", "locked", "voided"]);
 
 /** Plantilla: cada trabajadora de la residencia. */
 export const workers = pgTable("workers", {
@@ -155,8 +159,53 @@ export const leads = pgTable("leads", {
   contactedAt: timestamp("contacted_at", { withTimezone: true }),
 });
 
+/**
+ * Perfil docente (uno a uno con un trabajador): objetivo de horas anuales,
+ * reducciones y disponibilidad. Las horas se guardan en MINUTOS para evitar
+ * errores con los decimales (p. ej. 494,5 h = 29 670 min). Curso oct–sept.
+ */
+export const teacherProfiles = pgTable("teacher_profiles", {
+  workerId: uuid("worker_id")
+    .primaryKey()
+    .references(() => workers.id, { onDelete: "cascade" }),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  annualTargetMin: integer("annual_target_min").notNull().default(46020), // 767 h
+  reductionMin: integer("reduction_min").notNull().default(0),
+  reductionType: text("reduction_type"), // "Comité", "Edad", "Subdirección"…
+  availability: text("availability").notNull().default("both"), // both | morning | afternoon
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/**
+ * Libro de horas del profesorado: apuntes de horas reales realizadas de forma
+ * fehaciente (sello de fecha-hora y autor; nunca se borra, se anula). Las
+ * correcciones se hacen con un apunte nuevo. Curso académico oct–sept.
+ */
+export const hourEntries = pgTable("hour_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  workerId: uuid("worker_id")
+    .notNull()
+    .references(() => workers.id, { onDelete: "cascade" }),
+  workDate: date("work_date").notNull(),
+  minutes: integer("minutes").notNull(),
+  concept: text("concept").notNull().default("clase"),
+  note: text("note"),
+  status: hourStatus("status").notNull().default("confirmed"),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type Tenant = typeof tenants.$inferSelect;
 export type Worker = typeof workers.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Cuadrante = typeof cuadrantes.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
+export type TeacherProfile = typeof teacherProfiles.$inferSelect;
+export type HourEntry = typeof hourEntries.$inferSelect;
