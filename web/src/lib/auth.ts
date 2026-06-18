@@ -10,7 +10,7 @@ import { sendSms } from "./sms";
 import { createOtp, verifyOtp } from "./otp";
 import { appUrl } from "./env";
 import { createSession } from "./session";
-import { getCurrentTenant } from "./tenant";
+import { getCurrentTenant, slugFromHost } from "./tenant";
 
 /** Base del enlace según el dominio desde el que se pide (subdominio incluido). */
 async function requestBaseUrl(): Promise<string> {
@@ -60,6 +60,9 @@ export async function loginByEmail(email: string): Promise<void> {
       : null;
 
   // Empresa del subdominio desde el que se accede (para atar a las admins).
+  // Solo auto-atamos si se entra por el subdominio REAL de una empresa, nunca
+  // desde el dominio raíz (que por defecto es Alhendín y enredaría a otros).
+  const onSubdomain = !!slugFromHost((await headers()).get("host"));
   const tenant = envRole === "superadmin" ? null : await getCurrentTenant();
 
   let user = (
@@ -101,7 +104,8 @@ export async function loginByEmail(email: string): Promise<void> {
 
   // Red de seguridad: una admin sin empresa asignada se ata a la del subdominio
   // desde el que entra (resuelve a las admins antiguas creadas como globales).
-  if (user.role === "admin" && !user.tenantId && tenant) {
+  // Solo si entra por un subdominio real, para no atarla al Alhendín por defecto.
+  if (user.role === "admin" && !user.tenantId && tenant && onSubdomain) {
     user = (
       await db.update(users).set({ tenantId: tenant.id }).where(eq(users.id, user.id)).returning()
     )[0];
