@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { requestMagicLink, requestSmsCode, loginByPhone } from "@/lib/auth";
 import { getSession, homeForRole } from "@/lib/session";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant, slugFromHost } from "@/lib/tenant";
 import { normalizePhone, maskPhone } from "@/lib/phone";
 import DevCredit from "@/components/DevCredit";
 
@@ -29,6 +29,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const method = sp.m === "sms" ? "sms" : "email";
   const errorMsg = sp.error ? ERRORS[sp.error] ?? "Ha ocurrido un error." : null;
   const tenant = await getCurrentTenant();
+  // En el subdominio de una empresa, la raíz es esta pantalla de acceso, así que
+  // "volver a la web" debe llevar al sitio público, no de vuelta aquí.
+  const onSubdomain = !!slugFromHost((await headers()).get("host"));
+  const homeHref = onSubdomain ? "https://planturnos.com/" : "/";
 
   // --- Acciones de servidor ---
   async function emailAction(formData: FormData) {
@@ -183,7 +187,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     >
       {bg && <div className="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" />}
       <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
-        <a href="/" className="inline-block" title="Ir al inicio">
+        <a href={homeHref} className="inline-block" title="Ir al inicio">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
         </a>
@@ -198,7 +202,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           </a>
         </p>
         <p className="mt-2 text-center text-xs text-slate-400">
-          <a href="/" className="hover:text-cyan-700 hover:underline">← Volver a la página principal</a>
+          <a href={homeHref} className="hover:text-cyan-700 hover:underline">← Volver a PlanTurnos</a>
         </p>
         <DevCredit />
       </div>

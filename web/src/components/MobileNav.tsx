@@ -45,7 +45,7 @@ export default function MobileNav() {
               </Link>
             ))}
             <Link
-              href="/login"
+              href="/entrar"
               onClick={() => setOpen(false)}
               className="mt-1 rounded-lg bg-cyan-700 px-3 py-2.5 text-center font-semibold text-white"
             >

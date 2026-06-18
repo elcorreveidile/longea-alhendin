@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getSession, homeForRole } from "@/lib/session";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant, slugFromHost } from "@/lib/tenant";
 import {
   verifyAccessCode,
   listActiveWorkers,
@@ -40,6 +40,8 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const step = sp.step;
   const errorMsg = sp.error ? ERRORS[sp.error] ?? "Ha ocurrido un error." : null;
+  const onSubdomain = !!slugFromHost((await headers()).get("host"));
+  const homeHref = onSubdomain ? "https://planturnos.com/" : "/";
 
   // --- Acciones ---
   async function codeAction(formData: FormData) {
@@ -193,7 +195,7 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
     >
       {bg && <div className="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" />}
       <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
-        <a href="/" className="inline-block" title="Ir al inicio">
+        <a href={homeHref} className="inline-block" title="Ir al inicio">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
         </a>
@@ -205,7 +207,7 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
           <a href="/login" className="font-medium text-cyan-700 hover:underline">Entra por aquí</a>
         </p>
         <p className="mt-2 text-center text-xs text-slate-400">
-          <a href="/" className="hover:text-cyan-700 hover:underline">← Volver a la página principal</a>
+          <a href={homeHref} className="hover:text-cyan-700 hover:underline">← Volver a PlanTurnos</a>
         </p>
         <DevCredit />
       </div>
