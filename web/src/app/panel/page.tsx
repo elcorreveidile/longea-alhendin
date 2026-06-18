@@ -176,7 +176,7 @@ export default async function PanelPage({
             <p className="mt-1 rounded-md bg-slate-50 p-2 text-xs text-slate-600">
               <strong>Reglas activas:</strong> cobertura {gen.coverage.M}/{gen.coverage.T}/{gen.coverage.N} ·
               máx {gen.maxConsecutive} días seguidos · máx {gen.maxConsecutiveRest} descansos seguidos ·
-              tras {gen.restAfterStreak.threshold} → {gen.restAfterStreak.minRest} descansos ·
+              tras {gen.restAfterStreak.threshold} → {gen.restAfterStreak.minRest} descansos ·{" "}
               {gen.sundayOff} domingo libre.{" "}
               <a href="/panel/config" className="font-medium text-cyan-700 hover:underline">Cambiar</a>
             </p>
