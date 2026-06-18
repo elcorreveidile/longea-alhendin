@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers } from "@/db/schema";
 import { listTeachers, upsertTeacherProfile } from "@/db/teachers";
@@ -52,6 +53,7 @@ export default async function HorasPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireAcademiaPanel();
 
   const tenant = await getCurrentTenant();
   const sp = await searchParams;

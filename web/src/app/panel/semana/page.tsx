@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { buildGenerateConfigWeek } from "@/lib/generate-config";
 import { getWeek, saveWeek, listWeekStarts, type WeekData } from "@/lib/week-cuadrantes";
 import { getGenConfig } from "@/lib/gen-settings";
@@ -72,6 +73,7 @@ export default async function SemanaPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const sp = await searchParams;
   const genMsg = sp.gen ? GEN_MSG[sp.gen] : null;

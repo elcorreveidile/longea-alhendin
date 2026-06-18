@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { asc, eq, inArray } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 import TopBar from "@/components/TopBar";
@@ -20,6 +21,7 @@ export default async function VacacionesPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const sp = await searchParams;
   const now = new Date();

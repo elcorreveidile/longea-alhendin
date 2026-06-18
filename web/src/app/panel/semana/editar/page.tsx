@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { getWeek, saveWeek } from "@/lib/week-cuadrantes";
 import TopBar from "@/components/TopBar";
 import EditableWeek from "@/components/EditableWeek";
@@ -31,6 +32,7 @@ export default async function EditarSemanaPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const sp = await searchParams;
   const tenant = await getCurrentTenant();

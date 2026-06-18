@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { getGenConfig, setGenConfig, DEFAULT_GEN } from "@/lib/gen-settings";
 import TopBar from "@/components/TopBar";
 
@@ -40,6 +41,7 @@ export default async function ConfigPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const sp = await searchParams;
   const tenant = await getCurrentTenant();

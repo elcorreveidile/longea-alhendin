@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT, users as usersT } from "@/db/schema";
 import { getLatestCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
@@ -135,6 +136,7 @@ export default async function FichaPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const { id } = await params;
   const sp = await searchParams;

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { requireResidencePanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers as workersT } from "@/db/schema";
 import { getPhotoUrls } from "@/lib/photos";
@@ -177,6 +178,7 @@ export default async function PlantillaPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  await requireResidencePanel();
 
   const sp = await searchParams;
   const msg = sp.m ? MSG[sp.m] : null;
