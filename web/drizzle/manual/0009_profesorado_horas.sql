@@ -2,7 +2,7 @@
 -- Additivo: no toca ninguna tabla existente. Aplicar una vez en Neon.
 
 DO $$ BEGIN
-  CREATE TYPE "public"."hour_status" AS ENUM('confirmed', 'locked', 'voided');
+  CREATE TYPE "public"."hour_status" AS ENUM('declared', 'confirmed', 'locked', 'voided');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 CREATE TABLE IF NOT EXISTS "teacher_profiles" (
@@ -24,8 +24,10 @@ CREATE TABLE IF NOT EXISTS "hour_entries" (
   "minutes" integer NOT NULL,
   "concept" text NOT NULL DEFAULT 'clase',
   "note" text,
-  "status" "hour_status" NOT NULL DEFAULT 'confirmed',
+  "status" "hour_status" NOT NULL DEFAULT 'declared',
   "created_by_user_id" uuid REFERENCES "users"("id") ON DELETE set null,
+  "confirmed_by_user_id" uuid REFERENCES "users"("id") ON DELETE set null,
+  "confirmed_at" timestamp with time zone,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );

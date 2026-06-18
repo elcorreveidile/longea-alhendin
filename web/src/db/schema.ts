@@ -33,10 +33,11 @@ export const jobRole = pgEnum("job_role", [
 export const cuadranteStatus = pgEnum("cuadrante_status", ["draft", "published"]);
 // Estado de un contacto/interesado llegado por el formulario público.
 export const leadStatus = pgEnum("lead_status", ["new", "contacted", "archived"]);
-// Estado de un apunte del libro de horas (profesorado).
-//  confirmed: declarado por la persona · locked: periodo cerrado por gestión ·
-//  voided: anulado (no se borra, queda traza). Correcciones = apunte nuevo.
-export const hourStatus = pgEnum("hour_status", ["confirmed", "locked", "voided"]);
+// Estado de un apunte del libro de horas (profesorado). Flujo:
+//  declared: el profesor lo ha declarado · confirmed: subdirección lo confirma ·
+//  locked: periodo cerrado por RRHH/nóminas · voided: anulado (no se borra,
+//  queda traza). Las correcciones se hacen con un apunte nuevo.
+export const hourStatus = pgEnum("hour_status", ["declared", "confirmed", "locked", "voided"]);
 
 /** Plantilla: cada trabajadora de la residencia. */
 export const workers = pgTable("workers", {
@@ -196,7 +197,10 @@ export const hourEntries = pgTable("hour_entries", {
   minutes: integer("minutes").notNull(),
   concept: text("concept").notNull().default("clase"),
   note: text("note"),
-  status: hourStatus("status").notNull().default("confirmed"),
+  status: hourStatus("status").notNull().default("declared"),
+  // Quién confirmó (subdirección) y cuándo, para la trazabilidad fehaciente.
+  confirmedByUserId: uuid("confirmed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
   createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
