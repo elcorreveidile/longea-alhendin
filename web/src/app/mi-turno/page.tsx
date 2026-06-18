@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import { getTenantKind } from "@/lib/tenant-kind";
 import TopBar from "@/components/TopBar";
 import { shiftDef } from "@/data/shifts";
 import sample from "@/data/sample-cuadrante.json";
@@ -34,6 +35,8 @@ export default async function MiTurnoPage({
 
   const sp = await searchParams;
   const tenant = await getCurrentTenant();
+  // En academias, el portal del profesor es "Mis horas", no el cuadrante.
+  if (tenant && (await getTenantKind(tenant.id)) === "academia") redirect("/mis-horas");
   const months = tenant ? await listCuadranteMonths(tenant.id) : [];
   const wantY = Number(sp.y);
   const wantM = Number(sp.m);

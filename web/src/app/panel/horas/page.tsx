@@ -5,14 +5,16 @@ import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers } from "@/db/schema";
-import { listTeachers, upsertTeacherProfile } from "@/db/teachers";
+import { listTeachers, upsertTeacherProfile, lockCourse } from "@/db/teachers";
 import { courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import { ACENTOS_DEMO_ROSTER } from "@/data/acentos-demo-roster";
+import ConfirmButton from "@/components/ConfirmButton";
 import TopBar from "@/components/TopBar";
 
 const MSG: Record<string, { ok: boolean; text: string }> = {
   cargado: { ok: true, text: "✓ Profesorado de ejemplo cargado." },
   yaexiste: { ok: false, text: "Ya hay profesorado cargado; no se ha duplicado." },
+  cerrado: { ok: true, text: "✓ Curso cerrado: las horas quedan bloqueadas." },
 };
 
 const AVAIL: Record<string, string> = { both: "Mañana y tarde", morning: "Solo mañana", afternoon: "Solo tarde" };
@@ -43,6 +45,17 @@ async function loadDemoAction() {
   }
   revalidatePath("/panel/horas");
   redirect("/panel/horas?m=cargado");
+}
+
+async function lockCourseAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  const startYear = Number(formData.get("curso"));
+  if (tenant && startYear) await lockCourse(tenant.id, startYear);
+  revalidatePath("/panel/horas");
+  redirect(`/panel/horas?curso=${startYear}&m=cerrado`);
 }
 
 export default async function HorasPage({
@@ -182,9 +195,22 @@ export default async function HorasPage({
           </section>
         )}
 
-        <p className="text-xs text-slate-400">
-          Las horas las declara cada profesor desde su portal; subdirección las confirma. Cómputo del curso académico (oct–sept).
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-slate-400">
+            Las horas las declara cada profesor desde su portal; subdirección las confirma. Cómputo del curso académico (oct–sept).
+          </p>
+          {teachers.length > 0 && (
+            <form action={lockCourseAction}>
+              <input type="hidden" name="curso" value={startYear} />
+              <ConfirmButton
+                confirm={`¿Cerrar el curso ${courseYearLabel(startYear)}? Las horas quedarán bloqueadas (no editables).`}
+                className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Cerrar curso {courseYearLabel(startYear)}
+              </ConfirmButton>
+            </form>
+          )}
+        </div>
       </main>
     </div>
   );

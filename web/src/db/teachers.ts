@@ -132,3 +132,27 @@ export async function voidHourEntry(id: string): Promise<void> {
     .set({ status: "voided", updatedAt: new Date() })
     .where(and(eq(hourEntries.id, id), ne(hourEntries.status, "locked")));
 }
+
+/** El profesor solo puede anular un apunte SUYO que aún esté "declarado". */
+export async function voidOwnDeclared(id: string, workerId: string): Promise<void> {
+  await db
+    .update(hourEntries)
+    .set({ status: "voided", updatedAt: new Date() })
+    .where(and(eq(hourEntries.id, id), eq(hourEntries.workerId, workerId), eq(hourEntries.status, "declared")));
+}
+
+/** RRHH cierra el curso: bloquea todos los apuntes válidos del periodo. */
+export async function lockCourse(tenantId: string, startYear: number): Promise<void> {
+  const { from, to } = courseYearRange(startYear);
+  await db
+    .update(hourEntries)
+    .set({ status: "locked", updatedAt: new Date() })
+    .where(
+      and(
+        eq(hourEntries.tenantId, tenantId),
+        ne(hourEntries.status, "voided"),
+        gte(hourEntries.workDate, from),
+        lte(hourEntries.workDate, to),
+      ),
+    );
+}
