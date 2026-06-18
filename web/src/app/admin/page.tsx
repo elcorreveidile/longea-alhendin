@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, asc, count, eq } from "drizzle-orm";
+import { put } from "@vercel/blob";
 import { getSession } from "@/lib/session";
 import { db } from "@/db";
 import { tenants, workers, users } from "@/db/schema";
@@ -14,6 +15,8 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   adminasignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora es administradora de esta empresa." },
   adminmail: { ok: false, text: "Introduce un correo válido para la administradora." },
   adminsuper: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como administradora." },
+  logo: { ok: true, text: "✓ Logo actualizado. Ya aparece en los correos, el panel y el acceso de la empresa." },
+  logoerror: { ok: false, text: "No se pudo subir el logo. Prueba con una imagen PNG o JPG." },
 };
 
 async function createCompanyAction(formData: FormData) {
@@ -76,6 +79,26 @@ async function addAdminAction(formData: FormData) {
   redirect("/admin?m=admin");
 }
 
+async function setLogoAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const file = formData.get("logo") as File | null;
+  if (!tenantId || !file || file.size === 0) redirect("/admin?m=logoerror");
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  try {
+    const blob = await put(`logos/${tenantId}.${ext}`, file, { access: "public", addRandomSuffix: true });
+    await db.update(tenants).set({ logoUrl: blob.url }).where(eq(tenants.id, tenantId));
+  } catch {
+    redirect("/admin?m=logoerror");
+  }
+  revalidatePath("/admin");
+  redirect("/admin?m=logo");
+}
+
 export default async function AdminHome({
   searchParams,
 }: {
@@ -122,7 +145,16 @@ export default async function AdminHome({
         {companies.map((c) => (
           <div key={c.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
+              <div className="flex items-start gap-3">
+                {c.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.logoUrl} alt="" className="h-12 w-12 rounded-lg border border-slate-200 object-contain" />
+                ) : (
+                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-100 text-sm font-bold text-cyan-700">
+                    {c.name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+                <div>
                 <h2 className="text-lg font-semibold text-slate-900">{c.name}</h2>
                 <p className="text-sm text-slate-500">
                   <span className="font-mono">{c.slug}.planturnos.com</span> · {c.workerCount} trabajadoras activas
@@ -135,6 +167,7 @@ export default async function AdminHome({
                         .join(", ")
                     : "— ninguna —"}
                 </p>
+                </div>
               </div>
               <a
                 href={`https://${c.slug}.planturnos.com/panel`}
@@ -157,6 +190,24 @@ export default async function AdminHome({
               </div>
               <button className="rounded-lg border border-cyan-700 px-4 py-1.5 text-sm font-semibold text-cyan-700 hover:bg-cyan-50">
                 Añadir
+              </button>
+            </form>
+
+            <form action={setLogoAction} className="mt-3 flex flex-wrap items-end gap-2">
+              <input type="hidden" name="tenantId" value={c.id} />
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-xs font-medium text-slate-600">
+                  {c.logoUrl ? "Cambiar logo" : "Subir logo"} (PNG o JPG)
+                </label>
+                <input
+                  name="logo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700"
+                />
+              </div>
+              <button className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                Guardar logo
               </button>
             </form>
           </div>
