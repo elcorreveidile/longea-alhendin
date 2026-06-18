@@ -82,8 +82,11 @@ export default function Landing() {
       {/* Hero con foto fija "flotante" */}
       <section className="relative isolate overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-fixed" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/20" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/70 via-slate-900/45 to-slate-900/75" />
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2">
+          <div className="hidden lg:block lg:pr-6">
+            <CuadranteMock />
+          </div>
           <div>
             <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
               Para cualquier empresa a turnos
@@ -92,7 +95,7 @@ export default function Landing() {
               Los cuadrantes de tu equipo,{" "}
               <span className="text-cyan-300">listos en segundos</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-100/90">
+            <p className="mt-5 text-lg text-slate-100/90">
               PlanTurnos genera los turnos automáticamente cumpliendo el convenio del sector de tu empresa.
               Menos Excel, cero incumplimientos y cada trabajador ve su turno en el móvil.
             </p>
@@ -105,9 +108,6 @@ export default function Landing() {
               </Link>
             </div>
             <p className="mt-4 text-sm text-slate-200/80">Sin permanencia · Listo para usar hoy mismo</p>
-          </div>
-          <div className="hidden lg:block lg:pl-6">
-            <CuadranteMock />
           </div>
         </div>
       </section>
