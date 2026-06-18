@@ -43,6 +43,11 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">
 </body></html>`;
 }
 
+/** Botón de acción con la marca (teal), compatible con clientes de correo. */
+function ctaButton(href: string, label: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="border-radius:10px;background:#0E7490"><a href="${href}" style="display:inline-block;padding:12px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none">${label}</a></td></tr></table>`;
+}
+
 /** Envía un mensaje del formulario de contacto al buzón configurado. */
 export async function sendContactEmail(data: {
   name: string;
@@ -62,16 +67,17 @@ export async function sendContactEmail(data: {
     to,
     replyTo: data.email,
     subject: `PlanTurnos · Contacto de ${data.name}`,
-    html: `
-      <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px">
-        <h2 style="color:#0e7490">Nuevo mensaje desde PlanTurnos</h2>
-        <p><strong>Nombre:</strong> ${esc(data.name)}</p>
-        <p><strong>Correo:</strong> ${esc(data.email)}</p>
-        ${data.org ? `<p><strong>Centro/Empresa:</strong> ${esc(data.org)}</p>` : ""}
-        <p><strong>Mensaje:</strong></p>
-        <p style="white-space:pre-wrap;background:#f1f5f9;padding:12px;border-radius:8px">${esc(data.message)}</p>
-      </div>
-    `,
+    html: brandedEmail({
+      preheader: `${data.name}: ${data.message.slice(0, 90)}`,
+      bodyHtml: `
+        <h1 style="margin:0 0 16px;font-size:18px;color:#0E7490">Nuevo mensaje desde la web</h1>
+        <p style="margin:0 0 6px"><strong>Nombre:</strong> ${esc(data.name)}</p>
+        <p style="margin:0 0 6px"><strong>Correo:</strong> <a href="mailto:${esc(data.email)}" style="color:#0E7490">${esc(data.email)}</a></p>
+        ${data.org ? `<p style="margin:0 0 6px"><strong>Centro/Empresa:</strong> ${esc(data.org)}</p>` : ""}
+        <p style="margin:16px 0 6px"><strong>Mensaje:</strong></p>
+        <div style="white-space:pre-wrap;background:#faf6ee;border:1px solid #e7dcc4;padding:14px;border-radius:10px">${esc(data.message)}</div>
+      `,
+    }),
   });
   if (error) {
     console.error(`[email] contacto FALLÓ (from=${emailFrom()} to=${to}):`, error);
@@ -94,13 +100,7 @@ export async function sendLeadReply(data: {
   const resend = new Resend(apiKey);
   const bodyHtml = `
     <div style="white-space:pre-wrap">${esc(data.body)}</div>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 4px">
-      <tr><td style="border-radius:10px;background:#0E7490">
-        <a href="https://planturnos.com/demo" style="display:inline-block;padding:12px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none">
-          Probar la demo →
-        </a>
-      </td></tr>
-    </table>
+    ${ctaButton("https://planturnos.com/demo", "Probar la demo →")}
   `;
   const html = brandedEmail({ bodyHtml, preheader: data.subject });
   const { data: sent, error } = await resend.emails.send({
@@ -133,18 +133,14 @@ export async function sendCuadranteEmail(
     from: emailFrom(),
     to: email,
     subject: `Nuevo cuadrante publicado · ${label}`,
-    html: `
-      <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#0e7490">Cuadrante de ${label}</h2>
-        <p>${name ? `Hola ${name}, ` : ""}ya está disponible el cuadrante de <strong>${label}</strong>.</p>
-        <p style="margin:28px 0">
-          <a href="${url}" style="background:#0e7490;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">
-            Ver mi turno
-          </a>
-        </p>
-        <p style="color:#64748b;font-size:13px">Residencia Alhendín · Cuadrantes</p>
-      </div>
-    `,
+    html: brandedEmail({
+      preheader: `Ya puedes consultar el cuadrante de ${label}`,
+      bodyHtml: `
+        <h1 style="margin:0 0 14px;font-size:18px;color:#0E7490">Nuevo cuadrante: ${esc(label)}</h1>
+        <p style="margin:0">${name ? `Hola ${esc(name)}, ` : ""}ya está disponible el cuadrante de <strong>${esc(label)}</strong>. Consúltalo cuando quieras.</p>
+        ${ctaButton(url, "Ver mi turno →")}
+      `,
+    }),
   });
   if (error) throw new Error(`Resend: ${error.message}`);
 }
@@ -161,22 +157,16 @@ export async function sendMagicLink(email: string, url: string): Promise<void> {
   const { error } = await resend.emails.send({
     from: emailFrom(),
     to: email,
-    subject: "Tu acceso a Cuadrantes · Residencia Alhendín",
-    html: `
-      <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#0e7490">Acceso a Cuadrantes</h2>
-        <p>Has solicitado acceder a la aplicación de cuadrantes de la Residencia Alhendín.</p>
-        <p style="margin:28px 0">
-          <a href="${url}" style="background:#0e7490;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">
-            Entrar
-          </a>
-        </p>
-        <p style="color:#64748b;font-size:13px">
-          Este enlace caduca en 15 minutos y solo puede usarse una vez.
-          Si no has sido tú, ignora este correo.
-        </p>
-      </div>
-    `,
+    subject: "Tu acceso a PlanTurnos",
+    html: brandedEmail({
+      preheader: "Tu enlace de acceso (caduca en 15 minutos)",
+      bodyHtml: `
+        <h1 style="margin:0 0 14px;font-size:18px;color:#0E7490">Tu acceso a PlanTurnos</h1>
+        <p style="margin:0">Has solicitado acceder a tu cuenta. Pulsa el botón para entrar:</p>
+        ${ctaButton(url, "Entrar →")}
+        <p style="margin:18px 0 0;font-size:13px;color:#6b7280">Este enlace caduca en 15 minutos y solo puede usarse una vez. Si no has sido tú, ignora este correo.</p>
+      `,
+    }),
   });
 
   if (error) {
