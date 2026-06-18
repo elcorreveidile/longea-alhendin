@@ -13,7 +13,7 @@ export default function TopBar({
     <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 print:hidden">
       <a href="/" className="flex items-center gap-3" title="Ir al inicio">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoUrl || "/logo-longea.png"} alt={tenantName ?? "PlanTurnos"} className="h-9 w-auto" />
+        <img src={logoUrl || "/logo-symbol.png"} alt={tenantName ?? "PlanTurnos"} className="h-9 w-auto" />
         <div className="border-l border-slate-200 pl-3">
           <h1 className="text-sm font-semibold text-slate-800 leading-tight">
             Cuadrantes

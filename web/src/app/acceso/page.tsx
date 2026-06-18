@@ -202,7 +202,7 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
       <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
         <a href={homeHref} className="inline-block" title="Ir al inicio">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={tenant?.logoUrl || "/logo-longea.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
+          <img src={tenant?.logoUrl || "/logo-symbol.png"} alt={tenant?.name ?? "PlanTurnos"} className="mb-5 h-10 w-auto" />
         </a>
         <h1 className="text-xl font-bold text-slate-800">Acceso trabajadoras</h1>
         <p className="mt-1 mb-6 text-sm text-slate-500">{tenant?.name ?? "PlanTurnos"}</p>

@@ -202,6 +202,24 @@ export default async function PanelPage({
           </form>
         </section>
 
+        {!isReal ? (
+          <section className="rounded-lg border border-[#e7dcc4] bg-white p-8 text-center shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-plantilla.png" alt="" className="mx-auto h-12 w-12" />
+            <h2 className="mt-3 text-lg font-bold text-slate-900">Aún no hay cuadrantes</h2>
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+              Empieza por cargar tu plantilla (tu equipo y sus reglas). Después pulsa
+              «Generar mes» y aquí aparecerá el cuadrante.
+            </p>
+            <a
+              href="/panel/plantilla"
+              className="mt-4 inline-block rounded-lg bg-cyan-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-800"
+            >
+              Cargar plantilla →
+            </a>
+          </section>
+        ) : (
+          <>
         <section className="rounded-lg bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-semibold text-slate-800">
@@ -249,6 +267,8 @@ export default async function PanelPage({
         </section>
 
         <Cuadrante data={data} />
+          </>
+        )}
 
         {data.violations && data.violations.length > 0 && (
           <section className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900">
