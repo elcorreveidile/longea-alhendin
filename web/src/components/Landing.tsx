@@ -85,7 +85,7 @@ export default function Landing() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/55 to-slate-900/10" />
         <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
           <div className="flex max-w-3xl flex-col gap-8 lg:flex-row lg:items-center">
-          <div className="hidden w-64 shrink-0 lg:block">
+          <div className="hidden w-80 shrink-0 lg:-ml-10 lg:block">
             <CuadranteMock />
           </div>
           <div>
