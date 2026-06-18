@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Logo from "@/components/Logo";
+import MarketingHeader from "@/components/MarketingHeader";
 import MarketingFooter from "@/components/MarketingFooter";
 import { SECTORES } from "@/data/sectores";
 
@@ -68,20 +68,7 @@ const FAQ = [
 export default function Landing() {
   return (
     <div className="min-h-screen bg-[#faf6ee] text-slate-800">
-      {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-[#e7dcc4] bg-[#faf6ee]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Logo />
-          <nav className="flex items-center gap-5 text-sm">
-            <a href="/sectores" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Sectores</a>
-            <a href="#precios" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Precios</a>
-            <a href="#faq" className="hidden text-slate-600 hover:text-cyan-700 sm:block">Preguntas</a>
-            <Link href="/login" className="rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800">
-              Acceder
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <MarketingHeader />
 
       {/* Hero con foto fija "flotante" */}
       <section className="relative isolate overflow-hidden">
@@ -104,9 +91,9 @@ export default function Landing() {
               <Link href="/contacto" className="rounded-lg bg-cyan-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-cyan-500">
                 Pruébalo gratis
               </Link>
-              <a href="#como" className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/20">
-                Cómo funciona
-              </a>
+              <Link href="/demo" className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/20">
+                Probar la demo
+              </Link>
             </div>
             <p className="mt-4 text-sm text-slate-200/80">Sin permanencia · Listo para usar hoy mismo</p>
           </div>
