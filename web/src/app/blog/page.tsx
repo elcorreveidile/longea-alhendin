@@ -16,6 +16,8 @@ export default function BlogPage() {
       <MarketingHeader />
 
       <section className="mx-auto max-w-3xl px-5 py-16 text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icons/icon-blog.png" alt="" className="mx-auto mb-3 h-14 w-14" />
         <span className="inline-block rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
           Blog
         </span>
@@ -29,12 +31,18 @@ export default function BlogPage() {
             <Link
               key={p.slug}
               href={`/blog/${p.slug}`}
-              className="block rounded-2xl border border-[#e7dcc4] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="block overflow-hidden rounded-2xl border border-[#e7dcc4] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <p className="text-xs font-medium uppercase tracking-widest text-[#8a6d3b]">{p.dateLabel}</p>
-              <h2 className="mt-1 text-xl font-bold text-slate-900">{p.title}</h2>
-              <p className="mt-2 text-slate-600">{p.excerpt}</p>
-              <span className="mt-3 inline-block text-sm font-semibold text-cyan-700">Leer más →</span>
+              {p.cover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/img/${p.cover}.webp`} alt={p.title} className="h-48 w-full object-cover" />
+              )}
+              <div className="p-6">
+                <p className="text-xs font-medium uppercase tracking-widest text-[#8a6d3b]">{p.dateLabel}</p>
+                <h2 className="mt-1 text-xl font-bold text-slate-900">{p.title}</h2>
+                <p className="mt-2 text-slate-600">{p.excerpt}</p>
+                <span className="mt-3 inline-block text-sm font-semibold text-cyan-700">Leer más →</span>
+              </div>
             </Link>
           ))}
         </div>

@@ -35,6 +35,11 @@ export default function SobreNosotrosPage() {
         </p>
       </section>
 
+      <section className="mx-auto max-w-4xl px-5 pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/nosotros.webp" alt="Trabajando en una solución a medida" className="h-64 w-full rounded-3xl object-cover shadow-xl sm:h-80" />
+      </section>
+
       <section className="mx-auto max-w-3xl px-5 pb-4">
         <div className="rounded-2xl border-l-4 border-cyan-600 bg-white p-8 shadow-sm">
           <h2 className="text-2xl font-bold text-slate-900">Cómo nació PlanTurnos</h2>

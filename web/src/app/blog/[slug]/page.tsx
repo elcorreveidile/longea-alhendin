@@ -56,6 +56,11 @@ export default async function PostPage({
         <p className="mt-4 text-xs font-medium uppercase tracking-widest text-[#8a6d3b]">{post.dateLabel}</p>
         <h1 className="mt-1 text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">{post.title}</h1>
 
+        {post.cover && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/img/${post.cover}.webp`} alt={post.title} className="mt-6 h-64 w-full rounded-2xl object-cover shadow-sm sm:h-80" />
+        )}
+
         <div
           className="mt-8 space-y-5 text-lg leading-relaxed text-slate-700 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-slate-900 [&_li]:ml-5 [&_li]:list-disc [&_ul]:space-y-2"
           dangerouslySetInnerHTML={{ __html: post.bodyHtml }}

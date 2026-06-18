@@ -4,6 +4,7 @@ export interface Post {
   date: string; // ISO
   dateLabel: string;
   excerpt: string;
+  cover?: string; // nombre de archivo en /img (sin extensión)
   bodyHtml: string;
 }
 
@@ -15,6 +16,7 @@ export const POSTS: Post[] = [
     dateLabel: "18 de junio de 2026",
     excerpt:
       "Si gestionas un equipo a turnos, conoces la escena: fin de mes y una hoja de Excel imposible. Te contamos cómo dejar de pelearte con ella.",
+    cover: "manager",
     bodyHtml: `
       <p>Si gestionas un equipo a turnos, conoces esta escena: <strong>fin de mes, café, y la hoja de Excel gigante</strong> delante. Cuadrar mañanas, tardes y noches. Que nadie haga demasiados días seguidos. Respetar descansos, festivos, vacaciones y las mil excepciones de “este no hace noches” y “esta solo de lunes a viernes”.</p>
       <p>Tardas <strong>medio día o más</strong>. Y aun así, cuando lo cuelgas, <strong>alguien se queja</strong>.</p>

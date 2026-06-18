@@ -16,6 +16,8 @@ export default function SectoresPage() {
       <MarketingHeader />
 
       <section className="mx-auto max-w-5xl px-5 py-16 text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icons/icon-sectores.png" alt="" className="mx-auto mb-3 h-14 w-14" />
         <span className="inline-block rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
           Digitalización del sector productivo
         </span>
@@ -35,12 +37,15 @@ export default function SectoresPage() {
             <Link
               key={s.slug}
               href={`/sectores/${s.slug}`}
-              className="group rounded-2xl border border-[#e7dcc4] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="group overflow-hidden rounded-2xl border border-[#e7dcc4] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div className="text-3xl">{s.emoji}</div>
-              <h2 className="mt-3 text-lg font-bold text-slate-900 group-hover:text-cyan-700">{s.short}</h2>
-              <p className="mt-1 text-sm text-slate-600">{s.tagline}</p>
-              <span className="mt-3 inline-block text-sm font-semibold text-cyan-700">Ver cómo funciona →</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/img/${s.photo}.webp`} alt={s.short} className="h-40 w-full object-cover" />
+              <div className="p-6">
+                <h2 className="text-lg font-bold text-slate-900 group-hover:text-cyan-700">{s.short}</h2>
+                <p className="mt-1 text-sm text-slate-600">{s.tagline}</p>
+                <span className="mt-3 inline-block text-sm font-semibold text-cyan-700">Ver cómo funciona →</span>
+              </div>
             </Link>
           ))}
         </div>

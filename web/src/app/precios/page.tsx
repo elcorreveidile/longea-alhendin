@@ -15,6 +15,8 @@ export default function PreciosPage() {
       <MarketingHeader />
 
       <section className="mx-auto max-w-3xl px-5 py-16 text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icons/icon-precios.png" alt="" className="mx-auto mb-3 h-14 w-14" />
         <span className="inline-block rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
           Precios
         </span>

@@ -17,6 +17,8 @@ export default function DemoPage() {
 
       <section className="mx-auto max-w-5xl px-5 py-14">
         <div className="text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/icon-demo.png" alt="" className="mx-auto mb-3 h-14 w-14" />
           <span className="inline-block rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
             Demo interactiva
           </span>

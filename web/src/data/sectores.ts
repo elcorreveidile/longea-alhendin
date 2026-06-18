@@ -3,6 +3,7 @@ export interface Sector {
   name: string; // nombre completo (titular)
   short: string; // nombre corto (chips, listados)
   emoji: string;
+  photo: string; // nombre de archivo en /img (sin extensión)
   tagline: string; // subtítulo del hero
   intro: string; // párrafo de entrada
   retos: string[]; // retos de los turnos en el sector
@@ -14,6 +15,7 @@ export interface Sector {
 export const SECTORES: Sector[] = [
   {
     slug: "residencias",
+    photo: "sector-residencias",
     name: "Residencias y centros de mayores",
     short: "Residencias",
     emoji: "🏥",
@@ -38,6 +40,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "clinicas",
+    photo: "sector-clinicas",
     name: "Clínicas y centros sanitarios",
     short: "Clínicas",
     emoji: "🩺",
@@ -62,6 +65,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "hosteleria",
+    photo: "sector-hosteleria",
     name: "Hostelería y restauración",
     short: "Hostelería",
     emoji: "🍽️",
@@ -86,6 +90,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "seguridad",
+    photo: "sector-seguridad",
     name: "Seguridad y vigilancia",
     short: "Seguridad",
     emoji: "🛡️",
@@ -110,6 +115,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "limpieza",
+    photo: "sector-limpieza",
     name: "Limpieza y servicios",
     short: "Limpieza",
     emoji: "🧹",
@@ -134,6 +140,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "industria",
+    photo: "sector-industria",
     name: "Industria y producción",
     short: "Industria",
     emoji: "🏭",
@@ -158,6 +165,7 @@ export const SECTORES: Sector[] = [
   },
   {
     slug: "academias",
+    photo: "sector-educacion",
     name: "Academias y centros de formación",
     short: "Academia",
     emoji: "🎓",

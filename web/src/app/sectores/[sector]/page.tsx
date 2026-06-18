@@ -38,20 +38,21 @@ export default async function SectorPage({
     <div className="min-h-screen bg-[#faf6ee] text-slate-800">
       <MarketingHeader />
 
-      {/* Hero */}
-      <section className="bg-[#f4ecd8]">
-        <div className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
-          <div className="text-5xl">{s.emoji}</div>
-          <span className="mt-4 inline-block rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#8a6d3b] shadow-sm">
+      {/* Hero con foto del sector */}
+      <section className="relative isolate overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: `url(/img/${s.photo}.webp)` }} />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-slate-900/25" />
+        <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
+          <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
             Cuadrantes para {s.short}
           </span>
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">{s.name}</h1>
-          <p className="mt-4 max-w-2xl text-lg text-slate-600">{s.tagline}</p>
+          <h1 className="mt-3 text-4xl font-extrabold leading-tight text-white drop-shadow sm:text-5xl">{s.name}</h1>
+          <p className="mt-4 max-w-2xl text-lg text-slate-100/90">{s.tagline}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/contacto" className="rounded-lg bg-cyan-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-cyan-800">
+            <Link href="/contacto" className="rounded-lg bg-cyan-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-cyan-500">
               Pruébalo gratis
             </Link>
-            <Link href="/sectores" className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-white">
+            <Link href="/sectores" className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/20">
               Ver otros sectores
             </Link>
           </div>
