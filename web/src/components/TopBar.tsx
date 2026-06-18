@@ -29,11 +29,13 @@ export default function TopBar({
             <span className="text-[#0E7490]">plan</span><span className="text-[#E59A3C]">turnos</span>
           </span>
         </a>
-        {(role === "admin" || role === "superadmin") && (
+        {role === "superadmin" && (
           <nav className="hidden items-center gap-3 sm:flex">
-            {role === "superadmin" && (
-              <a href="/admin" className="text-slate-600 hover:text-cyan-700">Administración</a>
-            )}
+            <a href="/admin" className="text-slate-600 hover:text-cyan-700">Administración</a>
+          </nav>
+        )}
+        {role === "admin" && (
+          <nav className="hidden items-center gap-3 sm:flex">
             <a href="/panel" className="text-slate-600 hover:text-cyan-700">Panel</a>
             <a href="/mi-turno" className="text-slate-600 hover:text-cyan-700">Mi turno</a>
           </nav>

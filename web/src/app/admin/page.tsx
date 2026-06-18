@@ -11,8 +11,9 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   existe: { ok: false, text: "Ya existe una empresa con ese identificador." },
   faltan: { ok: false, text: "Faltan datos: nombre e identificador son obligatorios." },
   admin: { ok: true, text: "✓ Administradora añadida a la empresa." },
+  adminasignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora es administradora de esta empresa." },
   adminmail: { ok: false, text: "Introduce un correo válido para la administradora." },
-  adminusado: { ok: false, text: "Ese correo ya está asignado a un usuario." },
+  adminsuper: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como administradora." },
 };
 
 async function createCompanyAction(formData: FormData) {
@@ -57,8 +58,18 @@ async function addAdminAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email.includes("@")) redirect("/admin?m=adminmail");
 
-  const exists = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-  if (exists.length) redirect("/admin?m=adminusado");
+  const existing = (
+    await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.email, email)).limit(1)
+  )[0];
+
+  if (existing) {
+    // No degradamos a un superadministrador.
+    if (existing.role === "superadmin") redirect("/admin?m=adminsuper");
+    // La cuenta ya existe (p. ej. una admin antigua): la asignamos a esta empresa.
+    await db.update(users).set({ role: "admin", tenantId }).where(eq(users.id, existing.id));
+    revalidatePath("/admin");
+    redirect("/admin?m=adminasignada");
+  }
 
   await db.insert(users).values({ email, role: "admin", name: "Administradora", tenantId });
   revalidatePath("/admin");
