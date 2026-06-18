@@ -22,6 +22,13 @@ export default function TopBar({
         </div>
       </a>
       <div className="flex items-center gap-4 text-sm">
+        <a href="/" className="hidden items-center gap-1.5 sm:flex" title="PlanTurnos">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-symbol.png" alt="PlanTurnos" className="h-6 w-6" />
+          <span className="text-sm font-bold lowercase tracking-tight">
+            <span className="text-[#0E7490]">plan</span><span className="text-[#E59A3C]">turnos</span>
+          </span>
+        </a>
         {(role === "admin" || role === "superadmin") && (
           <nav className="hidden items-center gap-3 sm:flex">
             <a href="/panel" className="text-slate-600 hover:text-cyan-700">Panel</a>
