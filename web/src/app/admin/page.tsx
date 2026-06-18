@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { and, asc, count, eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
 import { getSession } from "@/lib/session";
+import { getTenantKind, setTenantKind, type TenantKind } from "@/lib/tenant-kind";
 import { db } from "@/db";
 import { tenants, workers, users } from "@/db/schema";
 
@@ -17,7 +18,21 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   adminsuper: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como administradora." },
   logo: { ok: true, text: "✓ Logo actualizado. Ya aparece en los correos, el panel y el acceso de la empresa." },
   logoerror: { ok: false, text: "No se pudo subir el logo. Prueba con una imagen PNG o JPG." },
+  tipo: { ok: true, text: "✓ Tipo de empresa actualizado." },
 };
+
+async function setKindAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const kind = String(formData.get("kind") ?? "") as TenantKind;
+  if (tenantId && (kind === "residencia" || kind === "academia")) {
+    await setTenantKind(tenantId, kind);
+  }
+  revalidatePath("/admin");
+  redirect("/admin?m=tipo");
+}
 
 async function createCompanyAction(formData: FormData) {
   "use server";
@@ -127,7 +142,8 @@ export default async function AdminHome({
         .select({ email: users.email, phone: users.phone, name: users.name })
         .from(users)
         .where(and(eq(users.tenantId, t.id), eq(users.role, "admin")));
-      return { ...t, workerCount: wc?.n ?? 0, admins };
+      const kind = await getTenantKind(t.id);
+      return { ...t, workerCount: wc?.n ?? 0, admins, kind };
     }),
   );
 
@@ -195,6 +211,22 @@ export default async function AdminHome({
               </div>
               <button className="rounded-lg border border-cyan-700 px-4 py-1.5 text-sm font-semibold text-cyan-700 hover:bg-cyan-50">
                 Añadir
+              </button>
+            </form>
+
+            <form action={setKindAction} className="mt-3 flex flex-wrap items-center gap-2">
+              <input type="hidden" name="tenantId" value={c.id} />
+              <label className="text-xs font-medium text-slate-600">Tipo de empresa</label>
+              <select
+                name="kind"
+                defaultValue={c.kind}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-cyan-500"
+              >
+                <option value="residencia">Residencia / por turnos</option>
+                <option value="academia">Academia / profesorado</option>
+              </select>
+              <button className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                Guardar tipo
               </button>
             </form>
 

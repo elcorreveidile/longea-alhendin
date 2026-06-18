@@ -11,6 +11,7 @@ import { buildGenerateConfig } from "@/lib/generate-config";
 import { getGenConfig } from "@/lib/gen-settings";
 import { notifyNewCuadrante } from "@/lib/notify";
 import { getCurrentTenant } from "@/lib/tenant";
+import { getTenantKind } from "@/lib/tenant-kind";
 import GenerateButton from "@/components/GenerateButton";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
 
@@ -115,6 +116,8 @@ export default async function PanelPage({
   }
 
   const tenant = await getCurrentTenant();
+  // Las academias usan el panel de profesorado/horas, no el de cuadrantes.
+  if (tenant && (await getTenantKind(tenant.id)) === "academia") redirect("/panel/horas");
   const saved = tenant ? await getLatestCuadrante(tenant.id) : null;
   const gen = tenant ? await getGenConfig(tenant.id) : null;
   const data = (saved ? saved.data : sample) as unknown as CuadranteData;
