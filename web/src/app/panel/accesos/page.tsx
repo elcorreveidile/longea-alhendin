@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
-import { requireResidencePanel } from "@/lib/panel-guard";
+import { getTenantKind } from "@/lib/tenant-kind";
 import { db } from "@/db";
 import { workers as workersT, users as usersT } from "@/db/schema";
 import { normalizePhone } from "@/lib/phone";
@@ -74,12 +74,14 @@ export default async function AccesosPage({
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
-  await requireResidencePanel();
 
   const sp = await searchParams;
   const msg = sp.m ? MSG[sp.m] : null;
 
   const tenant = await getCurrentTenant();
+  const academia = tenant ? (await getTenantKind(tenant.id)) === "academia" : false;
+  const backHref = academia ? "/panel/horas" : "/panel";
+  const personPlural = academia ? "profesores" : "trabajadoras";
   const workers = tenant
     ? await db.select().from(workersT).where(and(eq(workersT.tenantId, tenant.id), eq(workersT.active, true)))
     : [];
@@ -92,8 +94,8 @@ export default async function AccesosPage({
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-3xl space-y-5 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Accesos de trabajadoras</h2>
-          <a href="/panel" className="text-sm font-medium text-cyan-700 hover:underline">← Volver al panel</a>
+          <h2 className="text-lg font-semibold text-slate-800">Accesos {academia ? "del profesorado" : "de trabajadoras"}</h2>
+          <a href={backHref} className="text-sm font-medium text-cyan-700 hover:underline">← Volver al panel</a>
         </div>
 
         {msg && (
@@ -106,17 +108,17 @@ export default async function AccesosPage({
         <section className="rounded-lg border border-cyan-200 bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-slate-800">Código de acceso (recomendado)</h3>
           <p className="mt-1 mb-3 text-sm text-slate-500">
-            Reparte este código a las trabajadoras. Entran en{" "}
-            <strong>la web → &ldquo;Entra con tu código&rdquo;</strong>, eligen su nombre y crean su PIN
-            la primera vez. No necesitas dar de alta correos ni móviles.
+            Reparte este código {academia ? "al profesorado" : "a las trabajadoras"}. Entran en{" "}
+            <strong>{academia ? `${tenant?.slug ?? "tuempresa"}.planturnos.com` : "la web"} → &ldquo;Entra con tu código&rdquo;</strong>,
+            eligen su nombre y crean su PIN la primera vez. No necesitas dar de alta correos ni móviles.
           </p>
           <form action={setCodeAction} className="flex flex-wrap items-end gap-3">
             <label className="text-sm">
-              <span className="block text-slate-600">Código de la residencia</span>
+              <span className="block text-slate-600">Código de acceso</span>
               <input
                 name="code"
                 defaultValue={code ?? ""}
-                placeholder="p. ej. ALHENDIN-2026"
+                placeholder={academia ? "p. ej. ACENTOS-2026" : "p. ej. ALHENDIN-2026"}
                 className="mt-1 w-60 rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </label>
@@ -129,13 +131,13 @@ export default async function AccesosPage({
           </form>
           {!code && (
             <p className="mt-2 text-xs text-amber-700">
-              Aún no hay código: pon uno para que las trabajadoras puedan entrar.
+              Aún no hay código: pon uno para que {personPlural === "profesores" ? "el profesorado pueda" : "las trabajadoras puedan"} entrar.
             </p>
           )}
         </section>
 
         <h3 className="pt-1 text-sm font-semibold text-slate-700">
-          Estado por trabajadora
+          Estado por {academia ? "profesor/a" : "trabajadora"}
           <span className="ml-2 font-normal text-slate-400">
             (PIN y, opcional, correo/móvil para acceso alternativo)
           </span>
