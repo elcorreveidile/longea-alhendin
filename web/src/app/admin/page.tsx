@@ -37,14 +37,19 @@ async function createCompanyAction(formData: FormData) {
   const [t] = await db.insert(tenants).values({ slug, name }).returning();
 
   if (adminEmail && adminEmail.includes("@")) {
-    const exists = await db.select({ id: users.id }).from(users).where(eq(users.email, adminEmail)).limit(1);
-    if (!exists.length) {
+    const existing = (
+      await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.email, adminEmail)).limit(1)
+    )[0];
+    if (!existing) {
       await db.insert(users).values({
         email: adminEmail,
         role: "admin",
         name: "Administradora",
         tenantId: t.id,
       });
+    } else if (existing.role !== "superadmin") {
+      // La cuenta ya existía: la reasignamos a la nueva empresa.
+      await db.update(users).set({ role: "admin", tenantId: t.id }).where(eq(users.id, existing.id));
     }
   }
 
