@@ -196,7 +196,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </a>
         <h1 className="text-xl font-bold text-slate-800">Acceder</h1>
         <p className="mt-1 mb-6 text-sm text-slate-500">
-          Entra con tu correo y te enviamos un enlace de acceso.
+          Entra con tu correo o tu móvil. Sin contraseñas.
         </p>
         {sp.enviado !== "1" && tabs}
         {body}
