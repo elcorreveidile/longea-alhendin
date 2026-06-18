@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { listLeads, getLead, setLeadStatus, type LeadStatus } from "@/db/leads";
+import { listLeads, getLead, setLeadStatus, deleteLead, type LeadStatus } from "@/db/leads";
 import { sendLeadReply } from "@/lib/email";
+import ConfirmButton from "@/components/ConfirmButton";
 
 const MSG: Record<string, { ok: boolean; text: string }> = {
   enviado: { ok: true, text: "✓ Respuesta enviada y marcada como contactado." },
   error: { ok: false, text: "No se pudo enviar la respuesta. Inténtalo de nuevo." },
   estado: { ok: true, text: "✓ Estado actualizado." },
   faltan: { ok: false, text: "Escribe asunto y mensaje antes de enviar." },
+  borrado: { ok: true, text: "✓ Interesado eliminado." },
 };
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
@@ -33,6 +35,16 @@ async function statusAction(formData: FormData) {
   }
   revalidatePath("/admin/leads");
   redirect("/admin/leads?m=estado");
+}
+
+async function deleteAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  if (id) await deleteLead(id);
+  revalidatePath("/admin/leads");
+  redirect("/admin/leads?m=borrado");
 }
 
 async function replyAction(formData: FormData) {
@@ -124,6 +136,15 @@ export default async function LeadsPage({
                       </button>
                     </form>
                   ))}
+                <form action={deleteAction} className="ml-auto">
+                  <input type="hidden" name="id" value={l.id} />
+                  <ConfirmButton
+                    confirm={`¿Borrar definitivamente el mensaje de ${l.name}? Esta acción no se puede deshacer.`}
+                    className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Eliminar
+                  </ConfirmButton>
+                </form>
               </div>
 
               <details className="mt-4">

@@ -1,8 +1,8 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { workers as workersT, users as usersT } from "@/db/schema";
-import { sendCuadranteEmail } from "./email";
+import { workers as workersT, users as usersT, tenants as tenantsT } from "@/db/schema";
+import { sendCuadranteEmail, type EmailBrand } from "./email";
 import { sendSms } from "./sms";
 import { appUrl } from "./env";
 
@@ -29,7 +29,17 @@ export async function notifyNewCuadrante(tenantId: string, label: string): Promi
     .from(usersT)
     .where(and(eq(usersT.tenantId, tenantId), inArray(usersT.workerId, ids)));
 
-  const url = appUrl();
+  // Marca de la empresa para personalizar el correo (excepto que sea PlanTurnos).
+  const tenant = (await db.select().from(tenantsT).where(eq(tenantsT.id, tenantId)).limit(1))[0];
+  const empresaName = tenant?.name ?? "PlanTurnos";
+  const url = tenant?.slug ? `https://${tenant.slug}.planturnos.com/mi-turno` : appUrl();
+  const brand: EmailBrand = {
+    name: empresaName,
+    logoUrl: tenant?.logoUrl ?? null,
+    homeUrl: tenant?.slug ? `https://${tenant.slug}.planturnos.com` : undefined,
+    planturnos: false,
+  };
+
   let email = 0;
   let sms = 0;
   let skipped = 0;
@@ -37,10 +47,10 @@ export async function notifyNewCuadrante(tenantId: string, label: string): Promi
   for (const u of recipients) {
     try {
       if (u.email) {
-        await sendCuadranteEmail(u.email, u.name ?? "", label, url);
+        await sendCuadranteEmail(u.email, u.name ?? "", label, url, brand);
         email++;
       } else if (u.phone) {
-        await sendSms(u.phone, `Residencia Alhendín: nuevo cuadrante de ${label} disponible. Entra en ${url}`);
+        await sendSms(u.phone, `${empresaName}: nuevo cuadrante de ${label} disponible. Entra en ${url}`);
         sms++;
       } else {
         skipped++;

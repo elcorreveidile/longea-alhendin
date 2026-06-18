@@ -41,3 +41,8 @@ export async function setLeadStatus(id: string, status: LeadStatus): Promise<voi
     })
     .where(eq(leads.id, id));
 }
+
+/** Borra definitivamente un interesado. */
+export async function deleteLead(id: string): Promise<void> {
+  await db.delete(leads).where(eq(leads.id, id));
+}
