@@ -76,12 +76,19 @@ export default async function MiTurnoPage({
   const tomorrowCode = todayIdx != null && todayIdx + 1 < days ? row[todayIdx + 1] : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-md space-y-4 p-4 sm:p-6">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Mi turno</h2>
-          <a href="/mi-ficha" className="text-sm font-medium text-cyan-700 hover:underline">Mi ficha →</a>
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-mi-turno.png" alt="" className="h-7 w-7" />
+            Mi turno
+          </h2>
+          <a href="/mi-ficha" className="flex items-center gap-1.5 text-sm font-medium text-cyan-700 hover:underline">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-ficha.png" alt="" className="h-6 w-6" /> Mi ficha
+          </a>
         </div>
         <p className="-mt-2 text-sm text-slate-500">{MONTH_NAMES[month]} {year}</p>
 

@@ -100,7 +100,7 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2">
           <div>
             <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
-              Ya en uso en residencias
+              Para cualquier empresa a turnos
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white drop-shadow sm:text-5xl">
               Los cuadrantes de tu equipo,{" "}
@@ -157,12 +157,12 @@ export default function Landing() {
       <section className="bg-[#f4ecd8] py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 lg:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/care-hands.png" alt="Cuidado cercano" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
+          <img src="/img/care-hands.png" alt="Equipo bien coordinado" className="h-72 w-full rounded-3xl object-cover shadow-xl sm:h-96" />
           <div>
-            <h2 className="text-3xl font-bold text-slate-900">Pensado para el cuidado, no para el papeleo</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Pensado para tu equipo, no para el papeleo</h2>
             <p className="mt-4 text-lg text-slate-600">
               Que la coordinación de turnos no te quite tiempo de lo importante. PlanTurnos cuadra el mes
-              respetando descansos y coberturas, y deja a tu equipo libre para cuidar.
+              respetando descansos y coberturas, y deja a tu equipo libre para lo suyo.
             </p>
             <ul className="mt-6 space-y-2 text-slate-700">
               <li className="flex items-center gap-2"><span className="text-cyan-700">✓</span> Reparto justo de noches, findes y festivos</li>

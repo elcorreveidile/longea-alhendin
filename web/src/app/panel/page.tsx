@@ -128,25 +128,27 @@ export default async function PanelPage({
   const defMonth = next.getMonth() + 1;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
-        <div className="flex justify-end gap-4 print:hidden">
-          <a href="/panel/semana" className="text-sm font-medium text-cyan-700 hover:underline">
-            Por semanas →
-          </a>
-          <a href="/panel/plantilla" className="text-sm font-medium text-cyan-700 hover:underline">
-            Plantilla →
-          </a>
-          <a href="/panel/vacaciones" className="text-sm font-medium text-cyan-700 hover:underline">
-            Vacaciones →
-          </a>
-          <a href="/panel/config" className="text-sm font-medium text-cyan-700 hover:underline">
-            Reglas de generación →
-          </a>
-          <a href="/panel/accesos" className="text-sm font-medium text-cyan-700 hover:underline">
-            Accesos de trabajadoras →
-          </a>
+        <div className="flex flex-wrap justify-end gap-2 print:hidden">
+          {[
+            { href: "/panel/semana", icon: "icon-semana", label: "Por semanas" },
+            { href: "/panel/plantilla", icon: "icon-plantilla", label: "Plantilla" },
+            { href: "/panel/vacaciones", icon: "icon-vacaciones", label: "Vacaciones" },
+            { href: "/panel/config", icon: "icon-reglas", label: "Reglas" },
+            { href: "/panel/accesos", icon: "icon-acceso", label: "Accesos" },
+          ].map((it) => (
+            <a
+              key={it.href}
+              href={it.href}
+              className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/icons/${it.icon}.png`} alt="" className="h-6 w-6" />
+              {it.label}
+            </a>
+          ))}
         </div>
 
         {genMsg && (
@@ -164,8 +166,12 @@ export default async function PanelPage({
         )}
 
         {/* Generar mes */}
-        <section className="print:hidden rounded-lg border border-cyan-200 bg-white p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800">Generar cuadrante</h2>
+        <section className="print:hidden rounded-lg border border-[#e7dcc4] bg-white p-4 shadow-sm">
+          <h2 className="flex items-center gap-2 font-semibold text-slate-800">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-generar.png" alt="" className="h-7 w-7" />
+            Generar cuadrante
+          </h2>
           {gen && (
             <p className="mt-1 rounded-md bg-slate-50 p-2 text-xs text-slate-600">
               <strong>Reglas activas:</strong> cobertura {gen.coverage.M}/{gen.coverage.T}/{gen.coverage.N} ·

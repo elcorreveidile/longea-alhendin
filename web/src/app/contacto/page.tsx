@@ -41,12 +41,14 @@ export default async function ContactoPage({
   const sent = sp.enviado === "1";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-cyan-50 to-white p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
+    <main className="relative flex min-h-screen items-center justify-center p-6">
+      <div className="absolute inset-0 -z-10 bg-[url('/img/home-lounge.png')] bg-cover bg-center bg-fixed" />
+      <div className="absolute inset-0 -z-10 bg-slate-900/55" />
+      <div className="w-full max-w-md rounded-2xl border border-[#e7dcc4] bg-[#faf6ee] p-8 shadow-2xl">
         <a href="/" className="text-sm font-medium text-cyan-700 hover:underline">← Volver</a>
         <h1 className="mt-3 text-2xl font-bold text-slate-900">Hablemos</h1>
         <p className="mt-1 mb-6 text-sm text-slate-500">
-          Cuéntanos sobre tu centro y te montamos una prueba sin compromiso.
+          Cuéntanos sobre tu empresa o centro y te montamos una prueba sin compromiso.
         </p>
 
         {sent ? (
