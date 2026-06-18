@@ -46,7 +46,7 @@ function brandedEmail(opts: {
        </td>`
     : `${
         brand.logoUrl
-          ? `<td style="padding-right:10px;vertical-align:middle"><img src="${brand.logoUrl}" width="36" height="36" alt="" style="display:block;border:0;border-radius:6px"></td>`
+          ? `<td style="padding-right:12px;vertical-align:middle"><img src="${brand.logoUrl}" height="34" alt="" style="display:block;border:0;height:34px;width:auto;max-width:170px"></td>`
           : ""
       }
        <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:19px;font-weight:bold;color:#1f2937">${esc(brand.name)}</td>`;

@@ -148,7 +148,7 @@ export default async function AdminHome({
               <div className="flex items-start gap-3">
                 {c.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.logoUrl} alt="" className="h-12 w-12 rounded-lg border border-slate-200 object-contain" />
+                  <img src={c.logoUrl} alt="" className="h-12 w-auto max-w-[150px] object-contain" />
                 ) : (
                   <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-100 text-sm font-bold text-cyan-700">
                     {c.name.slice(0, 2).toUpperCase()}
