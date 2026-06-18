@@ -1,6 +1,6 @@
 import Link from "next/link";
-import DevCredit from "@/components/DevCredit";
 import Logo from "@/components/Logo";
+import MarketingFooter from "@/components/MarketingFooter";
 import { SECTORES } from "@/data/sectores";
 
 // Mini-cuadrante de muestra para el hero.
@@ -260,16 +260,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#e7dcc4] bg-[#faf6ee] py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-1 px-5 text-center text-sm text-slate-500">
-          <Logo />
-          <p className="mt-1 max-w-md text-slate-500">
-            Especialistas en la <strong>digitalización del sector productivo</strong>.
-          </p>
-          <DevCredit />
-          <p className="mt-1 text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos · planturnos.com</p>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }
