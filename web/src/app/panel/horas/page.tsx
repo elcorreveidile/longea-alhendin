@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
@@ -13,8 +14,9 @@ import TopBar from "@/components/TopBar";
 
 const MSG: Record<string, { ok: boolean; text: string }> = {
   cargado: { ok: true, text: "✓ Profesorado de ejemplo cargado." },
-  yaexiste: { ok: false, text: "Ya hay profesorado cargado; no se ha duplicado." },
+  yaexiste: { ok: false, text: "Ya hay profesorado cargado; vacíalo antes de recargar." },
   cerrado: { ok: true, text: "✓ Curso cerrado: las horas quedan bloqueadas." },
+  vaciado: { ok: true, text: "✓ Profesorado de prueba vaciado. Puedes volver a cargarlo." },
 };
 
 const AVAIL: Record<string, string> = { both: "Mañana y tarde", morning: "Solo mañana", afternoon: "Solo tarde" };
@@ -41,10 +43,21 @@ async function loadDemoAction() {
       reductionMin: t.reductionMin,
       reductionType: t.reductionType || null,
       availability: t.availability,
+      notes: t.notes || null,
     });
   }
   revalidatePath("/panel/horas");
   redirect("/panel/horas?m=cargado");
+}
+
+async function clearDemoAction() {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (tenant) await db.delete(workers).where(eq(workers.tenantId, tenant.id));
+  revalidatePath("/panel/horas");
+  redirect("/panel/horas?m=vaciado");
 }
 
 async function lockCourseAction(formData: FormData) {
@@ -175,6 +188,9 @@ export default async function HorasPage({
                     <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2 font-medium text-slate-800">
                         <a href={`/panel/horas/${t.id}`} className="hover:text-cyan-700 hover:underline">{t.name}</a>
+                        {t.profile?.notes === "Sustituto/a" && (
+                          <span className="ml-2 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">Sustituto/a</span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">{h(target)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{red ? h(red) : "—"}</td>
@@ -210,15 +226,25 @@ export default async function HorasPage({
             Las horas las declara cada profesor desde su portal; subdirección las confirma. Cómputo del curso académico (oct–sept).
           </p>
           {teachers.length > 0 && (
-            <form action={lockCourseAction}>
-              <input type="hidden" name="curso" value={startYear} />
-              <ConfirmButton
-                confirm={`¿Cerrar el curso ${courseYearLabel(startYear)}? Las horas quedarán bloqueadas (no editables).`}
-                className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-              >
-                Cerrar curso {courseYearLabel(startYear)}
-              </ConfirmButton>
-            </form>
+            <div className="flex flex-wrap gap-2">
+              <form action={clearDemoAction}>
+                <ConfirmButton
+                  confirm="¿Vaciar todo el profesorado de prueba? Se borran sus fichas y apuntes (datos de prueba)."
+                  className="rounded-lg border border-red-200 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                >
+                  Vaciar profesorado de prueba
+                </ConfirmButton>
+              </form>
+              <form action={lockCourseAction}>
+                <input type="hidden" name="curso" value={startYear} />
+                <ConfirmButton
+                  confirm={`¿Cerrar el curso ${courseYearLabel(startYear)}? Las horas quedarán bloqueadas (no editables).`}
+                  className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  Cerrar curso {courseYearLabel(startYear)}
+                </ConfirmButton>
+              </form>
+            </div>
           )}
         </div>
       </main>
