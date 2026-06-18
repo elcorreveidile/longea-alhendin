@@ -84,7 +84,7 @@ export default function Landing() {
         <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-fixed" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/55 to-slate-900/10" />
         <div className="px-5 py-20 sm:px-10 sm:py-28">
-          <div className="flex max-w-4xl flex-col gap-8 lg:ml-24 lg:flex-row lg:items-center xl:ml-40">
+          <div className="flex max-w-4xl flex-col gap-8 lg:ml-48 lg:flex-row lg:items-center xl:ml-72">
           <div className="max-w-md">
             <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
               Para cualquier empresa a turnos
