@@ -150,7 +150,9 @@ export default async function HorasPage({
                   const rest = net - t.doneMin;
                   return (
                     <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-2 font-medium text-slate-800">{t.name}</td>
+                      <td className="px-4 py-2 font-medium text-slate-800">
+                        <a href={`/panel/horas/${t.id}`} className="hover:text-cyan-700 hover:underline">{t.name}</a>
+                      </td>
                       <td className="px-3 py-2 text-right tabular-nums">{h(target)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{red ? h(red) : "—"}</td>
                       <td className="px-3 py-2 text-slate-500">{t.profile?.reductionType || "—"}</td>
