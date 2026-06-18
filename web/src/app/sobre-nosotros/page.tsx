@@ -53,8 +53,18 @@ export default function SobreNosotrosPage() {
             <p>
               Así, sin más, nació <strong>PlanTurnos</strong>: de la necesidad real de una amiga y de las ganas de
               echarle una mano. Lo desarrollé para que le sirviera, al menos, en esos primeros meses de julio y
-              agosto. Funcionó tan bien que decidimos convertirlo en una herramienta para cualquier empresa que pelea
-              cada mes con sus turnos.
+              agosto.
+            </p>
+            <p>
+              Pero había una <strong>segunda razón, más personal</strong>. Yo mismo he sufrido en mis trabajos turnos
+              que parecían caprichosos, repartidos sin demasiado criterio y que te trastocan la vida. Y pensé: si una
+              herramienta bien diseñada puede solucionarle esto a Diana, puede hacerlo en muchísimas empresas. Porque
+              unos turnos justos y bien organizados no son un lujo: son <strong>calidad de vida</strong> para quien
+              madruga, trasnocha y sostiene el día a día de cualquier empresa del sector productivo.
+            </p>
+            <p>
+              Funcionó tan bien que decidimos convertirlo en una herramienta para cualquier equipo que pelea cada mes
+              con sus turnos.
             </p>
             <p className="font-medium text-slate-800">
               Eso resume nuestra forma de trabajar: una idea, una necesidad, una conversación… y una solución a medida.
