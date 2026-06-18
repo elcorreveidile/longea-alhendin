@@ -5,6 +5,44 @@ import { emailFrom, resendApiKey, contactEmail } from "./env";
 const esc = (s: string) =>
   s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] ?? c));
 
+/**
+ * Envuelve un contenido en la plantilla de marca PlanTurnos (compatible con
+ * clientes de correo: tablas + estilos en línea). La marca de texto sirve de
+ * respaldo cuando el cliente bloquea las imágenes.
+ */
+function brandedEmail(opts: { bodyHtml: string; preheader?: string }): string {
+  const { bodyHtml, preheader } = opts;
+  return `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"></head>
+<body style="margin:0;padding:0;background:#faf6ee;-webkit-text-size-adjust:100%">
+${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(preheader)}</div>` : ""}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf6ee;padding:24px 12px">
+  <tr><td align="center">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #e7dcc4;border-radius:16px;overflow:hidden">
+      <tr><td style="padding:22px 28px;border-bottom:1px solid #f1ead7">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td style="padding-right:10px;vertical-align:middle">
+            <img src="https://planturnos.com/logo-symbol.png" width="32" height="32" alt="" style="display:block;border:0">
+          </td>
+          <td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;letter-spacing:-.3px">
+            <span style="color:#0E7490">plan</span><span style="color:#E59A3C">turnos</span>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1f2937">
+        ${bodyHtml}
+      </td></tr>
+      <tr><td style="padding:20px 28px;border-top:1px solid #f1ead7;background:#faf6ee;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#6b7280">
+        <strong style="color:#0E7490">PlanTurnos</strong> — los cuadrantes de tu equipo, listos en segundos.<br>
+        <a href="https://planturnos.com" style="color:#0E7490;text-decoration:none">planturnos.com</a>
+      </td></tr>
+    </table>
+    <p style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#9ca3af;margin:16px 0 0">Recibes este correo porque escribiste a PlanTurnos.</p>
+  </td></tr>
+</table>
+</body></html>`;
+}
+
 /** Envía un mensaje del formulario de contacto al buzón configurado. */
 export async function sendContactEmail(data: {
   name: string;
@@ -54,13 +92,17 @@ export async function sendLeadReply(data: {
     return;
   }
   const resend = new Resend(apiKey);
-  const html = `
-    <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a">
-      <div style="white-space:pre-wrap;font-size:15px;line-height:1.5">${esc(data.body)}</div>
-      <hr style="margin:24px 0;border:none;border-top:1px solid #e2e8f0" />
-      <p style="color:#64748b;font-size:13px;margin:0">PlanTurnos · Cuadrantes de turnos para tu equipo · planturnos.com</p>
-    </div>
+  const bodyHtml = `
+    <div style="white-space:pre-wrap">${esc(data.body)}</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 4px">
+      <tr><td style="border-radius:10px;background:#0E7490">
+        <a href="https://planturnos.com/demo" style="display:inline-block;padding:12px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none">
+          Probar la demo →
+        </a>
+      </td></tr>
+    </table>
   `;
+  const html = brandedEmail({ bodyHtml, preheader: data.subject });
   const { data: sent, error } = await resend.emails.send({
     from: emailFrom(),
     to: data.to,
