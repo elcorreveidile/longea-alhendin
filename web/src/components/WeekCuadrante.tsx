@@ -99,6 +99,16 @@ export default function WeekCuadrante({ data }: { data: WeekData }) {
           </tfoot>
         </table>
       </div>
+
+      <div className="mt-2 flex flex-wrap gap-1.5 print:hidden">
+        {([["M", "Mañana"], ["T", "Tarde"], ["N", "Noche"], ["D", "Descanso"], ["V", "Vacaciones"]] as const).map(
+          ([c, l]) => (
+            <span key={c} className={`rounded px-2 py-0.5 text-[11px] font-medium ${shiftDef(c).className}`}>
+              <strong>{c}</strong> {l}
+            </span>
+          ),
+        )}
+      </div>
     </div>
   );
 }

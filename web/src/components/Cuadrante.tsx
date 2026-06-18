@@ -51,6 +51,7 @@ export default function Cuadrante({ data }: { data: CuadranteData }) {
   });
 
   return (
+    <div>
     <div className="cuadrante-scroll overflow-x-auto rounded-lg border border-slate-200 shadow-sm print:overflow-visible">
       <table className="border-collapse text-[11px]">
         <thead>
@@ -105,6 +106,14 @@ export default function Cuadrante({ data }: { data: CuadranteData }) {
           </tr>
         </tbody>
       </table>
+    </div>
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {(["M", "T", "N", "D", "V"] as const).map((c) => (
+        <span key={c} className={`rounded px-2 py-0.5 text-[11px] font-medium ${shiftDef(c).className}`}>
+          <strong>{c}</strong> {c === "M" ? "Mañana" : c === "T" ? "Tarde" : c === "N" ? "Noche" : c === "D" ? "Descanso" : "Vacaciones"}
+        </span>
+      ))}
+    </div>
     </div>
   );
 }

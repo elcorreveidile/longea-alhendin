@@ -41,6 +41,15 @@ function CuadranteMock() {
           </div>
         ))}
       </div>
+      <div className="mt-3 flex flex-wrap gap-1 border-t border-slate-100 pt-2 text-[9px]">
+        {([["M", "Mañana"], ["T", "Tarde"], ["N", "Noche"], ["D", "Descanso"], ["V", "Vacaciones"]] as const).map(
+          ([c, l]) => (
+            <span key={c} className={`rounded px-1.5 py-0.5 font-medium ${CELL[c]}`}>
+              <strong>{c}</strong> {l}
+            </span>
+          ),
+        )}
+      </div>
     </div>
   );
 }
