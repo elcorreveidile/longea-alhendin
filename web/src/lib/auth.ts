@@ -90,6 +90,15 @@ export async function loginByEmail(email: string): Promise<void> {
     )[0];
   }
 
+  // Un superadmin no pertenece a ninguna empresa: limpiamos cualquier empresa
+  // heredada (p. ej. si antes fue administradora y luego se le elevó). Sin esto,
+  // el superadmin se quedaría "atrapado" viendo siempre esa empresa.
+  if (user.role === "superadmin" && user.tenantId) {
+    user = (
+      await db.update(users).set({ tenantId: null }).where(eq(users.id, user.id)).returning()
+    )[0];
+  }
+
   // Red de seguridad: una admin sin empresa asignada se ata a la del subdominio
   // desde el que entra (resuelve a las admins antiguas creadas como globales).
   if (user.role === "admin" && !user.tenantId && tenant) {

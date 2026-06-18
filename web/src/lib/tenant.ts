@@ -29,7 +29,10 @@ export function slugFromHost(host: string | null): string | null {
  */
 export async function getCurrentTenant() {
   const session = await getSession();
-  if (session?.tenantId) {
+  // El superadmin NO pertenece a ninguna empresa: siempre se resuelve por el
+  // subdominio (así puede abrir el panel de cualquier empresa). Solo las admins
+  // y trabajadoras quedan fijadas a su empresa.
+  if (session && session.role !== "superadmin" && session.tenantId) {
     const own = (
       await db.select().from(tenants).where(eq(tenants.id, session.tenantId)).limit(1)
     )[0];
