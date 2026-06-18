@@ -106,6 +106,16 @@ export default function DemoGenerator() {
         Datos de ejemplo (Persona 1, 2, 3…). El motor cuadra una semana real respetando descansos y máximos.
       </p>
 
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {([["M", "Mañana"], ["T", "Tarde"], ["N", "Noche"], ["D", "Descanso"], ["V", "Vacaciones"]] as const).map(
+          ([c, l]) => (
+            <span key={c} className={`rounded px-2 py-1 text-xs font-medium ${shiftDef(c).className}`}>
+              <strong>{c}</strong> {l}
+            </span>
+          ),
+        )}
+      </div>
+
       {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
       {res?.assignments && res.weekdays && (
