@@ -3,14 +3,13 @@ import DevCredit from "@/components/DevCredit";
 
 function Logo({ light = false }: { light?: boolean }) {
   return (
-    <Link href="/" className={`flex items-center gap-2 font-bold ${light ? "text-white" : "text-slate-800"}`}>
-      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-600 text-white">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2">
-          <rect x="3" y="4" width="18" height="17" rx="2" />
-          <path d="M3 9h18M8 2v4M16 2v4" />
-        </svg>
+    <Link href="/" className="flex items-center gap-2 font-bold">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-symbol.png" alt="PlanTurnos" className="h-9 w-9" />
+      <span className="text-xl lowercase tracking-tight">
+        <span className={light ? "text-white" : "text-[#0E7490]"}>plan</span>
+        <span className="text-[#E59A3C]">turnos</span>
       </span>
-      <span className="text-lg">Plan<span className={light ? "text-cyan-300" : "text-cyan-600"}>Turnos</span></span>
     </Link>
   );
 }
