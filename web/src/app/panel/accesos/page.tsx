@@ -86,7 +86,7 @@ export default async function AccesosPage({
   const code = tenant ? await getAccessCode(tenant.id) : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-3xl space-y-5 p-6">
         <div className="flex items-center justify-between">

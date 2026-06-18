@@ -38,11 +38,11 @@ export default async function EditarSemanaPage({
   const week = tenant && start ? await getWeek(tenant.id, start) : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-4 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Editar semana</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/icons/icon-editar.png" alt="" className="h-7 w-7" />Editar semana</h2>
           <a href={`/panel/semana${start ? `?d=${start}` : ""}`} className="text-sm font-medium text-cyan-700 hover:underline">
             ← Volver
           </a>

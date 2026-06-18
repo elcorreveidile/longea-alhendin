@@ -83,11 +83,11 @@ export default async function SemanaPage({
   const defaultStart = nextMonday();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1400px] space-y-5 p-6">
         <div className="flex items-center justify-between print:hidden">
-          <h2 className="text-lg font-semibold text-slate-800">Cuadrante por semanas</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/icons/icon-semana.png" alt="" className="h-7 w-7" />Cuadrante por semanas</h2>
           <a href="/panel" className="text-sm font-medium text-cyan-700 hover:underline">← Volver al panel</a>
         </div>
 
