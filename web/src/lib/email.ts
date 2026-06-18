@@ -18,9 +18,10 @@ export async function sendContactEmail(data: {
     return;
   }
   const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
+  const to = contactEmail();
+  const { data: sent, error } = await resend.emails.send({
     from: emailFrom(),
-    to: contactEmail(),
+    to,
     replyTo: data.email,
     subject: `PlanTurnos · Contacto de ${data.name}`,
     html: `
@@ -35,8 +36,10 @@ export async function sendContactEmail(data: {
     `,
   });
   if (error) {
+    console.error(`[email] contacto FALLÓ (from=${emailFrom()} to=${to}):`, error);
     throw new Error(`Resend: ${error.message}`);
   }
+  console.log(`[email] contacto enviado a ${to} (from=${emailFrom()}) id=${sent?.id ?? "?"}`);
 }
 
 export async function sendCuadranteEmail(
