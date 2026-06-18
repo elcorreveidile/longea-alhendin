@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
 import { cookies, headers } from "next/headers";
-import { asc } from "drizzle-orm";
-import { db } from "@/db";
-import { tenants } from "@/db/schema";
 import { getSession, homeForRole } from "@/lib/session";
 import { getCurrentTenant, slugFromHost } from "@/lib/tenant";
 import {
@@ -46,43 +43,10 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
   const onSubdomain = !!slugFromHost((await headers()).get("host"));
   const homeHref = onSubdomain ? "https://planturnos.com/" : "/";
 
-  // En el dominio raíz no hay empresa concreta: el acceso por código es por
-  // empresa, así que mostramos un selector para ir al subdominio correcto.
-  if (!onSubdomain) {
-    const empresas = await db.select().from(tenants).orderBy(asc(tenants.name));
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#faf6ee] px-5 py-12 text-slate-800">
-        <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
-          <a href={homeHref} className="mb-5 inline-flex items-center gap-2" title="PlanTurnos">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-symbol.png" alt="" className="h-8 w-8" />
-            <span className="text-lg font-bold lowercase tracking-tight">
-              <span className="text-[#0E7490]">plan</span><span className="text-[#E59A3C]">turnos</span>
-            </span>
-          </a>
-          <h1 className="text-xl font-bold text-slate-800">Acceso de trabajadoras</h1>
-          <p className="mt-1 mb-5 text-sm text-slate-500">Elige tu empresa para entrar con tu código.</p>
-          <div className="space-y-2">
-            {empresas.map((e) => (
-              <a
-                key={e.id}
-                href={`https://${e.slug}.planturnos.com/acceso`}
-                className="flex items-center justify-between rounded-lg border border-[#e7dcc4] px-4 py-3 text-sm font-medium text-slate-700 hover:bg-[#faf6ee]"
-              >
-                {e.name}
-                <span className="text-cyan-700">→</span>
-              </a>
-            ))}
-            {!empresas.length && <p className="text-sm text-slate-500">No hay empresas configuradas.</p>}
-          </div>
-          <p className="mt-6 text-center text-xs text-slate-400">
-            ¿Eres administradora?{" "}
-            <a href="/login" className="font-medium text-cyan-700 hover:underline">Entra por aquí</a>
-          </p>
-        </div>
-      </main>
-    );
-  }
+  // El acceso por código es por empresa: en el dominio raíz no hay empresa
+  // concreta y no exponemos la lista de clientes. Quien entre aquí va al acceso
+  // por correo (el enlace mágico lo lleva a su empresa) o a la web de su empresa.
+  if (!onSubdomain) redirect("/login");
 
   // --- Acciones ---
   async function codeAction(formData: FormData) {

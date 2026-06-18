@@ -200,12 +200,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </p>
         {sp.enviado !== "1" && tabs}
         {body}
-        <p className="mt-6 text-center text-xs text-slate-400">
-          ¿Eres trabajadora?{" "}
-          <a href="/acceso" className="font-medium text-cyan-700 hover:underline">
-            Entra con tu código
-          </a>
-        </p>
+        {/* El acceso por código es por empresa: solo se ofrece en el subdominio
+            de cada empresa. En el dominio raíz se entra por correo. */}
+        {onSubdomain && (
+          <p className="mt-6 text-center text-xs text-slate-400">
+            ¿Eres trabajadora?{" "}
+            <a href="/acceso" className="font-medium text-cyan-700 hover:underline">
+              Entra con tu código
+            </a>
+          </p>
+        )}
         <p className="mt-2 text-center text-xs text-slate-400">
           <a href={homeHref} className="hover:text-cyan-700 hover:underline">← Volver a PlanTurnos</a>
         </p>
