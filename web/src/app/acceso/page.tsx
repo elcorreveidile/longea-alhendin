@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession, isStaffAdmin } from "@/lib/session";
+import { getSession, homeForRole } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import {
   verifyAccessCode,
@@ -35,7 +35,7 @@ type SP = { step?: string; error?: string };
 
 export default async function AccesoPage({ searchParams }: { searchParams: Promise<SP> }) {
   const session = await getSession();
-  if (session) redirect(isStaffAdmin(session.role) ? "/panel" : "/mi-turno");
+  if (session) redirect(homeForRole(session.role));
 
   const sp = await searchParams;
   const step = sp.step;

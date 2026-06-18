@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { sendContactEmail } from "@/lib/email";
+import { createLead } from "@/db/leads";
 import DevCredit from "@/components/DevCredit";
 
 const MSG: Record<string, string> = {
@@ -21,6 +22,14 @@ async function contactAction(formData: FormData) {
   const message = String(formData.get("message") ?? "").trim();
 
   if (!name || !email.includes("@") || !message) redirect("/contacto?error=faltan");
+
+  // Guarda el interesado para que el superadmin pueda gestionarlo después.
+  // Si la BD fallara, no debe impedir el aviso por email.
+  try {
+    await createLead({ name, email, org: org || undefined, message, source: "contacto" });
+  } catch (e) {
+    console.error("[contacto] no se pudo guardar el lead:", e);
+  }
 
   let ok = true;
   try {

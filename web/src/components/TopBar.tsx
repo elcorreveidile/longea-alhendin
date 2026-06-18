@@ -31,6 +31,9 @@ export default function TopBar({
         </a>
         {(role === "admin" || role === "superadmin") && (
           <nav className="hidden items-center gap-3 sm:flex">
+            {role === "superadmin" && (
+              <a href="/admin" className="text-slate-600 hover:text-cyan-700">Administración</a>
+            )}
             <a href="/panel" className="text-slate-600 hover:text-cyan-700">Panel</a>
             <a href="/mi-turno" className="text-slate-600 hover:text-cyan-700">Mi turno</a>
           </nav>

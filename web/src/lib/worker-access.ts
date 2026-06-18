@@ -68,6 +68,7 @@ async function startWorkerSession(user: typeof users.$inferSelect, workerId: str
     name: user.name,
     role: "worker",
     workerId,
+    tenantId: user.tenantId,
   });
 }
 

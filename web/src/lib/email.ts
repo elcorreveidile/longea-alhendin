@@ -42,6 +42,39 @@ export async function sendContactEmail(data: {
   console.log(`[email] contacto enviado a ${to} (from=${emailFrom()}) id=${sent?.id ?? "?"}`);
 }
 
+/** Responde por email a un interesado del formulario (desde el área superadmin). */
+export async function sendLeadReply(data: {
+  to: string;
+  subject: string;
+  body: string;
+}): Promise<void> {
+  const apiKey = resendApiKey();
+  if (!apiKey) {
+    console.log("[email] (sin RESEND_API_KEY) respuesta a lead:", data);
+    return;
+  }
+  const resend = new Resend(apiKey);
+  const html = `
+    <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a">
+      <div style="white-space:pre-wrap;font-size:15px;line-height:1.5">${esc(data.body)}</div>
+      <hr style="margin:24px 0;border:none;border-top:1px solid #e2e8f0" />
+      <p style="color:#64748b;font-size:13px;margin:0">PlanTurnos · Cuadrantes de turnos para tu equipo · planturnos.com</p>
+    </div>
+  `;
+  const { data: sent, error } = await resend.emails.send({
+    from: emailFrom(),
+    to: data.to,
+    replyTo: contactEmail(),
+    subject: data.subject,
+    html,
+  });
+  if (error) {
+    console.error(`[email] respuesta a lead FALLÓ (to=${data.to}):`, error);
+    throw new Error(`Resend: ${error.message}`);
+  }
+  console.log(`[email] respuesta a lead enviada a ${data.to} id=${sent?.id ?? "?"}`);
+}
+
 export async function sendCuadranteEmail(
   email: string,
   name: string,

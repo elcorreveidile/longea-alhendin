@@ -22,7 +22,14 @@ export async function GET(req: NextRequest) {
     return to("/login?error=no-autorizado");
   }
 
-  // Cada cual a su sitio: admin al panel, trabajadora a su turno.
+  // Cada cual a su sitio: superadmin a su área, admin al panel, trabajadora a su turno.
   const session = await getSession();
-  return to(session && isStaffAdmin(session.role) ? "/panel" : "/mi-turno");
+  const dest = !session
+    ? "/mi-turno"
+    : session.role === "superadmin"
+      ? "/admin"
+      : isStaffAdmin(session.role)
+        ? "/panel"
+        : "/mi-turno";
+  return to(dest);
 }

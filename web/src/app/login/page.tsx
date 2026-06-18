@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { requestMagicLink, requestSmsCode, loginByPhone } from "@/lib/auth";
-import { getSession, isStaffAdmin } from "@/lib/session";
+import { getSession, homeForRole } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { normalizePhone, maskPhone } from "@/lib/phone";
 import DevCredit from "@/components/DevCredit";
@@ -23,7 +23,7 @@ type SP = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<SP> }) {
   const session = await getSession();
-  if (session) redirect(isStaffAdmin(session.role) ? "/panel" : "/mi-turno");
+  if (session) redirect(homeForRole(session.role));
 
   const sp = await searchParams;
   const method = sp.m === "sms" ? "sms" : "email";
@@ -64,7 +64,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     if (!ok) redirect("/login?m=sms&step=code&error=codigo");
     store.delete(PENDING_PHONE);
     const s = await getSession();
-    redirect(s && isStaffAdmin(s.role) ? "/panel" : "/mi-turno");
+    redirect(s ? homeForRole(s.role) : "/mi-turno");
   }
 
   // --- Vistas ---

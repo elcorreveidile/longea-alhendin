@@ -10,6 +10,7 @@ import { sendSms } from "./sms";
 import { createOtp, verifyOtp } from "./otp";
 import { appUrl } from "./env";
 import { createSession } from "./session";
+import { getCurrentTenant } from "./tenant";
 
 /** Base del enlace según el dominio desde el que se pide (subdominio incluido). */
 async function requestBaseUrl(): Promise<string> {
@@ -58,6 +59,9 @@ export async function loginByEmail(email: string): Promise<void> {
       ? "admin"
       : null;
 
+  // Empresa del subdominio desde el que se accede (para atar a las admins).
+  const tenant = envRole === "superadmin" ? null : await getCurrentTenant();
+
   let user = (
     await db.select().from(users).where(eq(users.email, normalized)).limit(1)
   )[0];
@@ -74,6 +78,8 @@ export async function loginByEmail(email: string): Promise<void> {
           email: normalized,
           role: envRole,
           name: envRole === "superadmin" ? "Súper administrador" : "Administradora",
+          // El superadmin es global (sin empresa); la admin queda atada a la suya.
+          tenantId: envRole === "superadmin" ? null : tenant?.id ?? null,
         })
         .returning()
     )[0];
@@ -81,6 +87,14 @@ export async function loginByEmail(email: string): Promise<void> {
     // Eleva el rol si la lista de entorno le da más permisos de los que tenía.
     user = (
       await db.update(users).set({ role: envRole }).where(eq(users.id, user.id)).returning()
+    )[0];
+  }
+
+  // Red de seguridad: una admin sin empresa asignada se ata a la del subdominio
+  // desde el que entra (resuelve a las admins antiguas creadas como globales).
+  if (user.role === "admin" && !user.tenantId && tenant) {
+    user = (
+      await db.update(users).set({ tenantId: tenant.id }).where(eq(users.id, user.id)).returning()
     )[0];
   }
 
@@ -100,6 +114,7 @@ async function startSession(user: typeof users.$inferSelect): Promise<void> {
     name: user.name,
     role: user.role,
     workerId: user.workerId,
+    tenantId: user.tenantId,
   });
 }
 
@@ -134,12 +149,23 @@ export async function loginByPhone(phoneE164: string, code: string): Promise<boo
 
   if (!user) {
     if (!isAdminPhone(phoneE164)) return false;
+    const tenant = await getCurrentTenant();
     user = (
       await db
         .insert(users)
-        .values({ phone: phoneE164, role: "admin", name: "Administradora" })
+        .values({ phone: phoneE164, role: "admin", name: "Administradora", tenantId: tenant?.id ?? null })
         .returning()
     )[0];
+  }
+
+  // Ata a su empresa a una admin que aún no la tuviera (subdominio de acceso).
+  if (user.role === "admin" && !user.tenantId) {
+    const tenant = await getCurrentTenant();
+    if (tenant) {
+      user = (
+        await db.update(users).set({ tenantId: tenant.id }).where(eq(users.id, user.id)).returning()
+      )[0];
+    }
   }
 
   await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));

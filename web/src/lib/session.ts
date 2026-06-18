@@ -14,11 +14,24 @@ export interface SessionData {
   name: string | null;
   role: AppRole;
   workerId: string | null;
+  // Empresa a la que pertenece el usuario. null para el superadmin (acceso global).
+  tenantId: string | null;
 }
 
 /** ¿Tiene acceso al panel de administración? (admin o superadmin) */
 export function isStaffAdmin(role: AppRole): boolean {
   return role === "admin" || role === "superadmin";
+}
+
+/** Página de inicio tras iniciar sesión según el rol. */
+export function homeForRole(role: AppRole): string {
+  return role === "superadmin" ? "/admin" : role === "admin" ? "/panel" : "/mi-turno";
+}
+
+/** ¿Puede este usuario gestionar el panel de la empresa indicada? */
+export function canManageTenant(session: SessionData, tenantId: string): boolean {
+  if (session.role === "superadmin") return true;
+  return session.role === "admin" && session.tenantId === tenantId;
 }
 
 function key(): Uint8Array {
@@ -59,6 +72,7 @@ export async function getSession(): Promise<SessionData | null> {
             ? "admin"
             : "worker",
       workerId: (payload.workerId as string | null) ?? null,
+      tenantId: (payload.tenantId as string | null) ?? null,
     };
   } catch {
     return null;

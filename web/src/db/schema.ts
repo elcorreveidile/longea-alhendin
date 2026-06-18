@@ -31,6 +31,8 @@ export const jobRole = pgEnum("job_role", [
   "supervisora",
 ]);
 export const cuadranteStatus = pgEnum("cuadrante_status", ["draft", "published"]);
+// Estado de un contacto/interesado llegado por el formulario público.
+export const leadStatus = pgEnum("lead_status", ["new", "contacted", "archived"]);
 
 /** Plantilla: cada trabajadora de la residencia. */
 export const workers = pgTable("workers", {
@@ -137,7 +139,24 @@ export const settings = pgTable(
   (t) => [primaryKey({ columns: [t.tenantId, t.key] })],
 );
 
+/**
+ * Interesados que escriben por el formulario de contacto de la web pública.
+ * No pertenecen a ninguna empresa (son prospectos): los gestiona el superadmin.
+ */
+export const leads = pgTable("leads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  org: text("org"),
+  message: text("message").notNull(),
+  status: leadStatus("status").notNull().default("new"),
+  source: text("source").notNull().default("contacto"), // contacto, demo…
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  contactedAt: timestamp("contacted_at", { withTimezone: true }),
+});
+
 export type Tenant = typeof tenants.$inferSelect;
 export type Worker = typeof workers.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Cuadrante = typeof cuadrantes.$inferSelect;
+export type Lead = typeof leads.$inferSelect;
