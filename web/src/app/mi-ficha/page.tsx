@@ -120,11 +120,15 @@ export default async function MiFichaPage({
             Personal
           </div>
 
-          <div className="mb-5 border-b-2 border-[#7a6a45] pb-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#8a6d3b]">
-              {tenant?.name ?? "Residencia"} — Departamento de Personal
-            </p>
-            <h2 className="font-serif text-2xl font-bold tracking-wide text-[#3a2f1d]">FICHA DE PERSONAL</h2>
+          <div className="mb-5 flex items-center gap-3 border-b-2 border-[#7a6a45] pb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-symbol.png" alt="PlanTurnos" className="h-11 w-11 shrink-0" />
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#8a6d3b]">
+                {tenant?.name ?? "Residencia"} — Departamento de Personal
+              </p>
+              <h2 className="font-serif text-2xl font-bold tracking-wide text-[#3a2f1d]">FICHA DE PERSONAL</h2>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto]">
