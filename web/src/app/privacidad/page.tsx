@@ -16,15 +16,11 @@ export default function PrivacidadPage() {
         <p className="mt-2 text-sm text-slate-500">Última actualización: junio de 2026</p>
 
         <div className="prose-legal mt-8 space-y-6 text-slate-700 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900 [&_li]:ml-5 [&_li]:list-disc">
-          <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            ⚠️ Plantilla orientativa. Revisa y completa los datos entre corchetes <strong>[ ]</strong> y consulta con
-            un profesional antes de publicar.
-          </p>
-
           <h2>1. Responsable del tratamiento</h2>
           <p>
-            <strong>Titular:</strong> [NOMBRE / RAZÓN SOCIAL] · <strong>NIF/CIF:</strong> [NIF] ·{" "}
-            <strong>Domicilio:</strong> [DIRECCIÓN] · <strong>Email:</strong> [EMAIL DE CONTACTO] ·{" "}
+            <strong>Titular:</strong> Francisco Javier Benítez Láinez · <strong>NIF:</strong> 08916742X ·{" "}
+            <strong>Domicilio:</strong> Calle María Magdalena, 5 · <strong>Contacto:</strong>{" "}
+            <a href="/contacto" className="text-cyan-700 underline">formulario de contacto</a> ·{" "}
             <strong>Sitio web:</strong> planturnos.com
           </p>
 
@@ -58,8 +54,9 @@ export default function PrivacidadPage() {
           <h2>6. Tus derechos</h2>
           <p>
             Puedes ejercer tus derechos de <strong>acceso, rectificación, supresión, oposición, limitación y
-            portabilidad</strong> escribiendo a [EMAIL DE CONTACTO]. También puedes reclamar ante la Agencia Española
-            de Protección de Datos (<a href="https://www.aepd.es" className="text-cyan-700 underline">aepd.es</a>).
+            portabilidad</strong> a través de nuestro{" "}
+            <a href="/contacto" className="text-cyan-700 underline">formulario de contacto</a>. También puedes reclamar
+            ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" className="text-cyan-700 underline">aepd.es</a>).
           </p>
 
           <h2>7. Seguridad</h2>

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SECTORES } from "@/data/sectores";
+import { POSTS } from "@/data/blog";
 
 const SITE_URL = process.env.APP_URL || "https://planturnos.com";
 
@@ -10,6 +11,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/sectores",
     "/funcionalidades",
     "/como-funciona",
+    "/demo",
+    "/precios",
+    "/preguntas-frecuentes",
+    "/blog",
     "/casos-de-exito",
     "/sobre-nosotros",
     "/contacto",
@@ -29,5 +34,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
     priority: 0.8,
   }));
-  return [...pages, ...sectores];
+  const posts = POSTS.map((p) => ({
+    url: `${SITE_URL}/blog/${p.slug}`,
+    lastModified: new Date(p.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+  return [...pages, ...sectores, ...posts];
 }
