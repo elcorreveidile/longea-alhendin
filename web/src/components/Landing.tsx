@@ -33,7 +33,7 @@ const DOW = ["L", "M", "X", "J", "V", "S", "D"];
 
 function CuadranteMock() {
   return (
-    <div className="rotate-1 rounded-2xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur">
+    <div className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-700">Julio · Tu equipo</span>
         <span className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Generado ✓</span>
