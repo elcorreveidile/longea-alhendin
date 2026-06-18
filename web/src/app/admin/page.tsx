@@ -96,7 +96,7 @@ export default async function AdminHome({
         .from(workers)
         .where(and(eq(workers.tenantId, t.id), eq(workers.active, true)));
       const admins = await db
-        .select({ email: users.email, name: users.name })
+        .select({ email: users.email, phone: users.phone, name: users.name })
         .from(users)
         .where(and(eq(users.tenantId, t.id), eq(users.role, "admin")));
       return { ...t, workerCount: wc?.n ?? 0, admins };
@@ -128,7 +128,12 @@ export default async function AdminHome({
                   <span className="font-mono">{c.slug}.planturnos.com</span> · {c.workerCount} trabajadoras activas
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Admins: {c.admins.length ? c.admins.map((a) => a.email).join(", ") : "— ninguna —"}
+                  Admins:{" "}
+                  {c.admins.length
+                    ? c.admins
+                        .map((a) => a.email || (a.phone ? `${a.phone} (SMS)` : "sin correo"))
+                        .join(", ")
+                    : "— ninguna —"}
                 </p>
               </div>
               <a
