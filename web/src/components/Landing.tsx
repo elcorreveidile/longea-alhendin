@@ -83,12 +83,12 @@ export default function Landing() {
       <section className="relative isolate overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[url('/img/home-hero4.webp')] bg-cover bg-center bg-fixed" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-900/85 via-slate-900/55 to-slate-900/10" />
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
-          <div className="flex max-w-3xl flex-col gap-8 lg:flex-row lg:items-center">
-          <div className="hidden w-80 shrink-0 lg:-ml-10 lg:block">
+        <div className="px-5 py-20 sm:px-10 sm:py-28">
+          <div className="flex max-w-4xl flex-col gap-8 lg:flex-row lg:items-center">
+          <div className="hidden w-96 shrink-0 lg:block">
             <CuadranteMock />
           </div>
-          <div>
+          <div className="max-w-md">
             <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
               Para cualquier empresa a turnos
             </span>
