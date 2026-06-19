@@ -66,7 +66,7 @@ export default function Cuadrante({
   data: CuadranteData;
   /** Si se pasa, las celdas de mañana/tarde se pueden pulsar para cambiar de
    * planta a mano (rosa → verde → azul → rosa). Solo en el panel de la admin. */
-  cycleFloorAction?: (formData: FormData) => void | Promise<void>;
+  cycleFloorAction?: (id: string, d: number, formData: FormData) => void | Promise<void>;
 }) {
   const dayNums = Array.from({ length: data.days }, (_, i) => i + 1);
 
@@ -127,18 +127,18 @@ export default function Cuadrante({
                     )}
                   </>
                 );
-                if (canEdit) {
+                if (canEdit && cycleFloorAction) {
                   return (
                     <td key={d} className="border border-white/70 p-0 text-center">
-                      <button
-                        type="submit"
-                        name="cell"
-                        value={`${id}:${d}`}
-                        title={`${label} — pulsa para cambiar de planta`}
-                        className={`h-full w-full cursor-pointer px-0 py-1 ${className} hover:brightness-95`}
-                      >
-                        {content}
-                      </button>
+                      <form action={cycleFloorAction.bind(null, id, d)}>
+                        <button
+                          type="submit"
+                          title={`${label} — pulsa para cambiar de planta`}
+                          className={`block h-full w-full cursor-pointer px-0 py-1 ${className} hover:brightness-95`}
+                        >
+                          {content}
+                        </button>
+                      </form>
                     </td>
                   );
                 }
@@ -172,7 +172,7 @@ export default function Cuadrante({
   return (
     <div>
       <div className="cuadrante-scroll overflow-x-auto rounded-lg border border-slate-200 shadow-sm print:overflow-visible">
-        {editable ? <form action={cycleFloorAction}>{table}</form> : table}
+        {table}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <span className={`rounded px-2 py-0.5 text-[11px] font-medium ${FLOOR_CLASS[2]}`}><strong>Rosa</strong> planta 2</span>

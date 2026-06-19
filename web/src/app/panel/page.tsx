@@ -48,17 +48,12 @@ async function importCuadranteAction(formData: FormData) {
 }
 
 /** Cambia a mano la planta de una celda (rosa 2 → verde 1 → azul 0 → rosa 2). */
-async function cycleFloorAction(formData: FormData) {
+async function cycleFloorAction(id: string, d: number, _formData: FormData) {
   "use server";
   const session = await getSession();
   if (!session || !isStaffAdmin(session.role)) return;
   const tenant = await getCurrentTenant();
   if (!tenant) return;
-  const cell = String(formData.get("cell") ?? "");
-  const sep = cell.lastIndexOf(":");
-  if (sep < 0) return;
-  const id = cell.slice(0, sep);
-  const d = Number(cell.slice(sep + 1));
   if (!id || !Number.isInteger(d) || d < 0) return;
 
   const saved = await getLatestCuadrante(tenant.id);
