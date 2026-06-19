@@ -155,15 +155,25 @@ export default function Cuadrante({
         <tr className="bg-slate-800 text-white font-semibold">
           <td className="sticky left-0 z-10 bg-slate-800 px-3 py-1">Cobertura M/T/N (objetivo 9/9/2)</td>
           {coverage.map((c, d) => {
-            const ok = c.m === 9 && c.t === 9 && c.n === 2;
+            // Por turno: rojo solo si FALTA gente (déficit, problema real); ámbar
+            // si SOBRA (excedente, no pasa nada); normal si está justo en el objetivo.
+            const cell = (val: number, target: number) =>
+              val < target ? "bg-red-600 text-white" : val > target ? "text-amber-300" : "";
             return (
-              <td key={d} className={`px-0 text-center text-[9px] leading-tight ${ok ? "" : "bg-red-600"}`}>
-                <div>{c.m}</div>
-                <div>{c.t}</div>
-                <div>{c.n}</div>
+              <td key={d} className="px-0 text-center text-[9px] leading-tight">
+                <div className={cell(c.m, 9)}>{c.m}</div>
+                <div className={cell(c.t, 9)}>{c.t}</div>
+                <div className={cell(c.n, 2)}>{c.n}</div>
               </td>
             );
           })}
+        </tr>
+        <tr className="bg-slate-800 text-white">
+          <td className="sticky left-0 z-10 bg-slate-800 px-3 pb-2 text-[10px] font-normal text-slate-300">
+            <span className="text-red-300">Rojo</span> = falta gente ·{" "}
+            <span className="text-amber-300">Ámbar</span> = sobra (refuerzo)
+          </td>
+          <td colSpan={data.days} className="bg-slate-800" />
         </tr>
       </tbody>
     </table>
