@@ -532,12 +532,18 @@ def _attempt(cfg, hard_coverage):
 
     # Déficit (1000, solo en respaldo) >> equilibrio de noches (15) > bloques de
     # 36h (5) > exceso de personal (1, para no malgastar).
+    #
+    # El ritmo 2-2-2 de las supervisoras (250) pesa MÁS que el hueco de cobertura
+    # de supervisora (120): así, cuando una está de vacaciones, la otra mantiene
+    # su 2-2-2 (libra 2 de cada 6) y los días que no puede cubrir se reportan en
+    # 'supervisor_warnings' para que la administradora los rellene a mano, en vez
+    # de forzarla a trabajar todo el bloque seguido rompiendo el patrón.
     model.Minimize(
         1000 * sum(deficit_terms)
-        + 500 * sum(sup_cover_slacks)   # siempre una supervisora cubriendo
         + 300 * sum(streak_slacks)
+        + 250 * sum(sup_pattern_slacks)  # ritmo 2M-2T-2D de supervisoras (prioritario)
         + 200 * sum(rest_run_slacks)
-        + 50 * sum(sup_pattern_slacks)  # ritmo 2M-2T-2D de supervisoras
+        + 120 * sum(sup_cover_slacks)    # tener una supervisora cubriendo (cede ante el patrón)
         + 15 * night_balance
         - 5 * sum(all_blocks)
         + 1 * sum(surplus_terms)
