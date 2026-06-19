@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 import { getGenConfig } from "./gen-settings";
+import { getCuadrante } from "@/db/cuadrantes";
 
 // Horarios reales (fijos): mañana 7-14:30, tarde 14:30-22, noche 22-7.
 const SHIFT_HOURS = { M: [7, 14.5], T: [14.5, 22], N: [22, 31] };
@@ -14,6 +15,7 @@ interface EngineWorker {
   vacations?: number[];
   no_night?: boolean;
   only_shift?: string;
+  prev_tail?: string[]; // últimos días del mes anterior (continuidad)
 }
 
 /** Días del mes (1..n) que caen dentro de un rango de fechas [start, end]. */
@@ -61,6 +63,25 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     if (w.onlyShift) ew.only_shift = w.onlyShift;
     return ew;
   });
+
+  // Continuidad con el mes anterior: pasamos la "cola" de días de cada
+  // trabajadora para que el motor arranque respetando cómo acabó (noche -> día 1
+  // descanso, racha de días seguidos, descanso entre jornadas).
+  const prevY = month === 1 ? year - 1 : year;
+  const prevM = month === 1 ? 12 : month - 1;
+  try {
+    const prev = await getCuadrante(tenantId, prevY, prevM);
+    const prevAssign = (prev?.data as { assignments?: Record<string, string[]> } | undefined)?.assignments;
+    if (prevAssign) {
+      const TAIL = 6; // suficiente para arrastrar la racha (máx. 5) y la noche
+      for (const w of workers) {
+        const row = prevAssign[w.id];
+        if (Array.isArray(row) && row.length) w.prev_tail = row.slice(-TAIL).map(String);
+      }
+    }
+  } catch {
+    // si no hay mes anterior guardado, se genera sin continuidad
+  }
 
   const gen = await getGenConfig(tenantId);
   const cfg = {

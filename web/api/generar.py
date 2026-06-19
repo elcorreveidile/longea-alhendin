@@ -282,6 +282,43 @@ def _attempt(cfg, hard_coverage):
             window = [works(wid, d) for d in range(start, start + max_consec + 1)]
             model.Add(sum(window) <= max_consec)
 
+    # --- Continuidad con el mes anterior ("cola" de días previos) ---
+    # Si la trabajadora acabó el mes anterior en noche, el día 1 es descanso; si
+    # acabó con una racha de días seguidos, se arrastra al máximo; y se respeta
+    # el descanso entre jornadas a través del límite (p. ej. Tarde -> Mañana).
+    for w in workers:
+        wid = w["id"]
+        tail = w.get("prev_tail") or []
+        if not tail:
+            continue
+        allowed = allowed_states(w)
+        last = tail[-1]
+        day0_vac = (1 in vac[wid])
+        if not day0_vac:
+            # 1) Acabó en noche -> el día 1 descansa
+            if last == "N" and "D" in allowed and (wid, 0, "D") in x:
+                model.Add(x[wid, 0, "D"] == 1)
+            # 2) Descanso entre jornadas a través del límite (T->M, N->M, N->T...)
+            for s1, s2 in forbidden_pairs:
+                if last == s1 and (wid, 0, s2) in x:
+                    model.Add(x[wid, 0, s2] == 0)
+        # 3) Arrastrar la racha de días seguidos trabajando (no a M.Mar/supervisora)
+        if w["role"] not in ("gerocultora_lv", "supervisora"):
+            t = 0
+            for s in reversed(tail):
+                if s in WORK_SHIFTS:
+                    t += 1
+                else:
+                    break
+            if t > 0:
+                rem = max_consec - t  # días que aún puede encadenar al principio
+                if rem <= 0:
+                    if not day0_vac:
+                        model.Add(works(wid, 0) == 0)  # ya alcanzó el máximo
+                else:
+                    win = min(rem + 1, days)
+                    model.Add(sum(works(wid, d) for d in range(win)) <= rem)
+
     # --- Descanso tras racha larga (preferencia fuerte, no obligación) ---
     # Tras 'streak_threshold' días seguidos trabajando, si se descansa, el
     # descanso debería ser de al menos 'streak_min_rest' días seguidos (no 1
