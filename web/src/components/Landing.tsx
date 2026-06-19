@@ -199,28 +199,28 @@ export default function Landing() {
       <section id="precios" className="bg-[#f4ecd8] py-20">
         <div className="mx-auto max-w-4xl px-5">
           <h2 className="text-center text-3xl font-bold text-slate-900">Precios sencillos</h2>
-          <p className="mt-2 text-center text-slate-600">Elige pago mensual o compra única. Prueba gratis para empezar.</p>
+          <p className="mt-2 text-center text-slate-600">Una cuota por centro, sin permanencia. Prueba gratis para empezar.</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border-2 border-cyan-600 bg-white p-7 shadow-sm">
               <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">Recomendado</span>
-              <h3 className="mt-3 text-xl font-bold text-slate-900">Suscripción</h3>
-              <p className="mt-2 text-3xl font-extrabold text-slate-900">49 €<span className="text-base font-medium text-slate-500">/mes por centro</span></p>
-              <p className="text-sm text-slate-500">o 1,50 € por trabajador/mes</p>
+              <h3 className="mt-3 text-xl font-bold text-slate-900">Por centro</h3>
+              <p className="mt-2 text-3xl font-extrabold text-slate-900">49 €<span className="text-base font-medium text-slate-500">/mes</span></p>
+              <p className="text-sm text-slate-500">por centro · hasta 50 trabajadores</p>
               <ul className="mt-4 space-y-1.5 text-sm text-slate-600">
                 <li>✓ Todo incluido (hosting, soporte, actualizaciones)</li>
-                <li>✓ Sin pago inicial</li>
-                <li>✓ Cancela cuando quieras</li>
+                <li>✓ Sin pago inicial · sin permanencia</li>
+                <li>✓ Avisos, portal del trabajador, PDF y Excel</li>
               </ul>
             </div>
             <div className="rounded-2xl border border-[#e7dcc4] bg-white p-7 shadow-sm">
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Pago único</span>
-              <h3 className="mt-3 text-xl font-bold text-slate-900">Compra</h3>
-              <p className="mt-2 text-3xl font-extrabold text-slate-900">1.297 €<span className="text-base font-medium text-slate-500"> única</span></p>
-              <p className="text-sm text-slate-500">+ mantenimiento desde 29 €/mes</p>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Más de 50 · varios centros</span>
+              <h3 className="mt-3 text-xl font-bold text-slate-900">A medida</h3>
+              <p className="mt-2 text-3xl font-extrabold text-slate-900">Consúltanos</p>
+              <p className="text-sm text-slate-500">centros grandes o cadenas</p>
               <ul className="mt-4 space-y-1.5 text-sm text-slate-600">
-                <li>✓ La app en propiedad de uso</li>
-                <li>✓ Mantenimiento opcional</li>
-                <li>✓ Ideal si prefieres no pagar mensual</li>
+                <li>✓ Tarifa adaptada al tamaño</li>
+                <li>✓ Varios centros en una cuenta</li>
+                <li>✓ Soporte prioritario</li>
               </ul>
             </div>
           </div>
