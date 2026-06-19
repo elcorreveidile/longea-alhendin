@@ -315,6 +315,10 @@ export default async function PanelPage({
               Guardar
             </button>
           </form>
+          <p className="mt-3 text-sm text-slate-500">
+            ¿Tienes el mes en una hoja de cálculo?{" "}
+            <a href="/panel/importar" className="font-medium text-cyan-700 hover:underline">Impórtalo pegando la cuadrícula</a>.
+          </p>
         </section>
       </main>
     </div>
