@@ -17,6 +17,44 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   nadie: { ok: false, text: "No se reconoció a ninguna trabajadora. Revisa que la primera columna sea el nombre." },
 };
 
+// Semilla de continuidad: últimos 6 días (25–30) de junio 2026, transcritos del
+// modelo de Alhendín y verificados con la administradora. Solo se usa la cola
+// para que julio arranque bien (noche -> descanso, racha de días seguidos).
+const JUNIO_2026_TAIL: Record<string, string[]> = {
+  "Mónica": ["T", "N", "N", "D", "D", "M"],
+  "Bárbara": ["N", "D", "T", "T", "T", "N"],
+  "Rocío": ["V", "V", "V", "V", "V", "V"],
+  "Pamela": ["T", "D", "D", "M", "M", "T"],
+  "Irene León": ["M", "T", "T", "D", "D", "M"],
+  "Desiree": ["D", "M", "M", "M", "T", "D"],
+  "Cloe": ["D", "M", "M", "M", "T", "D"],
+  "Laura Padilla": ["D", "M", "M", "T", "T", "D"],
+  "Montse": ["T", "D", "D", "M", "M", "T"],
+  "Mar": ["M", "T", "D", "D", "M", "M"],
+  "Diana": ["N", "D", "D", "M", "M", "T"],
+  "Melody": ["T", "T", "T", "D", "T", "T"],
+  "Mª José": ["V", "V", "V", "V", "V", "V"],
+  "Sandra": ["D", "M", "M", "T", "D", "D"],
+  "Ana Montoro": ["T", "T", "D", "M", "M", "T"],
+  "Isabel": ["T", "D", "M", "T", "D", "T"],
+  "Noemí": ["T", "T", "D", "T", "T", "T"],
+  "Ainhoa": ["D", "D", "M", "T", "N", "N"],
+  "Conce": ["T", "T", "N", "D", "D", "M"],
+  "Ana Isabel": ["M", "N", "D", "M", "M", "M"],
+  "Sara": ["D", "M", "M", "M", "T", "D"],
+  "Azblais": ["M", "M", "T", "N", "N", "D"],
+  "Diego": ["M", "T", "T", "D", "D", "M"],
+  "Isabel María": ["D", "M", "M", "T", "T", "D"],
+  "Yolanda": ["T", "D", "D", "D", "M", "T"],
+  "Laura": ["V", "V", "V", "V", "V", "V"],
+  "Ana Muñoz": ["D", "D", "M", "M", "M", "M"],
+  "Toñi": ["M", "M", "T", "T", "D", "D"],
+  "M.Mar": ["M", "M", "D", "D", "M", "M"],
+  "Wisan": ["M", "T", "T", "D", "D", "M"],
+  "Nuria": ["M", "T", "T", "N", "D", "D"],
+  "Susana": ["D", "D", "T", "T", "D", "D"],
+};
+
 /** Normaliza un nombre para casarlo (sin acentos, mayúsculas, espacios simples). */
 function norm(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
@@ -31,6 +69,55 @@ function mapCell(raw: string): string {
   if (c.startsWith("T")) return "T";
   if (c.startsWith("M")) return "M";
   return "D"; // D, DH, H, HD, vacío… cuentan como descanso
+}
+
+/**
+ * Carga la semilla de continuidad de junio 2026: guarda un cuadrante de junio
+ * con los días 1–24 como descanso (placeholder, no se usan) y los días 25–30
+ * tomados de JUNIO_2026_TAIL. El motor solo lee los últimos 6 días para
+ * arrastrar la racha y la regla noche→descanso, así que con la cola basta.
+ */
+async function loadJunioAction() {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/importar?m=vacio");
+
+  const year = 2026;
+  const month = 6;
+  const days = 30;
+  const weekdays = Array.from({ length: days }, (_, i) => LETTERS[(new Date(year, month - 1, i + 1).getDay() + 6) % 7]);
+
+  const ws = await db.select().from(workersT).where(and(eq(workersT.tenantId, tenant.id), eq(workersT.active, true)));
+  const byName = new Map(ws.map((w) => [norm(w.name), w]));
+
+  const assignments: Record<string, string[]> = {};
+  const names: Record<string, string> = {};
+  const unmatched: string[] = [];
+  let matched = 0;
+
+  for (const [name, tail] of Object.entries(JUNIO_2026_TAIL)) {
+    const w = byName.get(norm(name));
+    if (!w) {
+      unmatched.push(name);
+      continue;
+    }
+    // 24 días de descanso (placeholder) + los 6 días reales de la cola (25–30)
+    assignments[w.id] = [...Array(days - tail.length).fill("D"), ...tail.map(mapCell)];
+    names[w.id] = w.name;
+    matched++;
+  }
+
+  if (matched === 0) redirect("/panel/importar?m=nadie");
+
+  await saveCuadrante(tenant.id, year, month, {
+    year, month, days, weekdays, assignments,
+    // @ts-expect-error: names es un extra que usa la vista del cuadrante
+    names,
+  });
+  revalidatePath("/panel");
+  redirect(`/panel/importar?ok=${matched}&u=${encodeURIComponent(unmatched.slice(0, 8).join(", "))}&j=1`);
 }
 
 async function importAction(formData: FormData) {
@@ -81,7 +168,7 @@ async function importAction(formData: FormData) {
 export default async function ImportarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ m?: string; ok?: string; u?: string }>;
+  searchParams: Promise<{ m?: string; ok?: string; u?: string; j?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -117,10 +204,24 @@ export default async function ImportarPage({
         {err && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{err.text}</p>}
         {okN != null && (
           <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-            ✓ Importadas {okN} trabajadoras.{sp.u ? ` No se reconocieron: ${decodeURIComponent(sp.u)}.` : ""} Ya puedes
-            regenerar el mes siguiente con continuidad.
+            ✓ {sp.j ? "Junio 2026 cargado" : "Importadas"} {okN} trabajadoras.
+            {sp.u ? ` No se reconocieron: ${decodeURIComponent(sp.u)}.` : ""} Ya puedes regenerar el mes siguiente con
+            continuidad.
           </p>
         )}
+
+        <div className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Semilla de junio 2026</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Carga la última semana de junio 2026 (transcrita del modelo de Alhendín y verificada) para que julio arranque
+            con continuidad: noche → descanso, racha de días seguidos y descanso entre jornadas. No hace falta pegar nada.
+          </p>
+          <form action={loadJunioAction} className="mt-3">
+            <button className="rounded-lg bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+              Cargar junio 2026 (semilla)
+            </button>
+          </form>
+        </div>
 
         <form action={importAction} className="space-y-3 rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-end gap-3">
