@@ -15,6 +15,7 @@ export interface CuadranteData {
   assignments: Record<string, string[]>;
   violations: { day: number; shift: string; required: number; assigned: number; short: number }[];
   rest_warnings?: { worker: string; name: string; from_day: number; to_day: number }[];
+  supervisor_warnings?: { day: number }[];
   names?: Record<string, string>;
 }
 

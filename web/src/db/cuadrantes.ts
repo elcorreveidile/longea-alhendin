@@ -11,6 +11,7 @@ export interface CuadranteJSON {
   assignments: Record<string, string[]>;
   violations?: unknown[];
   rest_warnings?: unknown[];
+  supervisor_warnings?: unknown[];
 }
 
 /** Lista de meses con cuadrante guardado (más recientes primero). */

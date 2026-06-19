@@ -386,30 +386,69 @@ def _attempt(cfg, hard_coverage):
         # Un domingo de descanso/vacaciones al mes como mínimo.
         model.Add(sum(rest_ind(wid, sd) for sd in sundays) >= sundays_off_min)
 
-    # --- Supervisoras: patrón 3 mañanas / 2 tardes / 2 descansos, sin noches ---
-    # (Diana: "2 mañanas, 2 tardes, 2 descansos y al 7º día entra de mañana".)
-    for w in workers:
-        if w["role"] != "supervisora":
-            continue
+    # --- Supervisoras: ciclo continuo 2 mañanas / 2 tardes / 2 descansos, sin
+    # noches, y SIEMPRE al menos una supervisora cubriendo cada día. ---
+    # Diana: "Dos mañanas, dos tardes, dos descansos para supervisoras siempre"
+    # y "la supervisora siempre tiene que haber una cubriendo".
+    #
+    # El ritmo 2-2-2 se modela sobre TODAS las ventanas de 6 días consecutivos
+    # (incluidas las que cruzan la frontera con el mes anterior, usando la cola
+    # 'prev_tail'): exigir 2M+2T en cada ventana de 6 fuerza el ciclo periódico y
+    # lo enlaza con cómo venía cada supervisora de junio. Es PREFERENCIA FUERTE
+    # (con holgura penalizada), no obligación, para no dejar nunca el mes sin
+    # solución cuando hay vacaciones: si no se puede, el motor lo respeta al
+    # máximo y la administradora ajusta a mano.
+    supervisoras = [w for w in workers if w["role"] == "supervisora"]
+    sup_pattern_slacks = []
+    sup_cover_slacks = []
+
+    for w in supervisoras:
         wid = w["id"]
-        weeks = defaultdict(list)
+        tail = list(w.get("prev_tail") or [])
+
+        def sup_term(d, s, wid=wid, tail=tail):
+            """Indicador de que la supervisora hace el estado s el día d.
+            d negativo = días del mes anterior (constantes de la cola)."""
+            if d < 0:
+                idx = len(tail) + d
+                return 1 if (0 <= idx < len(tail) and tail[idx] == s) else 0
+            if (d + 1) in vac[wid]:
+                return 1 if s == "V" else 0
+            return is_state(wid, d, s)
+
+        def sup_has_vac(d, wid=wid, tail=tail):
+            if d < 0:
+                return (len(tail) + d) < 0  # fuera de la cola: ventana no evaluable
+            return (d + 1) in vac[wid]
+
+        # Ventanas de 6 días: desde -min(len(tail),5) hasta el final del mes.
+        for start in range(-min(len(tail), 5), days - 5):
+            win = list(range(start, start + 6))
+            if any(sup_has_vac(d) for d in win):
+                continue  # ventana con vacaciones o fuera de la cola: no se fuerza
+            n_m = sum(sup_term(d, "M") for d in win)
+            n_t = sum(sup_term(d, "T") for d in win)
+            for n_expr, lbl in ((n_m, "m"), (n_t, "t")):
+                pos = model.NewIntVar(0, 4, f"suppat_pos_{wid}_{start}_{lbl}")
+                neg = model.NewIntVar(0, 4, f"suppat_neg_{wid}_{start}_{lbl}")
+                model.Add(n_expr - 2 == pos - neg)  # desviación respecto a 2
+                sup_pattern_slacks.append(pos)
+                sup_pattern_slacks.append(neg)
+
+    # Cobertura conjunta: cada día, al menos una supervisora trabajando.
+    if supervisoras:
         for d in range(days):
-            iso_week = (d + weekdays[0]) // 7
-            weeks[iso_week].append(d)
-        for wk, wdays in weeks.items():
-            avail = [d for d in wdays if (d + 1) not in vac[wid]]
-            n_m = sum(is_state(wid, d, "M") for d in wdays)
-            n_t = sum(is_state(wid, d, "T") for d in wdays)
-            if len(wdays) == 7 and len(avail) == 7:
-                # semana completa sin vacaciones -> 3 mañanas / 2 tardes / 2 descansos
-                model.Add(n_m == 3)
-                model.Add(n_t == 2)
-            else:
-                # semana parcial o con vacaciones -> topes + algo de trabajo si puede
-                model.Add(n_m <= 3)
-                model.Add(n_t <= 2)
-                if len(avail) >= 4:
-                    model.Add(n_m + n_t >= 2)
+            present = []
+            for w in supervisoras:
+                wid = w["id"]
+                if (d + 1) in vac[wid]:
+                    continue  # de vacaciones no cubre
+                present.append(works(wid, d))
+            if not present:
+                continue
+            nobody = model.NewBoolVar(f"supcov_{d}")  # 1 si NADIE cubre ese día
+            model.Add(sum(present) + nobody >= 1)
+            sup_cover_slacks.append(nobody)
 
     # --- Objetivo: minimizar déficit de cobertura y equilibrar noches ---
     # Solo se equilibran las noches entre quienes PUEDEN hacerlas (excluye
@@ -436,8 +475,10 @@ def _attempt(cfg, hard_coverage):
     # 36h (5) > exceso de personal (1, para no malgastar).
     model.Minimize(
         1000 * sum(deficit_terms)
+        + 500 * sum(sup_cover_slacks)   # siempre una supervisora cubriendo
         + 300 * sum(streak_slacks)
         + 200 * sum(rest_run_slacks)
+        + 50 * sum(sup_pattern_slacks)  # ritmo 2M-2T-2D de supervisoras
         + 15 * night_balance
         - 5 * sum(all_blocks)
         + 1 * sum(surplus_terms)
@@ -491,6 +532,14 @@ def _attempt(cfg, hard_coverage):
         assignments, weekdays, cfg.get("shift_hours", {}), workers
     )
 
+    # --- Reportar días sin ninguna supervisora cubriendo (para ajustar a mano) ---
+    supervisor_warnings = []
+    sup_ids = [w["id"] for w in workers if w["role"] == "supervisora"]
+    if sup_ids:
+        for d in range(days):
+            if not any(assignments[sid][d] in ("M", "T") for sid in sup_ids):
+                supervisor_warnings.append({"day": d + 1})
+
     return {
         "ok": True,
         "status": solver.StatusName(status),
@@ -498,6 +547,7 @@ def _attempt(cfg, hard_coverage):
         "start_date": cfg.get("start_date"),
         "dates": dates,
         "rest_warnings": rest_warnings,
+        "supervisor_warnings": supervisor_warnings,
         "weekdays": [WEEKDAY_LETTERS[wd] for wd in weekdays],
         "assignments": assignments,
         "violations": violations,

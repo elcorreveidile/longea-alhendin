@@ -303,6 +303,19 @@ export default async function PanelPage({
           </section>
         )}
 
+        {isReal && data.supervisor_warnings && data.supervisor_warnings.length > 0 && (
+          <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <strong>Sin supervisora cubriendo:</strong> estos días no quedó ninguna
+            supervisora en mañana o tarde (normalmente por vacaciones). Asigna una a
+            mano o reparte el descanso de otra:
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              {data.supervisor_warnings.map((w, i) => (
+                <li key={i}>Día {w.day}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* Importar un cuadrante generado por el motor (JSON) */}
         <section className="print:hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-slate-800">Importar cuadrante</h3>
