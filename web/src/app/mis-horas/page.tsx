@@ -8,6 +8,7 @@ import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
 import TopBar from "@/components/TopBar";
+import VersionFooter from "@/components/VersionFooter";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   declared: { label: "Declarada", cls: "bg-amber-100 text-amber-800" },
@@ -198,6 +199,7 @@ export default async function MisHorasPage() {
           </>
         )}
       </main>
+      <VersionFooter />
     </div>
   );
 }

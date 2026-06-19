@@ -8,6 +8,7 @@ import { getLatestCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { getPhotoUrl, setPhotoUrl, clearPhotoUrl } from "@/lib/photos";
 import { put } from "@vercel/blob";
 import TopBar from "@/components/TopBar";
+import VersionFooter from "@/components/VersionFooter";
 
 const ROLE_LABEL: Record<string, string> = {
   gerocultora: "Gerocultora",
@@ -226,6 +227,7 @@ export default async function MiFichaPage({
           </p>
         </div>
       </main>
+      <VersionFooter />
     </div>
   );
 }

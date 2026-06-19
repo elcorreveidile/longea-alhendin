@@ -8,6 +8,7 @@ import sample from "@/data/sample-cuadrante.json";
 import { CuadranteData } from "@/components/Cuadrante";
 import { getCuadrante, listCuadranteMonths } from "@/db/cuadrantes";
 import DownloadMyMonthButton from "@/components/DownloadMyMonthButton";
+import VersionFooter from "@/components/VersionFooter";
 
 const MONTH_NAMES = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -229,6 +230,7 @@ export default async function MiTurnoPage({
           ))}
         </section>
       </main>
+      <VersionFooter />
     </div>
   );
 }

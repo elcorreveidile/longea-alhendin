@@ -5,6 +5,7 @@ import { getSession, homeForRole } from "@/lib/session";
 import { getCurrentTenant, slugFromHost } from "@/lib/tenant";
 import { normalizePhone, maskPhone } from "@/lib/phone";
 import DevCredit from "@/components/DevCredit";
+import { APP_VERSION } from "@/lib/version";
 
 const PENDING_PHONE = "pending_phone";
 
@@ -215,6 +216,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </p>
         <DevCredit />
       </div>
+      <p className={`absolute bottom-3 left-0 right-0 z-10 text-center text-xs ${bg ? "text-white/70" : "text-slate-400"}`}>
+        © {new Date().getFullYear()} PlanTurnos · {APP_VERSION}
+      </p>
     </main>
   );
 }

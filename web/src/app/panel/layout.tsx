@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, isStaffAdmin, canManageTenant } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
+import VersionFooter from "@/components/VersionFooter";
 
 /**
  * Puerta de acceso al panel de una empresa:
@@ -18,5 +19,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const legacyUnbound = session.role === "admin" && session.tenantId === null;
   if (tenant && !legacyUnbound && !canManageTenant(session, tenant.id)) redirect("/");
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <VersionFooter />
+    </>
+  );
 }

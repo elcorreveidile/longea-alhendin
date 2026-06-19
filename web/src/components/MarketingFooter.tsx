@@ -2,6 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import DevCredit from "@/components/DevCredit";
 import { SECTORES } from "@/data/sectores";
+import { APP_VERSION } from "@/lib/version";
 
 const NAV = [
   { href: "/funcionalidades", label: "Funcionalidades" },
@@ -49,7 +50,7 @@ export default function MarketingFooter() {
             ))}
           </nav>
           <DevCredit />
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos · planturnos.com</p>
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} PlanTurnos · planturnos.com · {APP_VERSION}</p>
         </div>
       </div>
     </footer>

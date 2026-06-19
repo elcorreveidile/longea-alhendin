@@ -10,6 +10,7 @@ import {
   loginWorkerWithPin,
 } from "@/lib/worker-access";
 import DevCredit from "@/components/DevCredit";
+import { APP_VERSION } from "@/lib/version";
 
 const WAC = "wacc"; // código validado
 const WSEL = "wsel"; // trabajadora seleccionada
@@ -216,6 +217,9 @@ export default async function AccesoPage({ searchParams }: { searchParams: Promi
         </p>
         <DevCredit />
       </div>
+      <p className={`absolute bottom-3 left-0 right-0 z-10 text-center text-xs ${bg ? "text-white/70" : "text-slate-400"}`}>
+        © {new Date().getFullYear()} PlanTurnos · {APP_VERSION}
+      </p>
     </main>
   );
 }
