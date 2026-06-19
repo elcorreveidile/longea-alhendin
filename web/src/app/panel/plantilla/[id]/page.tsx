@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT, users as usersT } from "@/db/schema";
 import { getLatestCuadrante, type CuadranteJSON } from "@/db/cuadrantes";
 import { getPhotoUrl, setPhotoUrl, clearPhotoUrl } from "@/lib/photos";
+import { getFixedFloors, setFixedFloor } from "@/lib/floors";
 import { put } from "@vercel/blob";
 import TopBar from "@/components/TopBar";
 
@@ -63,6 +64,9 @@ async function updateAction(formData: FormData) {
       phone: String(formData.get("phone") ?? "").trim() || null,
     })
     .where(and(eq(workersT.id, id), eq(workersT.tenantId, tenant.id)));
+  const floorRaw = String(formData.get("fixedFloor") ?? "");
+  const floor = floorRaw === "0" ? 0 : floorRaw === "1" ? 1 : floorRaw === "2" ? 2 : null;
+  await setFixedFloor(tenant.id, id, floor);
   redirect(`/panel/plantilla/${id}?m=saved`);
 }
 
@@ -165,6 +169,7 @@ export default async function FichaPage({
 
   const initials = worker.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
   const photoUrl = await getPhotoUrl(tenant.id, id);
+  const fixedFloor = (await getFixedFloors(tenant.id))[id];
 
   return (
     <div className="min-h-screen bg-[#e8ddc4]">
@@ -227,6 +232,15 @@ export default async function FichaPage({
               <label>
                 <span className={label}>Teléfono</span>
                 <input name="phone" defaultValue={worker.phone ?? ""} className={field} placeholder="612345678" />
+              </label>
+              <label>
+                <span className={label}>Planta fija</span>
+                <select name="fixedFloor" defaultValue={fixedFloor ?? ""} className={field}>
+                  <option value="">Sin fijar (reparto automático)</option>
+                  <option value="0">Planta 0 (azul)</option>
+                  <option value="1">Planta 1 (verde)</option>
+                  <option value="2">Planta 2 (rosa)</option>
+                </select>
               </label>
               <label className="flex items-end gap-2 pb-1">
                 <input type="checkbox" name="noNight" defaultChecked={worker.noNight}

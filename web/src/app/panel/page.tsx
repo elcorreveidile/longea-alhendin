@@ -47,6 +47,39 @@ async function importCuadranteAction(formData: FormData) {
   }
 }
 
+/** Cambia a mano la planta de una celda (rosa 2 → verde 1 → azul 0 → rosa 2). */
+async function cycleFloorAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) return;
+  const tenant = await getCurrentTenant();
+  if (!tenant) return;
+  const cell = String(formData.get("cell") ?? "");
+  const sep = cell.lastIndexOf(":");
+  if (sep < 0) return;
+  const id = cell.slice(0, sep);
+  const d = Number(cell.slice(sep + 1));
+  if (!id || !Number.isInteger(d) || d < 0) return;
+
+  const saved = await getLatestCuadrante(tenant.id);
+  if (!saved) return;
+  const json = saved.data as CuadranteJSON;
+  const code = json.assignments?.[id]?.[d];
+  if (code !== "M" && code !== "T") return; // solo mañana/tarde llevan planta
+
+  const days = json.assignments[id].length;
+  const floors = (json.floors ?? {}) as Record<string, (number | null)[]>;
+  if (!Array.isArray(floors[id]) || floors[id].length !== days) {
+    floors[id] = Array.from({ length: days }, (_, i) => floors[id]?.[i] ?? null);
+  }
+  const cur = floors[id][d];
+  floors[id][d] = cur === 2 ? 1 : cur === 1 ? 0 : 2; // 2→1→0→2 (null/0 → 2)
+  json.floors = floors;
+
+  await saveCuadrante(tenant.id, json.year, json.month, json);
+  revalidatePath("/panel");
+}
+
 async function generarMesAction(formData: FormData) {
   "use server";
   const year = Number(formData.get("year"));
@@ -269,7 +302,7 @@ export default async function PanelPage({
           })}
         </section>
 
-        <Cuadrante data={data} />
+        <Cuadrante data={data} cycleFloorAction={isReal ? cycleFloorAction : undefined} />
           </>
         )}
 

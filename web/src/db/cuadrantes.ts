@@ -9,6 +9,8 @@ export interface CuadranteJSON {
   days: number;
   weekdays: string[];
   assignments: Record<string, string[]>;
+  floors?: Record<string, (number | null)[]>;
+  roles?: Record<string, string>;
   violations?: unknown[];
   rest_warnings?: unknown[];
   supervisor_warnings?: unknown[];

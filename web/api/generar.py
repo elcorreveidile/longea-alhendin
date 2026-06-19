@@ -108,6 +108,65 @@ def weekly_rest_warnings(assignments, weekdays, shift_hours, workers):
     return warnings
 
 
+def assign_floors(assignments, workers, days):
+    """Reparte las plantas (0/1/2) sobre el cuadrante ya resuelto.
+
+    Reglas de Diana: en cada turno de mañana y de tarde, 4 personas en planta 2
+    (rosa), 4 en planta 1 (verde) y 1 en planta 0 (azul). Las supervisoras (gris)
+    y las noches (negro) no llevan planta. Quien tiene 'fixed_floor' (p. ej. Mar
+    en planta 0) va siempre a esa planta cuando trabaja; el resto se mantiene
+    estable en su planta de un día para otro (continuidad de cuidados) y, si no,
+    se reparte para cumplir 4/4/1.
+
+    Devuelve floors: {wid: [planta|None por día]} (None en noche/descanso/super).
+    """
+    role_by = {w["id"]: w["role"] for w in workers}
+    fixed = {w["id"]: w.get("fixed_floor") for w in workers}
+    floors = {wid: [None] * days for wid in assignments}
+    last_floor = {}  # continuidad: última planta asignada a cada trabajadora
+    TARGET = {2: 4, 1: 4, 0: 1}
+
+    for d in range(days):
+        for shift in ("M", "T"):
+            present = [
+                w["id"] for w in workers
+                if role_by.get(w["id"]) != "supervisora"
+                and assignments.get(w["id"], [None] * days)[d] == shift
+            ]
+            if not present:
+                continue
+            cap = dict(TARGET)
+            chosen = {}
+            # 1) plantas fijas (Mar -> 0) primero
+            for wid in present:
+                f = fixed.get(wid)
+                if f in (0, 1, 2) and cap.get(f, 0) > 0:
+                    chosen[wid] = f
+                    cap[f] -= 1
+            # 2) continuidad: mantener la planta de ayer si aún cabe
+            for wid in present:
+                if wid in chosen:
+                    continue
+                lf = last_floor.get(wid)
+                if lf is not None and cap.get(lf, 0) > 0:
+                    chosen[wid] = lf
+                    cap[lf] -= 1
+            # 3) rellenar el resto para cumplir 4/4/1 (planta con más hueco)
+            for wid in present:
+                if wid in chosen:
+                    continue
+                choice = max((2, 1, 0), key=lambda f: cap[f])
+                if cap[choice] <= 0:
+                    choice = 2  # excedente de personal: a planta 2
+                chosen[wid] = choice
+                if cap.get(choice, 0) > 0:
+                    cap[choice] -= 1
+            for wid, f in chosen.items():
+                floors[wid][d] = f
+                last_floor[wid] = f
+    return floors
+
+
 def _attempt(cfg, hard_coverage):
     if cfg.get("start_date"):
         # Modo semana (o rango de N días) a partir de una fecha.
@@ -532,6 +591,10 @@ def _attempt(cfg, hard_coverage):
         assignments, weekdays, cfg.get("shift_hours", {}), workers
     )
 
+    # --- Reparto de plantas (0/1/2) sobre el cuadrante resuelto ---
+    floors = assign_floors(assignments, workers, days)
+    roles = {w["id"]: w["role"] for w in workers}
+
     # --- Reportar días sin ninguna supervisora cubriendo (para ajustar a mano) ---
     supervisor_warnings = []
     sup_ids = [w["id"] for w in workers if w["role"] == "supervisora"]
@@ -550,6 +613,8 @@ def _attempt(cfg, hard_coverage):
         "supervisor_warnings": supervisor_warnings,
         "weekdays": [WEEKDAY_LETTERS[wd] for wd in weekdays],
         "assignments": assignments,
+        "floors": floors,
+        "roles": roles,
         "violations": violations,
         "objective": solver.ObjectiveValue(),
         "coverage_guaranteed": hard_coverage,

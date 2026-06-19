@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 import { getGenConfig } from "./gen-settings";
 import { getCuadrante } from "@/db/cuadrantes";
+import { getFixedFloors } from "./floors";
 
 // Horarios reales (fijos): mañana 7-14:30, tarde 14:30-22, noche 22-7.
 const SHIFT_HOURS = { M: [7, 14.5], T: [14.5, 22], N: [22, 31] };
@@ -16,6 +17,7 @@ interface EngineWorker {
   no_night?: boolean;
   only_shift?: string;
   prev_tail?: string[]; // últimos días del mes anterior (continuidad)
+  fixed_floor?: 0 | 1 | 2; // planta fija (p. ej. Mar siempre planta 0)
 }
 
 /** Días del mes (1..n) que caen dentro de un rango de fechas [start, end]. */
@@ -53,6 +55,7 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     }
   }
 
+  const fixedFloors = await getFixedFloors(tenantId);
   const names: Record<string, string> = {};
   const workers: EngineWorker[] = rows.map((w) => {
     names[w.id] = w.name;
@@ -61,6 +64,7 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     if (vd && vd.length) ew.vacations = [...new Set(vd)].sort((a, b) => a - b);
     if (w.noNight) ew.no_night = true;
     if (w.onlyShift) ew.only_shift = w.onlyShift;
+    if (fixedFloors[w.id] !== undefined) ew.fixed_floor = fixedFloors[w.id];
     return ew;
   });
 
@@ -140,6 +144,7 @@ export async function buildGenerateConfigWeek(tenantId: string, startDate: strin
     }
   }
 
+  const fixedFloors = await getFixedFloors(tenantId);
   const names: Record<string, string> = {};
   const workers: EngineWorker[] = rows.map((w) => {
     names[w.id] = w.name;
@@ -148,6 +153,7 @@ export async function buildGenerateConfigWeek(tenantId: string, startDate: strin
     if (vd && vd.length) ew.vacations = [...new Set(vd)].sort((a, b) => a - b);
     if (w.noNight) ew.no_night = true;
     if (w.onlyShift) ew.only_shift = w.onlyShift;
+    if (fixedFloors[w.id] !== undefined) ew.fixed_floor = fixedFloors[w.id];
     return ew;
   });
 
