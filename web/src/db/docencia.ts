@@ -104,6 +104,10 @@ export async function addGroup(d: {
 export async function deleteGroup(tenantId: string, id: string) {
   await db.delete(teachingGroups).where(and(eq(teachingGroups.id, id), eq(teachingGroups.tenantId, tenantId)));
 }
+/** Reemplaza el horario (franjas) de un grupo. null = sin horario. */
+export async function setGroupSchedule(tenantId: string, id: string, schedule: unknown) {
+  await db.update(teachingGroups).set({ schedule: schedule ?? null }).where(and(eq(teachingGroups.id, id), eq(teachingGroups.tenantId, tenantId)));
+}
 
 // --- Docencia asignada a un profesor (vía group_teachers) ---
 export interface TeacherGroupRow {
