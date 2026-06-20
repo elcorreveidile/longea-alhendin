@@ -217,6 +217,48 @@ la subdirección):
   Yolanda García (CEPE-UNAM), Lubna Sallakh (CLM-UGR). Fechas: 2 jun – 2 jul 2026.
   **20 h** (10 sesiones de 2 h). Horario 18:00–20:00 (peninsular).
 
+### Asignaturas de Lengua y Cultura Españolas en Verano 2026 (sueltas)
+
+> Oferta de verano, cursable de forma independiente. **L–V**, meses **junio y
+> julio**. Niveles **B1.1 a C2**. Tamaños **10 h / 22,5 h / 45 h**. **Las
+> asignaturas en inglés (EN) solo se ofrecen en junio.** Las de 45 h son, en su
+> mayoría, **combinación de dos de 22,5 h** (explica los "grupos combinados" del
+> horario real).
+
+**De 10 h**
+- A. Lengua: Prácticas Comunicativas (ES)
+
+**De 22,5 h**
+- A. Lengua: Prácticas Comunicativas (ES) · La Diversidad del Español en el Mundo
+  (ES) · Introducción al Español de los Negocios (ES) · Traducción Inglés-Español (ES)
+- B. Literatura: Literatura Hispanoamericana (ES) · Literatura Española (ES)
+- C. Geografía e Historia: Geografía de España (ES) · Historia de España (ES) ·
+  Historia del Arte en España (ES)
+- D. Cultura, Sociología y Economía: Civilización y Cultura Españolas (ES) ·
+  Civilización y Cultura Hispanoamericanas (ES) · Cultura Islámica en España (ES) ·
+  Derecho Español de los Negocios (ES) · Sistema Jurídico Español y de la UE (ES) ·
+  Marketing Internacional (ES) · Marketing Internacional (EN, **solo junio**) ·
+  Economía Española y Latinoamericana (EN, **solo junio**)
+- E. Ciencia y Tecnología: Energías Renovables (ES) · Sostenibilidad en el
+  Mediterráneo (EN, **solo junio**) · Ecología y Medioambiente en España (EN,
+  **solo junio**)
+- F. Programa de Prácticas: Prácticas de Voluntariado (ES) · Prácticas de Derecho (ES)
+
+**De 45 h** (combinadas)
+- A. Lengua: Lengua Española (ES)
+- B. Literatura: Literatura Española e Hispanoamericana (ES)
+- C. Geografía e Historia: Geografía e Historia de España (ES) · Historia General y
+  del Arte en España (ES)
+- D. Cultura, Sociología y Economía: Civilización y Cultura Españolas y Cultura
+  Islámica en España (ES) · Civilización y Cultura Españolas e Hispanoamericanas
+  (ES) · Derecho Español de los Negocios y Sistema Jurídico Español y de la UE (ES) ·
+  Introducción al Español de los Negocios y Marketing Internacional (ES) · Economía
+  Española y Latinoamericana y Marketing Internacional (EN, **solo junio**)
+- E. Ciencia y Tecnología: Sostenibilidad en el Mediterráneo y Ecología y
+  Medioambiente en España (EN, **solo junio**)
+- F. Programa de Prácticas: Programa de Prácticas de Empresa (ES) · Programa de
+  Prácticas en Centros Sanitarios (ES)
+
 ## Horarios y grupos (estructura real)
 
 > Fuente: "Horarios_grupos.pdf" — horario real de un **Curso Intensivo de Lengua y
