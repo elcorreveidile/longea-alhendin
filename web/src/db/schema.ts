@@ -294,14 +294,17 @@ export const teacherSubjects = pgTable("teacher_subjects", {
   preferred: boolean("preferred").notNull().default(false),
 }, (t) => ({ pk: primaryKey({ columns: [t.workerId, t.subjectId] }) }));
 
-/** No disponibilidad puntual del profesorado (vacaciones, ausencias). */
+/** No disponibilidad del profesorado: ausencias y permisos.
+ *  kind: vacaciones | asuntos_propios | permiso | no_retribuido | baja_medica | otro */
 export const teacherUnavailability = pgTable("teacher_unavailability", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   workerId: uuid("worker_id").notNull().references(() => workers.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull().default("vacaciones"),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   note: text("note"),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
 });
 
 /** Incompatibilidades entre profesores (no coincidir/compartir). */

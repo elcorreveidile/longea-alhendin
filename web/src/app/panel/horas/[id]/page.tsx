@@ -15,9 +15,11 @@ import {
   voidHourEntry,
   upsertTeacherProfile,
 } from "@/db/teachers";
+import { listGroupsForTeacher, listAbsences, addAbsence, deleteAbsence } from "@/db/docencia";
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
+import { FichaHeader, DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL } from "@/components/FichaAcademica";
 import TopBar from "@/components/TopBar";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -99,6 +101,37 @@ async function voidAction(formData: FormData) {
   redirect(`/panel/horas/${workerId}`);
 }
 
+async function addAbsenceAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  const workerId = String(formData.get("workerId") ?? "");
+  const start = String(formData.get("start") ?? "");
+  const end = String(formData.get("end") ?? "");
+  if (tenant && workerId && /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end) && end >= start) {
+    await addAbsence({
+      tenantId: tenant.id, workerId, kind: String(formData.get("kind") ?? "vacaciones"),
+      startDate: start, endDate: end, note: String(formData.get("note") ?? "").trim() || null,
+      createdByUserId: session.userId,
+    });
+  }
+  revalidatePath(`/panel/horas/${workerId}`);
+  redirect(`/panel/horas/${workerId}`);
+}
+
+async function deleteAbsenceAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  const workerId = String(formData.get("workerId") ?? "");
+  const id = String(formData.get("id") ?? "");
+  if (tenant && id) await deleteAbsence(tenant.id, id);
+  revalidatePath(`/panel/horas/${workerId}`);
+  redirect(`/panel/horas/${workerId}`);
+}
+
 async function saveProfileAction(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -151,6 +184,10 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
     min: valid.filter((e) => e.concept === c.value).reduce((a, e) => a + e.minutes, 0),
   })).filter((c) => c.min > 0);
 
+  const groups = await listGroupsForTeacher(tenant.id, id);
+  const absences = await listAbsences(tenant.id, id);
+  const fmtA = (iso: string) => fmtDate(iso);
+
   // Datos del justificante (PDF) para RRHH/subdirección.
   const justi = {
     empresa: tenant.name,
@@ -175,7 +212,17 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
       <TopBar name={session.name} role={session.role} tenantName={tenant.name} logoUrl={tenant.logoUrl} />
       <main className="mx-auto max-w-4xl space-y-5 p-6">
         <a href="/panel/horas" className="text-sm font-medium text-cyan-700 hover:underline">← Control de horas</a>
-        <h1 className="text-2xl font-bold text-slate-900">{worker.name}</h1>
+
+        <FichaHeader
+          name={worker.name}
+          centerName={tenant.name}
+          meta={[
+            { label: "Curso", value: courseYearLabel(startYear) },
+            { label: "Disponibilidad", value: AVAIL[profile?.availability ?? "both"] },
+            { label: "Objetivo", value: `${h(net)} h` },
+            { label: "Restante", value: `${h(rest)} h` },
+          ]}
+        />
 
         {/* Resumen */}
         <section className="grid gap-3 sm:grid-cols-4">
@@ -192,6 +239,45 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
           ))}
         </section>
         <p className="text-xs text-slate-400">Curso {courseYearLabel(startYear)} · disponibilidad: {AVAIL[profile?.availability ?? "both"]}{profile?.reductionType ? ` · reducción: ${profile.reductionType}` : ""}</p>
+
+        {/* Docencia asignada (clases, tutorías, pruebas de nivel, vigilancias) */}
+        <DocenciaSecciones groups={groups} />
+
+        {/* Ausencias y permisos */}
+        <SeccionAcademica title="Ausencias y permisos">
+          {absences.length === 0 ? (
+            <p className="font-serif text-sm text-slate-500">Sin ausencias registradas este curso.</p>
+          ) : (
+            <ul className="mb-3 divide-y divide-slate-100 text-sm">
+              {absences.map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-3 py-2">
+                  <span className="text-slate-700">
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
+                    <span className="ml-2">{fmtA(a.startDate)} → {fmtA(a.endDate)}</span>
+                    {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
+                  </span>
+                  <form action={deleteAbsenceAction}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="workerId" value={worker.id} />
+                    <ConfirmButton confirm="¿Borrar esta ausencia?" className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Borrar</ConfirmButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form action={addAbsenceAction} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="workerId" value={worker.id} />
+            <label className="text-sm">Tipo
+              <select name="kind" className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                {ABSENCE_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
+              </select>
+            </label>
+            <label className="text-sm">Desde<input type="date" name="start" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
+            <label className="text-sm">Hasta<input type="date" name="end" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
+            <label className="text-sm">Nota<input name="note" placeholder="opcional" className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
+            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Registrar</button>
+          </form>
+        </SeccionAcademica>
 
         {/* Acciones de subdirección / RRHH */}
         <section className="flex flex-wrap items-center gap-3 print:hidden">

@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "./index";
 import {
-  coursePrograms, courseTerms, subjects, teachingGroups,
+  coursePrograms, courseTerms, subjects, teachingGroups, groupTeachers, teacherUnavailability,
   type CourseProgram, type CourseTerm, type Subject, type TeachingGroup,
 } from "./schema";
 
@@ -103,4 +103,56 @@ export async function addGroup(d: {
 }
 export async function deleteGroup(tenantId: string, id: string) {
   await db.delete(teachingGroups).where(and(eq(teachingGroups.id, id), eq(teachingGroups.tenantId, tenantId)));
+}
+
+// --- Docencia asignada a un profesor (vía group_teachers) ---
+export interface TeacherGroupRow {
+  id: string;
+  kind: string;
+  groupCode: string | null;
+  language: string;
+  level: string | null;
+  minutes: number;
+  schedule: unknown;
+  subjectName: string | null;
+  termName: string;
+}
+export async function listGroupsForTeacher(tenantId: string, workerId: string): Promise<TeacherGroupRow[]> {
+  const rows = await db
+    .select({
+      id: teachingGroups.id, kind: teachingGroups.kind, groupCode: teachingGroups.groupCode,
+      language: teachingGroups.language, level: teachingGroups.level, minutes: teachingGroups.minutes,
+      schedule: teachingGroups.schedule, subjectName: subjects.name, termName: courseTerms.name,
+    })
+    .from(groupTeachers)
+    .innerJoin(teachingGroups, eq(teachingGroups.id, groupTeachers.groupId))
+    .innerJoin(courseTerms, eq(courseTerms.id, teachingGroups.termId))
+    .leftJoin(subjects, eq(subjects.id, teachingGroups.subjectId))
+    .where(and(eq(groupTeachers.workerId, workerId), eq(teachingGroups.tenantId, tenantId)))
+    .orderBy(asc(courseTerms.name));
+  return rows.map((r) => ({ ...r, subjectName: r.subjectName ?? null }));
+}
+
+// --- Ausencias / permisos del profesor ---
+export type Absence = typeof teacherUnavailability.$inferSelect;
+export async function listAbsences(tenantId: string, workerId: string): Promise<Absence[]> {
+  return db
+    .select().from(teacherUnavailability)
+    .where(and(eq(teacherUnavailability.tenantId, tenantId), eq(teacherUnavailability.workerId, workerId)))
+    .orderBy(desc(teacherUnavailability.startDate));
+}
+export async function addAbsence(d: {
+  tenantId: string; workerId: string; kind: string; startDate: string; endDate: string;
+  note?: string | null; createdByUserId?: string | null;
+}) {
+  await db.insert(teacherUnavailability).values({
+    tenantId: d.tenantId, workerId: d.workerId, kind: d.kind,
+    startDate: d.startDate, endDate: d.endDate, note: d.note ?? null,
+    createdByUserId: d.createdByUserId ?? null,
+  });
+}
+export async function deleteAbsence(tenantId: string, id: string, workerId?: string) {
+  const conds = [eq(teacherUnavailability.id, id), eq(teacherUnavailability.tenantId, tenantId)];
+  if (workerId) conds.push(eq(teacherUnavailability.workerId, workerId));
+  await db.delete(teacherUnavailability).where(and(...conds));
 }
