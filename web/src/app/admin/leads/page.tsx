@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { listLeads, getLead, setLeadStatus, deleteLead, type LeadStatus } from "@/db/leads";
+import { listLeads, getLead, setLeadStatus, setLeadSpam, deleteLead, type LeadStatus } from "@/db/leads";
 import { sendLeadReply } from "@/lib/email";
 import ConfirmButton from "@/components/ConfirmButton";
+import type { Lead } from "@/db/schema";
 
 const MSG: Record<string, { ok: boolean; text: string }> = {
   enviado: { ok: true, text: "✓ Respuesta enviada y marcada como contactado." },
@@ -11,6 +12,8 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   estado: { ok: true, text: "✓ Estado actualizado." },
   faltan: { ok: false, text: "Escribe asunto y mensaje antes de enviar." },
   borrado: { ok: true, text: "✓ Interesado eliminado." },
+  spam: { ok: true, text: "✓ Marcado como spam y archivado. No volverá a avisarte por correo." },
+  nospam: { ok: true, text: "✓ Restaurado: ya no está marcado como spam." },
 };
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
@@ -35,6 +38,17 @@ async function statusAction(formData: FormData) {
   }
   revalidatePath("/admin/leads");
   redirect("/admin/leads?m=estado");
+}
+
+async function spamAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  const spam = String(formData.get("spam") ?? "") === "1";
+  if (id) await setLeadSpam(id, spam);
+  revalidatePath("/admin/leads");
+  redirect(`/admin/leads?m=${spam ? "spam" : "nospam"}`);
 }
 
 async function deleteAction(formData: FormData) {
@@ -75,6 +89,90 @@ function fmt(d: Date): string {
   }).format(d);
 }
 
+function LeadCard({ l, isSpam }: { l: Lead; isSpam: boolean }) {
+  const status = l.status as LeadStatus;
+  return (
+    <div className={`rounded-xl border p-5 shadow-sm ${isSpam ? "border-slate-200 bg-slate-50/60 opacity-80" : "border-slate-200 bg-white"}`}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-semibold text-slate-900">
+            {l.name}{" "}
+            {isSpam ? (
+              <span className="ml-1 rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">Spam</span>
+            ) : (
+              <span className={`ml-1 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[status]}`}>{STATUS_LABEL[status]}</span>
+            )}
+          </p>
+          <p className="text-sm text-slate-600">
+            <a href={`mailto:${l.email}`} className="text-cyan-700 hover:underline">{l.email}</a>
+            {l.org ? ` · ${l.org}` : ""}
+          </p>
+        </div>
+        <p className="text-xs text-slate-400">{fmt(new Date(l.createdAt))}</p>
+      </div>
+
+      <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{l.message}</p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!isSpam &&
+          (["new", "contacted", "archived"] as LeadStatus[])
+            .filter((s) => s !== status)
+            .map((s) => (
+              <form key={s} action={statusAction}>
+                <input type="hidden" name="id" value={l.id} />
+                <input type="hidden" name="status" value={s} />
+                <button className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">
+                  Marcar {STATUS_LABEL[s].toLowerCase()}
+                </button>
+              </form>
+            ))}
+        <form action={spamAction}>
+          <input type="hidden" name="id" value={l.id} />
+          <input type="hidden" name="spam" value={isSpam ? "0" : "1"} />
+          <button className={`rounded-md border px-3 py-1 text-xs font-medium ${isSpam ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : "border-rose-200 text-rose-600 hover:bg-rose-50"}`}>
+            {isSpam ? "No es spam" : "Marcar spam"}
+          </button>
+        </form>
+        <form action={deleteAction} className="ml-auto">
+          <input type="hidden" name="id" value={l.id} />
+          <ConfirmButton
+            confirm={`¿Borrar definitivamente el mensaje de ${l.name}? Esta acción no se puede deshacer.`}
+            className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            Eliminar
+          </ConfirmButton>
+        </form>
+      </div>
+
+      {!isSpam && (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-medium text-cyan-700">Responder por email</summary>
+          <p className="mt-2 text-xs text-slate-400">
+            La respuesta sale desde el correo de la plataforma; tu dirección personal no se muestra.
+          </p>
+          <form action={replyAction} className="mt-3 space-y-2">
+            <input type="hidden" name="id" value={l.id} />
+            <input
+              name="subject"
+              defaultValue={`Re: tu consulta sobre PlanTurnos`}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+            />
+            <textarea
+              name="body"
+              rows={5}
+              placeholder={`Hola ${l.name.split(" ")[0]},\n\n…`}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+            />
+            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+              Enviar respuesta
+            </button>
+          </form>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export default async function LeadsPage({
   searchParams,
 }: {
@@ -86,13 +184,15 @@ export default async function LeadsPage({
   const msg = sp.m ? MSG[sp.m] : null;
 
   const leads = await listLeads();
-  const pending = leads.filter((l) => l.status !== "archived").length;
+  const ham = leads.filter((l) => !l.spam);
+  const spam = leads.filter((l) => l.spam);
+  const pending = ham.filter((l) => l.status !== "archived").length;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
       <h1 className="text-2xl font-bold text-slate-900">Interesados</h1>
       <p className="text-sm text-slate-500">
-        {leads.length} en total · {pending} sin archivar. Llegan del formulario de contacto de la web.
+        {ham.length} reales · {pending} sin archivar{spam.length ? ` · ${spam.length} en spam` : ""}. Llegan del formulario de contacto de la web.
       </p>
 
       {msg && (
@@ -102,76 +202,23 @@ export default async function LeadsPage({
       )}
 
       <div className="mt-6 space-y-4">
-        {leads.map((l) => {
-          const status = l.status as LeadStatus;
-          return (
-            <div key={l.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    {l.name}{" "}
-                    <span className={`ml-1 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[status]}`}>
-                      {STATUS_LABEL[status]}
-                    </span>
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    <a href={`mailto:${l.email}`} className="text-cyan-700 hover:underline">{l.email}</a>
-                    {l.org ? ` · ${l.org}` : ""}
-                  </p>
-                </div>
-                <p className="text-xs text-slate-400">{fmt(new Date(l.createdAt))}</p>
-              </div>
-
-              <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{l.message}</p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {(["new", "contacted", "archived"] as LeadStatus[])
-                  .filter((s) => s !== status)
-                  .map((s) => (
-                    <form key={s} action={statusAction}>
-                      <input type="hidden" name="id" value={l.id} />
-                      <input type="hidden" name="status" value={s} />
-                      <button className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">
-                        Marcar {STATUS_LABEL[s].toLowerCase()}
-                      </button>
-                    </form>
-                  ))}
-                <form action={deleteAction} className="ml-auto">
-                  <input type="hidden" name="id" value={l.id} />
-                  <ConfirmButton
-                    confirm={`¿Borrar definitivamente el mensaje de ${l.name}? Esta acción no se puede deshacer.`}
-                    className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                  >
-                    Eliminar
-                  </ConfirmButton>
-                </form>
-              </div>
-
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-medium text-cyan-700">Responder por email</summary>
-                <form action={replyAction} className="mt-3 space-y-2">
-                  <input type="hidden" name="id" value={l.id} />
-                  <input
-                    name="subject"
-                    defaultValue={`Re: tu consulta sobre PlanTurnos`}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
-                  />
-                  <textarea
-                    name="body"
-                    rows={5}
-                    placeholder={`Hola ${l.name.split(" ")[0]},\n\n…`}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-500"
-                  />
-                  <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                    Enviar respuesta
-                  </button>
-                </form>
-              </details>
-            </div>
-          );
-        })}
-        {!leads.length && <p className="text-sm text-slate-500">Aún no hay interesados.</p>}
+        {ham.map((l) => <LeadCard key={l.id} l={l} isSpam={false} />)}
+        {!ham.length && <p className="text-sm text-slate-500">Aún no hay interesados reales.</p>}
       </div>
+
+      {spam.length > 0 && (
+        <details className="mt-8">
+          <summary className="cursor-pointer text-sm font-semibold text-rose-700">
+            Spam bloqueado ({spam.length}) — no se avisó por correo
+          </summary>
+          <p className="mt-1 text-xs text-slate-400">
+            Mensajes de agencias de marketing/web detectados automáticamente. Revísalos por si hubiera algún falso positivo.
+          </p>
+          <div className="mt-4 space-y-4">
+            {spam.map((l) => <LeadCard key={l.id} l={l} isSpam={true} />)}
+          </div>
+        </details>
+      )}
     </main>
   );
 }

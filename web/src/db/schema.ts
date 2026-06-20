@@ -173,6 +173,7 @@ export const leads = pgTable("leads", {
   org: text("org"),
   message: text("message").notNull(),
   status: leadStatus("status").notNull().default("new"),
+  spam: boolean("spam").notNull().default(false),
   source: text("source").notNull().default("contacto"), // contacto, demo…
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   contactedAt: timestamp("contacted_at", { withTimezone: true }),

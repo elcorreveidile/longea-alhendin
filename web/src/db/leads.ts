@@ -12,6 +12,7 @@ export async function createLead(data: {
   org?: string;
   message: string;
   source?: string;
+  spam?: boolean;
 }): Promise<void> {
   await db.insert(leads).values({
     name: data.name,
@@ -19,6 +20,7 @@ export async function createLead(data: {
     org: data.org ?? null,
     message: data.message,
     source: data.source ?? "contacto",
+    spam: data.spam ?? false,
   });
 }
 
@@ -39,6 +41,14 @@ export async function setLeadStatus(id: string, status: LeadStatus): Promise<voi
       status,
       ...(status === "contacted" ? { contactedAt: new Date() } : {}),
     })
+    .where(eq(leads.id, id));
+}
+
+/** Marca/desmarca un interesado como spam. Al marcarlo, lo archiva. */
+export async function setLeadSpam(id: string, spam: boolean): Promise<void> {
+  await db
+    .update(leads)
+    .set({ spam, ...(spam ? { status: "archived" as const } : {}) })
     .where(eq(leads.id, id));
 }
 
