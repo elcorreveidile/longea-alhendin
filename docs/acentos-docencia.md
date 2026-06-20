@@ -330,10 +330,19 @@ Sociología-Política-Economía/Ciencia-Tecnología/Derecho/Prácticas) `· lang
 (es|en) `· level · minutes` (carga en min: 10h/22,5h/45h/…) `· schedule` (JSON:
 bloques `[{weekdays:["L","X"], start:"16:00", end:"18:00"}]`) `· room_id?` `· status`
 (sin_asignar | auto | manual | locked)
-- **`kind` ≠ `clase`** (prácticas, vigilancia de examen, prueba de nivel, tutoría)
-  también es **plaza con carga**: cuenta horas para el profesor y ocupa su tiempo
-  (no-solape). Las que no son de aula pueden no tener `subject_id` ni `schedule`
-  semanal fijo (p. ej. una vigilancia es una fecha/franja puntual).
+- Cada `kind` tiene un flag **`computa_carga`**: distingue lo que **suma horas**
+  hacia el objetivo de lo que solo **ocupa tiempo**:
+  - **Computa carga** (sí): `clase`, `practicas`, `vigilancia_examen`,
+    `prueba_nivel`.
+  - **NO computa carga** (pero **sí ocupa franja**, cuenta para no-solape y
+    disponibilidad): **`tutoria`**. La tutoría tiene su horario establecido, pero
+    no cuenta como carga docente.
+- **Tutoría y sustituciones (dato operativo, Fase 3):** a veces se pide al profesor
+  que, en su hora de tutoría, cubra una **sustitución** surgida en esa franja (su
+  presencia en el centro lo permite). El motor podrá proponer la franja de tutoría
+  como reserva para sustituciones, marcándolo de forma explícita y opcional.
+- Las plazas que no son de aula (vigilancia, prueba de nivel) pueden no tener
+  `subject_id` ni `schedule` semanal fijo (son fecha/franja puntual).
 - La asignación de profesor va en la tabla 5 (permite **co-docencia**).
 - `status`: el motor rellena `auto`; la subdirección puede fijar `manual`/`locked`.
 
@@ -379,9 +388,9 @@ bloques `[{weekdays:["L","X"], start:"16:00", end:"18:00"}]`) `· room_id?` `· 
 - Un **aula** no se reserva dos veces en la misma franja (si se modelan aulas).
 
 **Blandas** (el motor optimiza):
-- Acercar la **carga asignada** (suma de `minutes` de **todos** sus grupos —
-  clases, **prácticas**, **vigilancias de examen**, pruebas de nivel, tutorías) al
-  **objetivo anual** (`annual_target_min − reduction_min`).
+- Acercar la **carga asignada** (suma de `minutes` de los grupos que **computan
+  carga** — clases, **prácticas**, **vigilancias de examen**, pruebas de nivel; **NO
+  las tutorías**) al **objetivo anual** (`annual_target_min − reduction_min`).
 - **Recurrencia preferente** (`default_fixed = false` o `teacher_subjects.preferred`):
   mantener al profesor que suele darla, pero cede si conviene para cuadrar horas.
 - Preferencias mañana/tarde no estrictas.
