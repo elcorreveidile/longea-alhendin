@@ -17,6 +17,10 @@
 
 ## Catálogo de cursos
 
+El centro organiza la actividad en **tres grandes categorías** (la subdirección
+detallará el contenido de cada una):
+
+### 1. Cursos de español
 - **Intensivos.** Todos los meses del año **excepto agosto** (centro cerrado,
   profesorado de vacaciones). En septiembre, "intensivos de septiembre".
 - **Estudios Hispánicos** (Estudios de Lengua y Cultura Española). Periodos:
@@ -26,7 +30,14 @@
   - Hay variante **impartida en inglés** (el profesor debe poder dar clase en
     inglés → el idioma de impartición importa).
 - **Cursos de diseño especial** (a medida).
-- **Cursos de formación**, **Máster**, etc.
+- **Máster**, etc.
+
+### 2. Exámenes de acreditación de nivel
+- (Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)
+
+### 3. Formación de profesores
+- Modalidad **presencial** y **online**.
+- (Pendiente de detalle.)
 
 ## Calendario (resumen)
 
