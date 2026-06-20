@@ -77,6 +77,24 @@ la subdirección):
 - Festivos: **13 oct 2025**, **8 dic 2025**, **Navidad 22 dic 2025–4 ene 2026**,
   **Semana Santa 30 mar–3 abr 2026**, **1 may 2026**, **Corpus 4–5 jun 2026**.
 
+### Curso 2026/27 (el que se planifica) — folleto oficial 26/27
+> Misma estructura que 25/26 (CILE/CILYC/CEH/CLCE/CELE, horas y franjas
+> idénticas). Cambian fechas y precios. Datos relevantes para el reparto:
+- **CILE**: modular igual (40/60/80…h, inicios quincenales, sep–jul). En **mayo**
+  hay días de carga reducida (4–19 may: 5 h/día; 20–26 may: 4 h/día).
+- **CILYC** (verano): **Junio 90 h**, **Julio 90 h**, **Jun+Jul 180 h**.
+- **CEH** y **CLCE**: **Otoño 1 oct 2026 – 22 dic 2026** (225 h) ·
+  **Primavera 1 feb 2027 – 21 may 2027** (225 h) · **ambos 450 h**. 4–5
+  asignaturas de **45 h** por periodo. CEH avanzado / CLCE intermedio.
+  - Franjas otoño: grupos **L-X** (inicio 2 oct) y **M-J**; viernes sueltos
+    (2 oct, 6 nov, 18 dic); finales 17–22 dic.
+  - Franjas primavera: grupos **L-X** (5 mar / 7 may) y **M-J** (9 abr); finales
+    18–21 may.
+- **Cierres 26/27**: agosto cerrado; fines de semana; **12 oct 2026**,
+  **2 nov 2026**, **7 y 8 dic 2026**, **Navidad 21 dic 2026–6 ene 2027**,
+  **1 mar 2027** (Día de Andalucía), **Semana Santa 22–26 mar 2027**,
+  **3 may 2027**, **Corpus 27–28 may 2027**.
+
 ### B. Exámenes de acreditación de nivel
 - *(Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)*
 
