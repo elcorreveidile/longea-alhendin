@@ -1,8 +1,26 @@
 import "server-only";
 import { and, asc, desc, eq, gte, lte, ne, sql } from "drizzle-orm";
 import { db } from "./index";
-import { workers, teacherProfiles, hourEntries, type TeacherProfile, type Worker } from "./schema";
+import { workers, teacherProfiles, hourEntries, users, type TeacherProfile, type Worker } from "./schema";
 import { courseYearRange } from "@/data/hour-concepts";
+
+export interface TeacherContact {
+  workerId: string;
+  name: string;
+  email: string | null;
+}
+
+/** Profesorado activo del centro con su correo (de la cuenta enlazada, si tiene). */
+export async function listTeacherContacts(tenantId: string): Promise<TeacherContact[]> {
+  const rows = await db
+    .select({ workerId: workers.id, name: workers.name, email: users.email })
+    .from(workers)
+    .innerJoin(teacherProfiles, eq(teacherProfiles.workerId, workers.id))
+    .leftJoin(users, eq(users.workerId, workers.id))
+    .where(and(eq(workers.tenantId, tenantId), eq(workers.active, true)))
+    .orderBy(asc(workers.name));
+  return rows.map((r) => ({ workerId: r.workerId, name: r.name, email: r.email }));
+}
 
 export type TeacherRow = Worker & {
   profile: TeacherProfile | null;

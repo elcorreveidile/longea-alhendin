@@ -40,3 +40,27 @@ export async function emailsByStaffRole(tenantId: string, staffRole: string): Pr
     .where(and(eq(users.tenantId, tenantId), eq(users.staffRole, staffRole)));
   return rows.map((r) => r.email).filter((e): e is string => !!e);
 }
+
+/**
+ * Copia automática (CC) según quién escribe al profesorado:
+ *  - Secretaría → copia a Subdirección.
+ *  - Subdirección → copia a Secretaría (+ Dirección si se marca).
+ *  - Dirección → sin copia por defecto.
+ * Nunca incluye el propio correo del remitente.
+ */
+export async function autoCcEmails(
+  tenantId: string,
+  senderRole: string | null,
+  opts: { includeDireccion?: boolean; senderEmail?: string } = {},
+): Promise<{ emails: string[]; labels: string[] }> {
+  const roles: string[] = [];
+  if (senderRole === "secretaria") roles.push("subdireccion");
+  else if (senderRole === "subdireccion") roles.push("secretaria");
+  if (opts.includeDireccion && senderRole !== "direccion") roles.push("direccion");
+
+  const labels = roles.map((r) => STAFF_ROLE_LABEL[r] ?? r);
+  const lists = await Promise.all(roles.map((r) => emailsByStaffRole(tenantId, r)));
+  const self = (opts.senderEmail ?? "").toLowerCase();
+  const emails = Array.from(new Set(lists.flat())).filter((e) => e.toLowerCase() !== self);
+  return { emails, labels };
+}

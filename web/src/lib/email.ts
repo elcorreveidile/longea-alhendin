@@ -159,6 +159,53 @@ export async function sendLeadReply(data: {
   console.log(`[email] respuesta a lead enviada a ${data.to} id=${sent?.id ?? "?"}`);
 }
 
+/** Mensaje del personal del centro (dirección/subdirección/secretaría) al profesorado. */
+export async function sendStaffMessage(data: {
+  brand?: EmailBrand;
+  senderName: string;
+  senderEmail: string;
+  to: string[];
+  cc?: string[];
+  subject: string;
+  body: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const apiKey = resendApiKey();
+  if (!apiKey) {
+    console.log("[email] (sin RESEND_API_KEY) mensaje al profesorado:", {
+      to: data.to, cc: data.cc, subject: data.subject,
+    });
+    return { ok: true };
+  }
+  const resend = new Resend(apiKey);
+  // Conserva la dirección verificada del remitente técnico, pero muestra el nombre del centro.
+  const addr = emailFrom().match(/<([^>]+)>/)?.[1] ?? emailFrom();
+  const display = data.brand?.name ?? "PlanTurnos";
+  const bodyHtml = `
+    <div style="white-space:pre-wrap;font-size:15px;color:#1f2937">${esc(data.body)}</div>
+    <p style="margin:22px 0 0;font-size:13px;color:#64748b">— ${esc(data.senderName)}</p>
+  `;
+  const html = brandedEmail({
+    bodyHtml,
+    preheader: data.subject,
+    brand: data.brand,
+    footnote: `Mensaje de ${esc(data.senderName)} · ${esc(display)}. Responde a este correo para contestar.`,
+  });
+  const { data: sent, error } = await resend.emails.send({
+    from: `${display} <${addr}>`,
+    to: data.to,
+    cc: data.cc && data.cc.length ? data.cc : undefined,
+    replyTo: data.senderEmail,
+    subject: data.subject,
+    html,
+  });
+  if (error) {
+    console.error("[email] mensaje al profesorado FALLÓ:", error);
+    return { ok: false, error: error.message };
+  }
+  console.log(`[email] mensaje al profesorado enviado (to=${data.to.length}, cc=${data.cc?.length ?? 0}) id=${sent?.id ?? "?"}`);
+  return { ok: true };
+}
+
 export async function sendCuadranteEmail(
   email: string,
   name: string,

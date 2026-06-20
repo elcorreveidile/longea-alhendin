@@ -125,6 +125,14 @@ export default async function HorasPage({
             Roles del centro
           </a>
           <a
+            href="/panel/correos"
+            className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-acceso.png" alt="" className="h-6 w-6" />
+            Escribir al profesorado
+          </a>
+          <a
             href="/panel/docencia"
             className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
           >
