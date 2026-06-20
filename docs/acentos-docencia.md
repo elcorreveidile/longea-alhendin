@@ -286,6 +286,105 @@ la subdirección):
 - En CEH/CLCE el patrón será **L-X / M-J** (no L–V), pero la unidad es la misma:
   asignatura → grupo → franja semanal → profesor.
 
+## Borrador del modelo de datos (PROPUESTA — a revisar)
+
+> Objetivo: poder representar la oferta (programas → asignaturas → grupos con
+> horario) y que un motor (CP-SAT, como el de la residencia) **asigne profesor a
+> cada grupo "SIN ASIGNAR"** respetando idioma, nivel, disponibilidad, no-solape y
+> acercándose al objetivo anual de horas. Multi-tenant: **toda tabla lleva
+> `tenant_id`**.
+
+### Lo que ya existe y se reutiliza
+- **`workers`** = profesor (base: id, nombre, activo).
+- **`teacher_profiles`** = perfil docente. Se **amplía** con:
+  - `languages` (idiomas en que puede impartir, p. ej. `["es","en"]`).
+  - `level_min` / `level_max` (rango de niveles que puede dar, A1…C2) — opcional.
+  - (ya tiene: `annual_target_min`, `reduction_min`, `reduction_type`,
+    `availability` = both/morning/afternoon, `notes`).
+- **`hour_entries`** = horas **reales** (control de horas). Es independiente del
+  reparto: el reparto *planifica* carga; el control de horas *registra* lo hecho.
+
+### Entidades nuevas
+
+**1. `course_programs`** — tipo de curso/programa
+`id · tenant_id · code` (CILE/CILYC/CEH/CLCE/CELE/VERANO/UNAM…) `· name · kind`
+(intensivo | semestral | verano | colaboracion | examen | formacion) `· notes`
+
+**2. `course_terms`** — edición concreta de un programa en el calendario
+`id · tenant_id · program_id · name` (p. ej. "CEH Otoño 2026") `· course_year`
+(año de inicio, oct–sep) `· start_date · end_date · notes`
+
+**3. `subjects`** — catálogo de asignaturas (reutilizable entre ediciones)
+`id · tenant_id · name · area` (Lengua/Literatura/Geografía/Historia/Arte/Cultura/
+Sociología-Política-Economía/Ciencia-Tecnología/Derecho/Prácticas) `· languages`
+(idiomas en que se ofrece) `· level_min · level_max · notes`
+
+**4. `teaching_groups`** — **grupo / plaza docente** (la unidad que se asigna)
+`id · tenant_id · term_id · subject_id · group_code` (0A01, 0401…) `· language`
+(es|en, el idioma concreto de ESTE grupo) `· level · minutes` (horas en min:
+10h/22,5h/45h/…) `· schedule` (JSON: bloques `[{weekdays:["L","X"], start:"16:00",
+end:"18:00"}]`) `· room_id?` `· status` (sin_asignar | auto | manual | locked)
+- La asignación de profesor va en la tabla 5 (permite **co-docencia**).
+- `status`: el motor rellena `auto`; la subdirección puede fijar `manual`/`locked`.
+
+**5. `group_teachers`** — asignación profesor↔grupo (N:M, permite 2 profes)
+`group_id · teacher_id (worker_id) · role?` (titular/co-docente)
+
+**6. `teacher_subjects`** — qué imparte cada profesor (recurrencia/capacidad)
+`teacher_id · subject_id · preferred` (bool: lo da habitualmente cada año)
+- Cubre la regla "asignaturas de contenido que dan siempre ciertos profesores".
+
+**7. `teacher_unavailability`** — vacaciones / no disponibilidad puntual
+`teacher_id · start_date · end_date · note` (análogo a `vacations` de la residencia)
+
+**8. `teacher_incompatibilities`** — "no quiere compartir/coincidir con X"
+`teacher_id · other_teacher_id` (simétrica)
+
+**9. `rooms`** — aulas (recurso secundario)
+`id · tenant_id · code · site` (A Hospicio Viejo / B Huerta de los Ángeles / ETSI)
+`· capacity?`
+
+### Restricciones para el motor
+
+**Duras** (no se pueden romper):
+- Un profesor **no** puede estar en dos grupos con **franjas solapadas**.
+- **Idioma**: `group.language` ∈ `teacher.languages`.
+- **Nivel**: el grupo cae dentro del rango de nivel del profesor.
+- **Disponibilidad**: si el profesor es solo mañana/tarde, el grupo debe caer en
+  esa franja.
+- **No disponibilidad** (vacaciones, fechas) y **calendario de cierres** del centro.
+- **Capacidad/recurrencia**: solo profesores con esa asignatura en
+  `teacher_subjects` pueden darla (si así se decide por asignatura).
+- **Incompatibilidades**: no asignar a dos profesores incompatibles al mismo grupo
+  combinado.
+- Un **aula** no se reserva dos veces en la misma franja (si se modelan aulas).
+
+**Blandas** (el motor optimiza):
+- Acercar la **carga asignada** (suma de `minutes` de sus grupos) al **objetivo
+  anual** (`annual_target_min − reduction_min`).
+- Respetar la **recurrencia** (`preferred`): mantener al profesor que suele dar esa
+  asignatura.
+- Preferencias mañana/tarde no estrictas.
+- Repartir con equidad lo que no esté fijado.
+
+### Encaje con el motor (CP-SAT)
+- Variable `x[grupo, profesor] ∈ {0,1}` = ese profesor cubre ese grupo.
+- Cada grupo necesita el nº de profesores requerido (1, o 2 si es co-docencia).
+- Solo se crean variables para combinaciones **válidas** (idioma/nivel/
+  disponibilidad/recurrencia) → reduce el problema.
+- No-solape: para cada par de grupos que se solapan en el tiempo, un profesor no
+  puede cubrir ambos.
+- Objetivo: minimizar la distancia de cada profesor a su objetivo de horas +
+  penalizaciones por romper recurrencia/preferencias. Igual que en la residencia,
+  **siempre devuelve algo y reporta** lo que no cuadre (grupos sin cubrir).
+
+### Pendiente de añadir cuando lleguen B y C
+- **B. Exámenes de acreditación**: probablemente `course_programs.kind = examen` +
+  grupos de vigilancia/corrección (consumen horas de profesorado).
+- **C. Formación de profesores** (presencial/online): `kind = formacion`.
+- **Departamentos/áreas** del centro (administración, conserjería, biblioteca…):
+  capa superior futura; el modelo actual ya admite `tenant`/áreas por ahora.
+
 ## Preguntas abiertas (para cuando construyamos)
 
 1. ¿Los cursos tienen **horario concreto** (p. ej. L–V 9:00–11:00) o basta con
