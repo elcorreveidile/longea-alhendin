@@ -286,6 +286,32 @@ la subdirección):
 - En CEH/CLCE el patrón será **L-X / M-J** (no L–V), pero la unidad es la misma:
   asignatura → grupo → franja semanal → profesor.
 
+## Roles del centro y comunicaciones
+
+Jerarquía de personal (además del **profesorado**):
+- **Dirección** (director/a).
+- **Subdirección**: **dos** subdirectoras.
+- **Secretaría de Dirección**: una persona. **También es la coordinadora del PAS**
+  (personal de administración y servicios) — tenerlo en cuenta para la fase futura
+  de departamentos. Es quien **avisa al profesorado** de sustituciones, pruebas de
+  nivel, etc.
+
+### Comunicaciones por correo (a implementar)
+- **Secretaría → profesorado**: puede enviar correos a profesores (uno, varios o
+  todos), **con copia (CC) a las dos subdirectoras**.
+- **Subdirección → profesorado**: puede enviar correos a **todo el profesorado**,
+  **CC a Secretaría** y, cuando sea necesario, **al director**.
+
+### Modelo propuesto (a confirmar)
+- Hoy `users.role` = `worker | admin | superadmin`. En vez de tocar ese enum
+  (se usa también en la residencia), añadir **`users.staff_role`** (etiqueta sobre
+  los `admin` del centro): `direccion | subdireccion | secretaria`. Así se sabe a
+  quién poner en copia automáticamente.
+- **Email**: reutiliza la infraestructura de Resend ya existente (`lib/email.ts`).
+  Un compositor en el panel: elegir destinatarios (profesor/es o todo el
+  profesorado), asunto y cuerpo; el sistema añade las **copias automáticas** según
+  quién envía, y registra el envío.
+
 ## Borrador del modelo de datos (PROPUESTA — a revisar)
 
 > Objetivo: poder representar la oferta (programas → asignaturas → grupos con
