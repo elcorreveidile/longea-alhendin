@@ -6,6 +6,7 @@ import { getTenantKind } from "@/lib/tenant-kind";
 import { db } from "@/db";
 import { workers as workersT, users as usersT } from "@/db/schema";
 import { normalizePhone } from "@/lib/phone";
+import { requestMagicLink } from "@/lib/auth";
 import { getAccessCode, setAccessCode } from "@/lib/worker-access";
 import TopBar from "@/components/TopBar";
 
@@ -17,7 +18,20 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   code: { ok: true, text: "✓ Código de acceso actualizado." },
   codeempty: { ok: false, text: "El código no puede estar vacío." },
   pin: { ok: true, text: "✓ PIN restablecido. La trabajadora creará uno nuevo al entrar." },
+  invitado: { ok: true, text: "✓ Acceso enviado por correo. Recibirá un enlace para entrar en su panel." },
+  invitarmail: { ok: false, text: "Esa persona no tiene correo asignado. Guárdale uno primero." },
 };
+
+async function inviteAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const workerId = String(formData.get("workerId") ?? "");
+  const u = (await db.select({ email: usersT.email }).from(usersT).where(eq(usersT.workerId, workerId)).limit(1))[0];
+  if (!u?.email) redirect("/panel/accesos?m=invitarmail");
+  await requestMagicLink(u.email);
+  redirect("/panel/accesos?m=invitado");
+}
 
 async function setCodeAction(formData: FormData) {
   "use server";
@@ -174,6 +188,15 @@ export default async function AccesosPage({
                   </button>
                 </form>
                 <div className="mt-2 flex items-center gap-3 text-xs">
+                  <span className={u?.email ? "text-emerald-700" : "text-slate-400"}>
+                    {u?.email ? "✉ cuenta enlazada" : "sin cuenta de correo"}
+                  </span>
+                  {u?.email && (
+                    <form action={inviteAction}>
+                      <input type="hidden" name="workerId" value={w.id} />
+                      <button className="font-medium text-cyan-700 hover:underline">Enviar acceso por correo</button>
+                    </form>
+                  )}
                   <span className={hasPin ? "text-emerald-700" : "text-slate-400"}>
                     {hasPin ? "🔒 PIN creado" : "PIN sin crear"}
                   </span>
