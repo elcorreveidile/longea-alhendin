@@ -54,7 +54,7 @@ async function createAdminAction(formData: FormData) {
   redirect("/panel/roles?m=creada");
 }
 
-/** Cambiar el nombre de una cuenta del centro. SOLO el superadministrador. */
+/** Cambiar nombre y/o correo de una cuenta del centro. SOLO el superadministrador. */
 async function renameAction(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -63,9 +63,15 @@ async function renameAction(formData: FormData) {
   if (!tenant) redirect("/panel/roles");
   const userId = String(formData.get("userId") ?? "");
   const name = String(formData.get("name") ?? "").trim() || null;
-  if (userId) await db.update(users).set({ name }).where(and(eq(users.id, userId), eq(users.tenantId, tenant.id)));
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!userId) redirect("/panel/roles");
+  if (!email.includes("@")) redirect("/panel/roles?m=mail");
+  // El correo es el identificador de acceso: no puede coincidir con otra cuenta.
+  const clash = (await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1))[0];
+  if (clash && clash.id !== userId) redirect("/panel/roles?m=correoexiste");
+  await db.update(users).set({ name, email }).where(and(eq(users.id, userId), eq(users.tenantId, tenant.id)));
   revalidatePath("/panel/roles");
-  redirect("/panel/roles?m=renombrada");
+  redirect("/panel/roles?m=actualizada");
 }
 
 /** Suprimir una cuenta del centro. SOLO el superadministrador. No borra superadmins ni la propia. */
@@ -88,6 +94,8 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   creada: { ok: true, text: "✓ Cuenta creada. Entrará con el enlace mágico que reciba al iniciar sesión con su correo." },
   asignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora pertenece a este centro con el rol indicado." },
   renombrada: { ok: true, text: "✓ Nombre actualizado." },
+  actualizada: { ok: true, text: "✓ Cuenta actualizada (nombre y correo)." },
+  correoexiste: { ok: false, text: "Ese correo ya pertenece a otra cuenta. Usa uno distinto." },
   suprimida: { ok: true, text: "✓ Cuenta suprimida del centro." },
   mail: { ok: false, text: "Introduce un correo válido." },
   super: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como cuenta del centro." },
@@ -184,10 +192,11 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
                   {isSuper && (
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
-                        <form action={renameAction} className="flex items-center gap-1">
+                        <form action={renameAction} className="flex flex-wrap items-center gap-1">
                           <input type="hidden" name="userId" value={a.id} />
-                          <input name="name" defaultValue={a.name ?? ""} placeholder="Nombre" className="w-32 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
-                          <button className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Renombrar</button>
+                          <input name="name" defaultValue={a.name ?? ""} placeholder="Nombre" className="w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+                          <input name="email" type="email" defaultValue={a.email ?? ""} placeholder="Correo" className="w-44 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+                          <button className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Guardar</button>
                         </form>
                         {a.id !== session.userId && (
                           <form action={deleteAdminAction}>
