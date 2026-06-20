@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getSession } from "@/lib/session";
+import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { getTenantKind } from "@/lib/tenant-kind";
 import { getTeacherProfile, listHourEntries, addHourEntry, voidOwnDeclared } from "@/db/teachers";
@@ -159,8 +159,17 @@ export default async function MisHorasPage() {
         </div>
 
         {!workerId ? (
-          <section className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
-            Tu cuenta todavía no está vinculada a una ficha de profesor. Avisa a administración.
+          <section className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+            <p>Tu cuenta todavía no está vinculada a una ficha de profesor.</p>
+            {isStaffAdmin(session.role) ? (
+              <p>
+                Vincúlala en{" "}
+                <a href="/panel/accesos" className="font-semibold text-cyan-700 underline">Accesos del profesorado</a>: asigna el
+                correo del profesor a su ficha y entra con ese correo.
+              </p>
+            ) : (
+              <p>Avisa a administración para que la vinculen.</p>
+            )}
           </section>
         ) : (
           <>
