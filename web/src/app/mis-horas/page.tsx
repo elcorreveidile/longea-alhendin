@@ -10,6 +10,7 @@ import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
 import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS } from "@/components/FichaAcademica";
+import WeeklyTimetable from "@/components/WeeklyTimetable";
 import TopBar from "@/components/TopBar";
 import VersionFooter from "@/components/VersionFooter";
 
@@ -190,6 +191,11 @@ export default async function MisHorasPage() {
                 {h(done)} h de {h(net)} h{rest > 0 ? ` · te faltan ${h(rest)} h` : " · objetivo cumplido 🎉"}
               </p>
             </section>
+
+            {/* Mi horario semanal (real u orientativo) */}
+            <SeccionAcademica title="Mi horario semanal">
+              <WeeklyTimetable groups={groups} />
+            </SeccionAcademica>
 
             {/* Mi docencia (clases, tutorías, pruebas de nivel, vigilancias) */}
             <DocenciaSecciones groups={groups} />
