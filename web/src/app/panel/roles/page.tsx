@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { STAFF_ROLES, STAFF_ROLE_LABEL, listCenterAdmins, setStaffRole, getStaffRole } from "@/lib/staff-roles";
+import ConfirmButton from "@/components/ConfirmButton";
 import TopBar from "@/components/TopBar";
 
 /** Solo dirección/subdirección (o el superadmin) gestionan los roles del centro. */
@@ -53,9 +54,41 @@ async function createAdminAction(formData: FormData) {
   redirect("/panel/roles?m=creada");
 }
 
+/** Cambiar el nombre de una cuenta del centro. SOLO el superadministrador. */
+async function renameAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/roles");
+  const userId = String(formData.get("userId") ?? "");
+  const name = String(formData.get("name") ?? "").trim() || null;
+  if (userId) await db.update(users).set({ name }).where(and(eq(users.id, userId), eq(users.tenantId, tenant.id)));
+  revalidatePath("/panel/roles");
+  redirect("/panel/roles?m=renombrada");
+}
+
+/** Suprimir una cuenta del centro. SOLO el superadministrador. No borra superadmins ni la propia. */
+async function deleteAdminAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/roles");
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId || userId === session.userId) redirect("/panel/roles");
+  const target = (await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!target || target.role === "superadmin") redirect("/panel/roles");
+  await db.delete(users).where(and(eq(users.id, userId), eq(users.tenantId, tenant.id), eq(users.role, "admin")));
+  revalidatePath("/panel/roles");
+  redirect("/panel/roles?m=suprimida");
+}
+
 const MSG: Record<string, { ok: boolean; text: string }> = {
   creada: { ok: true, text: "✓ Cuenta creada. Entrará con el enlace mágico que reciba al iniciar sesión con su correo." },
   asignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora pertenece a este centro con el rol indicado." },
+  renombrada: { ok: true, text: "✓ Nombre actualizado." },
+  suprimida: { ok: true, text: "✓ Cuenta suprimida del centro." },
   mail: { ok: false, text: "Introduce un correo válido." },
   super: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como cuenta del centro." },
 };
@@ -121,6 +154,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3">Cuenta</th><th className="px-3 py-3">Rol actual</th><th className="px-3 py-3">Asignar</th>
+                {isSuper && <th className="px-3 py-3">Cuenta (superadmin)</th>}
               </tr>
             </thead>
             <tbody>
@@ -147,9 +181,31 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
                       </form>
                     ) : <span className="text-xs text-slate-300">—</span>}
                   </td>
+                  {isSuper && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <form action={renameAction} className="flex items-center gap-1">
+                          <input type="hidden" name="userId" value={a.id} />
+                          <input name="name" defaultValue={a.name ?? ""} placeholder="Nombre" className="w-32 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+                          <button className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Renombrar</button>
+                        </form>
+                        {a.id !== session.userId && (
+                          <form action={deleteAdminAction}>
+                            <input type="hidden" name="userId" value={a.id} />
+                            <ConfirmButton
+                              confirm={`¿Suprimir la cuenta de ${a.name || a.email}? Perderá el acceso al centro.`}
+                              className="rounded-lg border border-rose-200 px-2 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                            >
+                              Suprimir
+                            </ConfirmButton>
+                          </form>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
-              {admins.length === 0 && <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-slate-400">No hay cuentas de administración en este centro todavía.</td></tr>}
+              {admins.length === 0 && <tr><td colSpan={isSuper ? 4 : 3} className="px-4 py-6 text-center text-sm text-slate-400">No hay cuentas de administración en este centro todavía.</td></tr>}
             </tbody>
           </table>
         </section>
