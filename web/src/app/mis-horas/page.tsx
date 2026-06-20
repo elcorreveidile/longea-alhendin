@@ -11,6 +11,7 @@ import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
 import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS } from "@/components/FichaAcademica";
 import WeeklyTimetable from "@/components/WeeklyTimetable";
+import HoursPicker from "@/components/HoursPicker";
 import TopBar from "@/components/TopBar";
 import VersionFooter from "@/components/VersionFooter";
 
@@ -263,30 +264,30 @@ export default async function MisHorasPage() {
             <section className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
               <h2 className="font-semibold text-slate-800">Declarar horas</h2>
               <p className="mt-1 text-xs text-slate-500">Lo que declares queda con sello de fecha y pendiente de confirmación por subdirección.</p>
-              <form action={declareAction} className="mt-3 grid gap-3 sm:grid-cols-5">
-                <label className="text-sm">
-                  <span className="block text-slate-600">Fecha</span>
-                  <input type="date" name="workDate" defaultValue={today} required className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
-                </label>
-                <label className="text-sm">
-                  <span className="block text-slate-600">Horas</span>
-                  <input type="number" name="hours" step="0.25" min="0" placeholder="2,5" required className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
-                </label>
-                <label className="text-sm">
-                  <span className="block text-slate-600">Concepto</span>
-                  <select name="concept" className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm">
-                    {HOUR_CONCEPTS.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-sm">
-                  <span className="block text-slate-600">Nota</span>
-                  <input name="note" className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
-                </label>
-                <div className="flex items-end">
-                  <button className="w-full rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Declarar</button>
+              <form action={declareAction} className="mt-3 space-y-4">
+                <div className="flex flex-wrap items-end gap-3">
+                  <label className="text-sm">
+                    <span className="block text-slate-600">Fecha</span>
+                    <input type="date" name="workDate" defaultValue={today} required className="mt-1 block rounded-lg border border-slate-300 px-2 py-2 text-sm" />
+                  </label>
+                  <label className="text-sm">
+                    <span className="block text-slate-600">Concepto</span>
+                    <select name="concept" className="mt-1 block rounded-lg border border-slate-300 px-2 py-2 text-sm">
+                      {HOUR_CONCEPTS.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex-1 text-sm">
+                    <span className="block text-slate-600">Nota</span>
+                    <input name="note" placeholder="opcional" className="mt-1 block w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
+                  </label>
                 </div>
+                <div className="text-sm">
+                  <span className="block text-slate-600">Horas</span>
+                  <div className="mt-1"><HoursPicker /></div>
+                </div>
+                <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Declarar</button>
               </form>
             </section>
 
