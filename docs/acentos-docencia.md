@@ -318,28 +318,35 @@ la subdirección):
 `id · tenant_id · name · area` (Lengua/Literatura/Geografía/Historia/Arte/Cultura/
 Sociología-Política-Economía/Ciencia-Tecnología/Derecho/Prácticas) `· languages`
 (idiomas en que se ofrece) `· level_min · level_max · notes`
-- **Recurrencia (modelo mixto):** `default_teacher_id?` (el profesor "de siempre")
-  + `default_fixed` (bool): `true` = **fija** (se le asigna salvo que no esté
-  disponible) · `false` = **preferente** (blanda). Si no hay `default_teacher_id`,
-  la asignatura es **abierta** y se elige entre candidatos (tabla 6).
+- **Dotación (modelo mixto):** `staffing` = **fija** (solo la pueden dar sus
+  **titulares**) · **abierta** (titulares preferentes, pero se admite a candidatos
+  si faltan). La titularidad NO es 1:1 — una asignatura puede tener **varios
+  titulares** y desdoblarse en **varios grupos** (tabla 4), cada uno con su titular.
+  Quién es titular/candidato vive en `teacher_subjects` (tabla 6).
 
 **4. `teaching_groups`** — **grupo / plaza docente** (la unidad que se asigna)
-`id · tenant_id · term_id · subject_id · group_code` (0A01, 0401…) `· language`
-(es|en, el idioma concreto de ESTE grupo) `· level · minutes` (horas en min:
-10h/22,5h/45h/…) `· schedule` (JSON: bloques `[{weekdays:["L","X"], start:"16:00",
-end:"18:00"}]`) `· room_id?` `· status` (sin_asignar | auto | manual | locked)
+`id · tenant_id · term_id · subject_id? · group_code` (0A01, 0401…) `· kind`
+(clase | practicas | vigilancia_examen | prueba_nivel | tutoria | otro) `· language`
+(es|en) `· level · minutes` (carga en min: 10h/22,5h/45h/…) `· schedule` (JSON:
+bloques `[{weekdays:["L","X"], start:"16:00", end:"18:00"}]`) `· room_id?` `· status`
+(sin_asignar | auto | manual | locked)
+- **`kind` ≠ `clase`** (prácticas, vigilancia de examen, prueba de nivel, tutoría)
+  también es **plaza con carga**: cuenta horas para el profesor y ocupa su tiempo
+  (no-solape). Las que no son de aula pueden no tener `subject_id` ni `schedule`
+  semanal fijo (p. ej. una vigilancia es una fecha/franja puntual).
 - La asignación de profesor va en la tabla 5 (permite **co-docencia**).
 - `status`: el motor rellena `auto`; la subdirección puede fijar `manual`/`locked`.
 
 **5. `group_teachers`** — asignación profesor↔grupo (N:M, permite 2 profes)
 `group_id · teacher_id (worker_id) · role?` (titular/co-docente)
 
-**6. `teacher_subjects`** — **pool de candidatos**: qué asignaturas PUEDE dar cada
-profesor (capacidad), para las asignaturas abiertas o preferentes
-`teacher_id · subject_id · preferred` (bool: la suele dar / le gusta darla)
-- Para las **fijas** basta `subjects.default_teacher_id`; para las **abiertas**, el
-  motor elige entre quienes tengan fila aquí. Una asignatura puede ser fija para una
-  edición y abierta en otra (la fijación vive en `subjects`/grupo, no aquí).
+**6. `teacher_subjects`** — quién puede dar cada asignatura y con qué rol
+`teacher_id · subject_id · role` (**titular** = la da habitualmente / **candidato**
+= puede darla si falta) `· preferred`
+- Una asignatura puede tener **varios titulares** (se reparten sus grupos). En
+  asignaturas **fijas** solo se asignan titulares; en **abiertas**, titulares
+  primero y candidatos para los grupos que sobren.
+- Fijar un titular concreto a un grupo concreto = `manual/locked` en el grupo.
 
 **7. `teacher_unavailability`** — vacaciones / no disponibilidad puntual
 `teacher_id · start_date · end_date · note` (análogo a `vacations` de la residencia)
@@ -360,30 +367,30 @@ profesor (capacidad), para las asignaturas abiertas o preferentes
 - **Disponibilidad**: si el profesor es solo mañana/tarde, el grupo debe caer en
   esa franja.
 - **No disponibilidad** (vacaciones, fechas) y **calendario de cierres** del centro.
-- **Capacidad**: un grupo solo lo puede cubrir un profesor que pueda darlo —
-  asignatura **fija** → su `default_teacher_id`; asignatura **abierta** → alguien de
-  su `teacher_subjects`.
-- **Recurrencia fija**: si `subjects.default_fixed = true` y el profesor está
-  disponible, **se le asigna** (dura). Si no está disponible, se reporta y se busca
-  alternativa.
+- **Capacidad**: un grupo solo lo puede cubrir quien pueda darlo —
+  asignatura **fija** → un **titular** suyo; asignatura **abierta** → titular o
+  candidato (`teacher_subjects`).
+- **Fija sin titular libre**: si una asignatura fija no tiene titular disponible
+  para un grupo, **se reporta** (no se mete a un candidato a la fuerza).
 - **Fijación manual**: grupos con `status = manual/locked` los fija la subdirección;
-  el motor **no los toca** (tienen prioridad sobre todo lo demás).
+  el motor **no los toca** (prioridad máxima).
 - **Incompatibilidades**: no asignar a dos profesores incompatibles al mismo grupo
   combinado.
 - Un **aula** no se reserva dos veces en la misma franja (si se modelan aulas).
 
 **Blandas** (el motor optimiza):
-- Acercar la **carga asignada** (suma de `minutes` de sus grupos) al **objetivo
-  anual** (`annual_target_min − reduction_min`).
+- Acercar la **carga asignada** (suma de `minutes` de **todos** sus grupos —
+  clases, **prácticas**, **vigilancias de examen**, pruebas de nivel, tutorías) al
+  **objetivo anual** (`annual_target_min − reduction_min`).
 - **Recurrencia preferente** (`default_fixed = false` o `teacher_subjects.preferred`):
   mantener al profesor que suele darla, pero cede si conviene para cuadrar horas.
 - Preferencias mañana/tarde no estrictas.
 - Repartir con equidad lo que no esté fijado.
 
 > **Precedencia de asignación (de mayor a menor):** 1) grupo `manual/locked` →
-> 2) asignatura **fija** disponible → 3) recurrencia **preferente** → 4) reparto
-> entre **candidatos** optimizando horas/equidad. Lo que no se pueda cubrir, se
-> reporta (como en la residencia).
+> 2) **titular** de una asignatura fija → 3) **titular** de una abierta (preferente)
+> → 4) reparto entre **candidatos** optimizando horas/equidad. Lo que no se pueda
+> cubrir, se reporta (como en la residencia).
 
 ### Encaje con el motor (CP-SAT)
 - Variable `x[grupo, profesor] ∈ {0,1}` = ese profesor cubre ese grupo.
