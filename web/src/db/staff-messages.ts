@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "./index";
 import { staffMessages, type StaffMessage } from "./schema";
 
@@ -24,6 +24,22 @@ export async function createStaffMessage(data: {
     ccEmails: data.cc.join(", "),
     toCount: data.to.length,
   });
+}
+
+/** Mensajes en los que aparece un correo concreto (como destinatario o en copia). */
+export async function listMessagesForRecipient(tenantId: string, email: string, limit = 30): Promise<StaffMessage[]> {
+  const needle = `%${email.toLowerCase()}%`;
+  return db
+    .select()
+    .from(staffMessages)
+    .where(
+      and(
+        eq(staffMessages.tenantId, tenantId),
+        or(ilike(staffMessages.toEmails, needle), ilike(staffMessages.ccEmails, needle)),
+      ),
+    )
+    .orderBy(desc(staffMessages.createdAt))
+    .limit(limit);
 }
 
 /** Últimos envíos del centro, más recientes primero. */

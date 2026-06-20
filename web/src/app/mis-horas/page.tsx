@@ -5,6 +5,7 @@ import { getCurrentTenant } from "@/lib/tenant";
 import { getTenantKind } from "@/lib/tenant-kind";
 import { getTeacherProfile, listHourEntries, addHourEntry, voidOwnDeclared } from "@/db/teachers";
 import { listGroupsForTeacher, listAbsences, addAbsence, deleteAbsence } from "@/db/docencia";
+import { listMessagesForRecipient } from "@/db/staff-messages";
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
@@ -120,6 +121,10 @@ export default async function MisHorasPage() {
 
   const groups = workerId ? await listGroupsForTeacher(tenant.id, workerId) : [];
   const absences = workerId ? await listAbsences(tenant.id, workerId) : [];
+  const messages = session.email ? await listMessagesForRecipient(tenant.id, session.email) : [];
+  const pct = net > 0 ? Math.min(100, Math.round((done / net) * 100)) : 0;
+  const fmtDateTime = (d: Date) =>
+    new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(d);
 
   const justi = {
     empresa: tenant.name,
@@ -170,8 +175,43 @@ export default async function MisHorasPage() {
               ))}
             </section>
 
+            <section className="rounded-xl border border-[#e7dcc4] bg-white p-4 shadow-sm">
+              <div className="mb-1 flex items-baseline justify-between text-sm">
+                <span className="font-medium text-slate-700">Progreso del objetivo</span>
+                <span className="font-bold text-cyan-700">{pct}%</span>
+              </div>
+              <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={`h-full rounded-full ${rest > 0 ? "bg-cyan-600" : "bg-emerald-600"}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-slate-400">
+                {h(done)} h de {h(net)} h{rest > 0 ? ` · te faltan ${h(rest)} h` : " · objetivo cumplido 🎉"}
+              </p>
+            </section>
+
             {/* Mi docencia (clases, tutorías, pruebas de nivel, vigilancias) */}
             <DocenciaSecciones groups={groups} />
+
+            {/* Comunicaciones recibidas de la dirección del centro */}
+            <SeccionAcademica title="Comunicaciones recibidas">
+              {messages.length === 0 ? (
+                <p className="font-serif text-sm text-slate-500">No tienes comunicaciones de la dirección este curso.</p>
+              ) : (
+                <div className="space-y-2">
+                  {messages.map((m) => (
+                    <details key={m.id} className="rounded-lg border border-slate-200 p-3">
+                      <summary className="cursor-pointer text-sm">
+                        <span className="font-medium text-slate-800">{m.subject}</span>
+                        <span className="ml-2 text-xs text-slate-400">{fmtDateTime(new Date(m.createdAt))} · {m.senderName}</span>
+                      </summary>
+                      <p className="mt-2 whitespace-pre-wrap rounded bg-slate-50 p-2 text-sm text-slate-700">{m.body}</p>
+                    </details>
+                  ))}
+                </div>
+              )}
+            </SeccionAcademica>
 
             {/* Mis ausencias y permisos (solicitud → subdirección aprueba) */}
             <SeccionAcademica title="Mis ausencias y permisos">
