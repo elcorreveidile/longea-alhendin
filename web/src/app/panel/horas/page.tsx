@@ -112,6 +112,14 @@ export default async function HorasPage({
       <main className="mx-auto max-w-[1200px] space-y-5 p-6">
         <div className="flex flex-wrap justify-end gap-2 print:hidden">
           <a
+            href="/panel/docencia"
+            className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-plantilla.png" alt="" className="h-6 w-6" />
+            Docencia (reparto)
+          </a>
+          <a
             href="/panel/accesos"
             className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
           >
