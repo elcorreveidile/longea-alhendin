@@ -304,7 +304,11 @@ export const teacherUnavailability = pgTable("teacher_unavailability", {
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   note: text("note"),
+  // Flujo de aprobación: solicitada (el profesor avisa) | aprobada | rechazada.
+  status: text("status").notNull().default("aprobada"),
   createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  decidedByUserId: uuid("decided_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
 });
 
 /** Incompatibilidades entre profesores (no coincidir/compartir). */

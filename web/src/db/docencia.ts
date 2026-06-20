@@ -143,16 +143,23 @@ export async function listAbsences(tenantId: string, workerId: string): Promise<
 }
 export async function addAbsence(d: {
   tenantId: string; workerId: string; kind: string; startDate: string; endDate: string;
-  note?: string | null; createdByUserId?: string | null;
+  note?: string | null; createdByUserId?: string | null; status?: string;
 }) {
   await db.insert(teacherUnavailability).values({
     tenantId: d.tenantId, workerId: d.workerId, kind: d.kind,
     startDate: d.startDate, endDate: d.endDate, note: d.note ?? null,
-    createdByUserId: d.createdByUserId ?? null,
+    status: d.status ?? "aprobada", createdByUserId: d.createdByUserId ?? null,
   });
 }
-export async function deleteAbsence(tenantId: string, id: string, workerId?: string) {
+/** Subdirección aprueba o rechaza una ausencia solicitada. */
+export async function setAbsenceStatus(tenantId: string, id: string, status: string, byUserId: string) {
+  await db.update(teacherUnavailability)
+    .set({ status, decidedByUserId: byUserId, decidedAt: new Date() })
+    .where(and(eq(teacherUnavailability.id, id), eq(teacherUnavailability.tenantId, tenantId)));
+}
+export async function deleteAbsence(tenantId: string, id: string, opts?: { workerId?: string; onlyPending?: boolean }) {
   const conds = [eq(teacherUnavailability.id, id), eq(teacherUnavailability.tenantId, tenantId)];
-  if (workerId) conds.push(eq(teacherUnavailability.workerId, workerId));
+  if (opts?.workerId) conds.push(eq(teacherUnavailability.workerId, opts.workerId));
+  if (opts?.onlyPending) conds.push(eq(teacherUnavailability.status, "solicitada"));
   await db.delete(teacherUnavailability).where(and(...conds));
 }

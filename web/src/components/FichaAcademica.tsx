@@ -124,3 +124,9 @@ export const ABSENCE_KINDS = [
   { value: "otro", label: "Otro" },
 ];
 export const ABSENCE_LABEL: Record<string, string> = Object.fromEntries(ABSENCE_KINDS.map((a) => [a.value, a.label]));
+
+export const ABSENCE_STATUS: Record<string, { label: string; cls: string }> = {
+  solicitada: { label: "Solicitada", cls: "bg-amber-100 text-amber-800" },
+  aprobada: { label: "Aprobada", cls: "bg-emerald-100 text-emerald-800" },
+  rechazada: { label: "Rechazada", cls: "bg-red-100 text-red-700" },
+};

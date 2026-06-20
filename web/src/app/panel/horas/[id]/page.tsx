@@ -15,11 +15,11 @@ import {
   voidHourEntry,
   upsertTeacherProfile,
 } from "@/db/teachers";
-import { listGroupsForTeacher, listAbsences, addAbsence, deleteAbsence } from "@/db/docencia";
+import { listGroupsForTeacher, listAbsences, addAbsence, deleteAbsence, setAbsenceStatus } from "@/db/docencia";
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
-import { FichaHeader, DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL } from "@/components/FichaAcademica";
+import { FichaHeader, DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS } from "@/components/FichaAcademica";
 import TopBar from "@/components/TopBar";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -128,6 +128,21 @@ async function deleteAbsenceAction(formData: FormData) {
   const workerId = String(formData.get("workerId") ?? "");
   const id = String(formData.get("id") ?? "");
   if (tenant && id) await deleteAbsence(tenant.id, id);
+  revalidatePath(`/panel/horas/${workerId}`);
+  redirect(`/panel/horas/${workerId}`);
+}
+
+async function decideAbsenceAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  const workerId = String(formData.get("workerId") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (tenant && id && (status === "aprobada" || status === "rechazada")) {
+    await setAbsenceStatus(tenant.id, id, status, session.userId);
+  }
   revalidatePath(`/panel/horas/${workerId}`);
   redirect(`/panel/horas/${workerId}`);
 }
@@ -249,20 +264,37 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
             <p className="font-serif text-sm text-slate-500">Sin ausencias registradas este curso.</p>
           ) : (
             <ul className="mb-3 divide-y divide-slate-100 text-sm">
-              {absences.map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-3 py-2">
-                  <span className="text-slate-700">
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
-                    <span className="ml-2">{fmtA(a.startDate)} → {fmtA(a.endDate)}</span>
-                    {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
-                  </span>
-                  <form action={deleteAbsenceAction}>
-                    <input type="hidden" name="id" value={a.id} />
-                    <input type="hidden" name="workerId" value={worker.id} />
-                    <ConfirmButton confirm="¿Borrar esta ausencia?" className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Borrar</ConfirmButton>
-                  </form>
-                </li>
-              ))}
+              {absences.map((a) => {
+                const st = ABSENCE_STATUS[a.status] ?? ABSENCE_STATUS.aprobada;
+                return (
+                  <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <span className="text-slate-700">
+                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
+                      <span className="ml-2">{fmtA(a.startDate)} → {fmtA(a.endDate)}</span>
+                      {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
+                      <span className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
+                    </span>
+                    <div className="flex gap-1">
+                      {a.status === "solicitada" && (
+                        <>
+                          <form action={decideAbsenceAction}>
+                            <input type="hidden" name="id" value={a.id} /><input type="hidden" name="workerId" value={worker.id} /><input type="hidden" name="status" value="aprobada" />
+                            <button className="rounded border border-emerald-300 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50">Aprobar</button>
+                          </form>
+                          <form action={decideAbsenceAction}>
+                            <input type="hidden" name="id" value={a.id} /><input type="hidden" name="workerId" value={worker.id} /><input type="hidden" name="status" value="rechazada" />
+                            <button className="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Rechazar</button>
+                          </form>
+                        </>
+                      )}
+                      <form action={deleteAbsenceAction}>
+                        <input type="hidden" name="id" value={a.id} /><input type="hidden" name="workerId" value={worker.id} />
+                        <ConfirmButton confirm="¿Borrar esta ausencia?" className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50">Borrar</ConfirmButton>
+                      </form>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <form action={addAbsenceAction} className="flex flex-wrap items-end gap-3">
@@ -275,8 +307,9 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
             <label className="text-sm">Desde<input type="date" name="start" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
             <label className="text-sm">Hasta<input type="date" name="end" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
             <label className="text-sm">Nota<input name="note" placeholder="opcional" className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
-            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Registrar</button>
+            <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Registrar (aprobada)</button>
           </form>
+          <p className="mt-2 text-xs text-slate-400">Lo que registra subdirección queda aprobado directamente. Las solicitudes del profesorado llegan como “Solicitada” para aprobar o rechazar.</p>
         </SeccionAcademica>
 
         {/* Acciones de subdirección / RRHH */}

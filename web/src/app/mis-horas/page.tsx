@@ -8,7 +8,7 @@ import { listGroupsForTeacher, listAbsences, addAbsence, deleteAbsence } from "@
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
-import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL } from "@/components/FichaAcademica";
+import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS } from "@/components/FichaAcademica";
 import TopBar from "@/components/TopBar";
 import VersionFooter from "@/components/VersionFooter";
 
@@ -64,7 +64,7 @@ async function addMyAbsenceAction(formData: FormData) {
     await addAbsence({
       tenantId: tenant.id, workerId: session.workerId, kind: String(formData.get("kind") ?? "vacaciones"),
       startDate: start, endDate: end, note: String(formData.get("note") ?? "").trim() || null,
-      createdByUserId: session.userId,
+      createdByUserId: session.userId, status: "solicitada",
     });
   }
   revalidatePath("/mis-horas");
@@ -77,7 +77,8 @@ async function deleteMyAbsenceAction(formData: FormData) {
   if (!session?.workerId) redirect("/login");
   const tenant = await getCurrentTenant();
   const id = String(formData.get("id") ?? "");
-  if (tenant && id) await deleteAbsence(tenant.id, id, session.workerId);
+  // El profesor solo puede retirar una solicitud SUYA aún pendiente.
+  if (tenant && id) await deleteAbsence(tenant.id, id, { workerId: session.workerId, onlyPending: true });
   revalidatePath("/mis-horas");
   redirect("/mis-horas");
 }
@@ -172,25 +173,31 @@ export default async function MisHorasPage() {
             {/* Mi docencia (clases, tutorías, pruebas de nivel, vigilancias) */}
             <DocenciaSecciones groups={groups} />
 
-            {/* Mis ausencias y permisos */}
+            {/* Mis ausencias y permisos (solicitud → subdirección aprueba) */}
             <SeccionAcademica title="Mis ausencias y permisos">
               {absences.length === 0 ? (
-                <p className="font-serif text-sm text-slate-500">No tienes ausencias registradas este curso.</p>
+                <p className="font-serif text-sm text-slate-500">No has avisado de ninguna ausencia este curso.</p>
               ) : (
                 <ul className="mb-3 divide-y divide-slate-100 text-sm">
-                  {absences.map((a) => (
-                    <li key={a.id} className="flex items-center justify-between gap-3 py-2">
-                      <span className="text-slate-700">
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
-                        <span className="ml-2">{fmtDate(a.startDate)} → {fmtDate(a.endDate)}</span>
-                        {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
-                      </span>
-                      <form action={deleteMyAbsenceAction}>
-                        <input type="hidden" name="id" value={a.id} />
-                        <ConfirmButton confirm="¿Borrar esta ausencia?" className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Borrar</ConfirmButton>
-                      </form>
-                    </li>
-                  ))}
+                  {absences.map((a) => {
+                    const st = ABSENCE_STATUS[a.status] ?? ABSENCE_STATUS.aprobada;
+                    return (
+                      <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <span className="text-slate-700">
+                          <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
+                          <span className="ml-2">{fmtDate(a.startDate)} → {fmtDate(a.endDate)}</span>
+                          {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
+                          <span className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
+                        </span>
+                        {a.status === "solicitada" && (
+                          <form action={deleteMyAbsenceAction}>
+                            <input type="hidden" name="id" value={a.id} />
+                            <ConfirmButton confirm="¿Retirar esta solicitud de ausencia?" className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50">Retirar</ConfirmButton>
+                          </form>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               <form action={addMyAbsenceAction} className="flex flex-wrap items-end gap-3">
@@ -202,9 +209,9 @@ export default async function MisHorasPage() {
                 <label className="text-sm">Desde<input type="date" name="start" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
                 <label className="text-sm">Hasta<input type="date" name="end" required className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
                 <label className="text-sm">Nota<input name="note" placeholder="opcional" className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm" /></label>
-                <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Registrar</button>
+                <button className="rounded-lg bg-cyan-700 px-5 py-2 text-sm font-semibold text-white hover:bg-cyan-800">Avisar (solicitar)</button>
               </form>
-              <p className="mt-2 text-xs text-slate-400">Lo que registres lo verá subdirección. Las ausencias se tendrán en cuenta al repartir la docencia.</p>
+              <p className="mt-2 text-xs text-slate-400">Avisas de la ausencia y subdirección la aprueba o la rechaza. Puedes retirar una solicitud mientras esté pendiente.</p>
             </SeccionAcademica>
 
             <section className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
