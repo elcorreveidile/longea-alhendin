@@ -9,6 +9,7 @@ import {
   boolean,
   pgEnum,
   uniqueIndex,
+  index,
   primaryKey,
 } from "drizzle-orm/pg-core";
 
@@ -349,6 +350,26 @@ export const spamBlocklist = pgTable(
   (t) => [uniqueIndex("spam_blocklist_kind_value_idx").on(t.kind, t.value)],
 );
 export type SpamBlock = typeof spamBlocklist.$inferSelect;
+
+// Historial de comunicaciones del personal del centro al profesorado.
+export const staffMessages = pgTable(
+  "staff_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    senderUserId: uuid("sender_user_id").references(() => users.id, { onDelete: "set null" }),
+    senderName: text("sender_name").notNull(),
+    senderRole: text("sender_role"),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    toEmails: text("to_emails").notNull().default(""),
+    ccEmails: text("cc_emails").notNull().default(""),
+    toCount: integer("to_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("staff_messages_tenant_idx").on(t.tenantId, t.createdAt)],
+);
+export type StaffMessage = typeof staffMessages.$inferSelect;
 export type TeacherProfile = typeof teacherProfiles.$inferSelect;
 export type HourEntry = typeof hourEntries.$inferSelect;
 export type CourseProgram = typeof coursePrograms.$inferSelect;

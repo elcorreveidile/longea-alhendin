@@ -4,6 +4,7 @@ import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { getStaffRole, autoCcEmails, STAFF_ROLE_LABEL } from "@/lib/staff-roles";
 import { listTeacherContacts } from "@/db/teachers";
+import { createStaffMessage, listStaffMessages } from "@/db/staff-messages";
 import { sendStaffMessage } from "@/lib/email";
 import TopBar from "@/components/TopBar";
 
@@ -32,15 +33,32 @@ async function sendAction(formData: FormData) {
     senderEmail: session.email,
   });
 
+  const senderName = session.name || tenant.name;
   const res = await sendStaffMessage({
     brand: { name: tenant.name, logoUrl: tenant.logoUrl, planturnos: false },
-    senderName: session.name || tenant.name,
+    senderName,
     senderEmail: session.email,
     to,
     cc,
     subject,
     body,
   });
+  if (res.ok) {
+    try {
+      await createStaffMessage({
+        tenantId: tenant.id,
+        senderUserId: session.userId,
+        senderName,
+        senderRole: senderRole ?? null,
+        subject,
+        body,
+        to,
+        cc,
+      });
+    } catch (e) {
+      console.error("[correos] no se pudo registrar el envío:", e);
+    }
+  }
   redirect(res.ok ? "/panel/correos?m=enviado" : "/panel/correos?m=error");
 }
 
@@ -60,6 +78,9 @@ export default async function CorreosPage({ searchParams }: { searchParams: Prom
   // Vista previa de las copias automáticas (sin marcar Dirección).
   const ccPreview = tenant ? await autoCcEmails(tenant.id, senderRole, { senderEmail: session.email }) : { emails: [], labels: [] };
   const canCcDireccion = senderRole === "secretaria" || senderRole === "subdireccion";
+  const history = tenant ? await listStaffMessages(tenant.id) : [];
+  const fmt = (d: Date) =>
+    new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(d);
 
   return (
     <div className="min-h-screen bg-[#faf6ee]">
@@ -129,6 +150,30 @@ export default async function CorreosPage({ searchParams }: { searchParams: Prom
 
           <button className="rounded-lg bg-cyan-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-cyan-800">Enviar mensaje</button>
         </form>
+
+        <section className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-800">Historial de envíos ({history.length})</h2>
+          <p className="mb-3 text-xs text-slate-400">Registro de las comunicaciones enviadas al profesorado desde el centro.</p>
+          <div className="space-y-2">
+            {history.map((m) => (
+              <details key={m.id} className="rounded-lg border border-slate-200 p-3">
+                <summary className="cursor-pointer text-sm">
+                  <span className="font-medium text-slate-800">{m.subject}</span>
+                  <span className="ml-2 text-xs text-slate-400">
+                    {fmt(new Date(m.createdAt))} · {m.senderName}
+                    {m.senderRole ? ` (${STAFF_ROLE_LABEL[m.senderRole] ?? m.senderRole})` : ""} · {m.toCount} destinatario{m.toCount === 1 ? "" : "s"}
+                  </span>
+                </summary>
+                <div className="mt-2 space-y-2 text-xs text-slate-600">
+                  <p><strong>Para:</strong> {m.toEmails || "—"}</p>
+                  {m.ccEmails && <p><strong>CC:</strong> {m.ccEmails}</p>}
+                  <p className="whitespace-pre-wrap rounded bg-slate-50 p-2 text-slate-700">{m.body}</p>
+                </div>
+              </details>
+            ))}
+            {!history.length && <p className="text-sm text-slate-400">Todavía no se ha enviado ningún mensaje.</p>}
+          </div>
+        </section>
       </main>
 
       <script
