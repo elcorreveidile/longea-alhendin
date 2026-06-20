@@ -81,6 +81,11 @@ export default async function MisHorasPage() {
   const rest = net - done;
   const today = new Date().toISOString().slice(0, 10);
 
+  const byConcept = HOUR_CONCEPTS.map((c) => ({
+    label: c.label,
+    min: valid.filter((e) => e.concept === c.value).reduce((a, e) => a + e.minutes, 0),
+  })).filter((c) => c.min > 0);
+
   const justi = {
     empresa: tenant.name,
     teacher: session.name ?? "",
@@ -90,6 +95,7 @@ export default async function MisHorasPage() {
     netH: h(net),
     doneH: h(done),
     restH: h(rest),
+    byConcept: byConcept.map((c) => ({ label: c.label, hours: h(c.min) })),
     rows: valid.map((e) => ({
       date: fmtDate(e.workDate),
       hours: h(e.minutes),

@@ -7,6 +7,7 @@ import { courseYearRange } from "@/data/hour-concepts";
 export type TeacherRow = Worker & {
   profile: TeacherProfile | null;
   doneMin: number; // minutos no anulados del curso
+  pending: number; // nº de apuntes declarados sin confirmar
 };
 
 /** Perfil docente de un trabajador (o null si no es profesor). */
@@ -68,6 +69,26 @@ async function doneMinutesByWorker(tenantId: string, startYear: number): Promise
   return out;
 }
 
+/** Nº de apuntes "declarados" (pendientes de confirmar) por trabajador en un curso. */
+async function pendingByWorker(tenantId: string, startYear: number): Promise<Record<string, number>> {
+  const { from, to } = courseYearRange(startYear);
+  const rows = await db
+    .select({ workerId: hourEntries.workerId, n: sql<number>`count(*)` })
+    .from(hourEntries)
+    .where(
+      and(
+        eq(hourEntries.tenantId, tenantId),
+        eq(hourEntries.status, "declared"),
+        gte(hourEntries.workDate, from),
+        lte(hourEntries.workDate, to),
+      ),
+    )
+    .groupBy(hourEntries.workerId);
+  const out: Record<string, number> = {};
+  for (const r of rows) out[r.workerId] = Number(r.n);
+  return out;
+}
+
 /** Listado de profesores (trabajadores activos con perfil docente) + horas hechas. */
 export async function listTeachers(tenantId: string, startYear: number): Promise<TeacherRow[]> {
   const rows = await db
@@ -77,7 +98,8 @@ export async function listTeachers(tenantId: string, startYear: number): Promise
     .where(and(eq(workers.tenantId, tenantId), eq(workers.active, true)))
     .orderBy(asc(workers.name));
   const done = await doneMinutesByWorker(tenantId, startYear);
-  return rows.map((r) => ({ ...r.w, profile: r.p, doneMin: done[r.w.id] ?? 0 }));
+  const pending = await pendingByWorker(tenantId, startYear);
+  return rows.map((r) => ({ ...r.w, profile: r.p, doneMin: done[r.w.id] ?? 0, pending: pending[r.w.id] ?? 0 }));
 }
 
 /** Apuntes de un profesor en un curso, más recientes primero. */
@@ -123,6 +145,28 @@ export async function confirmHourEntry(id: string, byUserId: string): Promise<vo
     .update(hourEntries)
     .set({ status: "confirmed", confirmedByUserId: byUserId, confirmedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(hourEntries.id, id), eq(hourEntries.status, "declared")));
+}
+
+/** Subdirección confirma de una vez TODAS las horas declaradas de un profesor en el curso. */
+export async function confirmAllDeclared(
+  tenantId: string,
+  workerId: string,
+  byUserId: string,
+  startYear: number,
+): Promise<void> {
+  const { from, to } = courseYearRange(startYear);
+  await db
+    .update(hourEntries)
+    .set({ status: "confirmed", confirmedByUserId: byUserId, confirmedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(hourEntries.tenantId, tenantId),
+        eq(hourEntries.workerId, workerId),
+        eq(hourEntries.status, "declared"),
+        gte(hourEntries.workDate, from),
+        lte(hourEntries.workDate, to),
+      ),
+    );
 }
 
 /** Anula un apunte (no se borra: queda traza). */

@@ -11,11 +11,13 @@ import {
   listHourEntries,
   addHourEntry,
   confirmHourEntry,
+  confirmAllDeclared,
   voidHourEntry,
   upsertTeacherProfile,
 } from "@/db/teachers";
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
+import DownloadJustificante from "@/components/DownloadJustificante";
 import TopBar from "@/components/TopBar";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -73,6 +75,19 @@ async function confirmAction(formData: FormData) {
   redirect(`/panel/horas/${workerId}`);
 }
 
+async function confirmAllAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  const workerId = String(formData.get("workerId") ?? "");
+  if (tenant && workerId) {
+    await confirmAllDeclared(tenant.id, workerId, session.userId, courseYearStart(new Date()));
+  }
+  revalidatePath(`/panel/horas/${workerId}`);
+  redirect(`/panel/horas/${workerId}`);
+}
+
 async function voidAction(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -124,9 +139,36 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
   const target = profile?.annualTargetMin ?? 0;
   const reduction = profile?.reductionMin ?? 0;
   const net = Math.max(target - reduction, 0);
-  const done = entries.filter((e) => e.status !== "voided").reduce((a, e) => a + e.minutes, 0);
+  const valid = entries.filter((e) => e.status !== "voided");
+  const done = valid.reduce((a, e) => a + e.minutes, 0);
   const rest = net - done;
+  const pending = entries.filter((e) => e.status === "declared").length;
   const today = new Date().toISOString().slice(0, 10);
+
+  // Totales por concepto (solo apuntes válidos), en el orden de HOUR_CONCEPTS.
+  const byConcept = HOUR_CONCEPTS.map((c) => ({
+    label: c.label,
+    min: valid.filter((e) => e.concept === c.value).reduce((a, e) => a + e.minutes, 0),
+  })).filter((c) => c.min > 0);
+
+  // Datos del justificante (PDF) para RRHH/subdirección.
+  const justi = {
+    empresa: tenant.name,
+    teacher: worker.name,
+    courseLabel: courseYearLabel(startYear),
+    targetH: h(target),
+    reductionH: h(reduction),
+    netH: h(net),
+    doneH: h(done),
+    restH: h(rest),
+    byConcept: byConcept.map((c) => ({ label: c.label, hours: h(c.min) })),
+    rows: valid.map((e) => ({
+      date: fmtDate(e.workDate),
+      hours: h(e.minutes),
+      concept: conceptLabel(e.concept),
+      status: STATUS[e.status]?.label ?? e.status,
+    })),
+  };
 
   return (
     <div className="min-h-screen bg-[#faf6ee]">
@@ -150,6 +192,31 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
           ))}
         </section>
         <p className="text-xs text-slate-400">Curso {courseYearLabel(startYear)} · disponibilidad: {AVAIL[profile?.availability ?? "both"]}{profile?.reductionType ? ` · reducción: ${profile.reductionType}` : ""}</p>
+
+        {/* Acciones de subdirección / RRHH */}
+        <section className="flex flex-wrap items-center gap-3 print:hidden">
+          {pending > 0 && (
+            <form action={confirmAllAction}>
+              <input type="hidden" name="workerId" value={worker.id} />
+              <ConfirmButton
+                confirm={`¿Confirmar las ${pending} horas declaradas pendientes de ${worker.name}?`}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              >
+                Confirmar todas las declaradas ({pending})
+              </ConfirmButton>
+            </form>
+          )}
+          <DownloadJustificante data={justi} />
+          {byConcept.length > 0 && (
+            <div className="ml-auto flex flex-wrap gap-1.5 text-xs">
+              {byConcept.map((c) => (
+                <span key={c.label} className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">
+                  {c.label}: <strong className="tabular-nums">{h(c.min)} h</strong>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Añadir apunte */}
         <section className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">

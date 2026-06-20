@@ -98,9 +98,10 @@ export default async function HorasPage({
       a.net += net;
       a.done += t.doneMin;
       a.rest += net - t.doneMin;
+      a.pending += t.pending;
       return a;
     },
-    { net: 0, done: 0, rest: 0 },
+    { net: 0, done: 0, rest: 0, pending: 0 },
   );
 
   const years = [nowStart + 1, nowStart, nowStart - 1, nowStart - 2];
@@ -175,6 +176,7 @@ export default async function HorasPage({
                   <th className="px-3 py-3 text-right">A hacer</th>
                   <th className="px-3 py-3 text-right">Hechas</th>
                   <th className="px-3 py-3 text-right">Restante</th>
+                  <th className="px-3 py-3 text-center">Pendientes</th>
                   <th className="px-3 py-3">Disponib.</th>
                 </tr>
               </thead>
@@ -200,6 +202,15 @@ export default async function HorasPage({
                       <td className={`px-3 py-2 text-right tabular-nums font-semibold ${rest > 0 ? "text-amber-700" : "text-emerald-700"}`}>
                         {h(rest)}
                       </td>
+                      <td className="px-3 py-2 text-center">
+                        {t.pending > 0 ? (
+                          <a href={`/panel/horas/${t.id}`} className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 hover:bg-amber-200" title="Apuntes declarados sin confirmar">
+                            {t.pending}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-300">—</span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-xs text-slate-500">{AVAIL[t.profile?.availability ?? "both"]}</td>
                     </tr>
                   );
@@ -214,6 +225,7 @@ export default async function HorasPage({
                   <td className="px-3 py-3 text-right tabular-nums">{h(tot.net)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{h(tot.done)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{h(tot.rest)}</td>
+                  <td className="px-3 py-3 text-center tabular-nums">{tot.pending || ""}</td>
                   <td />
                 </tr>
               </tfoot>

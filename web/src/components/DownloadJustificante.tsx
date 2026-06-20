@@ -12,6 +12,7 @@ export interface JustificanteData {
   netH: string;
   doneH: string;
   restH: string;
+  byConcept?: { label: string; hours: string }[];
   rows: { date: string; hours: string; concept: string; status: string }[];
 }
 
@@ -41,7 +42,25 @@ export default function DownloadJustificante({ data }: { data: JustificanteData 
     });
 
     // @ts-expect-error lastAutoTable lo añade el plugin
-    const y = (doc.lastAutoTable?.finalY ?? 60) + 6;
+    let y = (doc.lastAutoTable?.finalY ?? 60) + 6;
+
+    if (data.byConcept && data.byConcept.length > 0) {
+      doc.setFontSize(10);
+      doc.setTextColor(60);
+      doc.text("Horas por concepto", 14, y);
+      autoTable(doc, {
+        startY: y + 2,
+        theme: "plain",
+        styles: { fontSize: 9 },
+        body: data.byConcept.map((c) => [c.label, `${c.hours} h`]),
+        columnStyles: { 0: { cellWidth: 80, textColor: 90 }, 1: { fontStyle: "bold", halign: "right" } },
+        margin: { left: 14 },
+        tableWidth: 110,
+      });
+      // @ts-expect-error lastAutoTable lo añade el plugin
+      y = (doc.lastAutoTable?.finalY ?? y) + 6;
+    }
+
     autoTable(doc, {
       startY: y,
       head: [["Fecha", "Horas", "Concepto", "Estado"]],
