@@ -302,6 +302,20 @@ Jerarquía de personal (además del **profesorado**):
 - **Subdirección → profesorado**: puede enviar correos a **todo el profesorado**,
   **CC a Secretaría** y, cuando sea necesario, **al director**.
 
+### Categorías de profesorado
+- **Profesores Acentos**: titulares de la empresa (plantilla propia; objetivo
+  anual de horas, etc.).
+- **Profesores externos**: especialistas que imparten **ciertas asignaturas**
+  concretas. Suelen no tener el objetivo anual completo y solo dan lo suyo.
+- Modelo: `teacher_profiles.category` = `acentos | externo` (a añadir cuando
+  hagamos las capacidades del profesorado). El motor lo usará: a un externo solo
+  se le asignan sus asignaturas, sin exigirle cuadrar 767 h.
+
+### Subdirección por idioma (futuro)
+- Hay **Subdirección de Español** (la actual) y, más adelante, **Subdirección de
+  Lenguas Extranjeras**. El `staff_role = subdireccion` podrá llevar un área
+  (`espanol | lenguas_extranjeras`) cuando entremos en esa fase.
+
 ### Modelo propuesto (a confirmar)
 - Hoy `users.role` = `worker | admin | superadmin`. En vez de tocar ese enum
   (se usa también en la residencia), añadir **`users.staff_role`** (etiqueta sobre

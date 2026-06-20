@@ -80,6 +80,9 @@ export const users = pgTable(
     phone: text("phone"),
     name: text("name"),
     role: appRole("role").notNull().default("worker"),
+    // Rol de personal del centro (academia), sobre las cuentas admin:
+    // direccion | subdireccion | secretaria. NULL = sin rol específico.
+    staffRole: text("staff_role"),
     // Enlaza el login con su ficha de plantilla (para "mi turno")
     workerId: uuid("worker_id").references(() => workers.id, { onDelete: "set null" }),
     // PIN de acceso de la trabajadora (hash), para el acceso por código + nombre + PIN

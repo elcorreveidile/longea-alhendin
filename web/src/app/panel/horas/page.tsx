@@ -7,6 +7,7 @@ import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { db } from "@/db";
 import { workers } from "@/db/schema";
 import { listTeachers, upsertTeacherProfile, lockCourse } from "@/db/teachers";
+import { getStaffRole } from "@/lib/staff-roles";
 import { courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import { ACENTOS_DEMO_ROSTER } from "@/data/acentos-demo-roster";
 import ConfirmButton from "@/components/ConfirmButton";
@@ -17,6 +18,7 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   yaexiste: { ok: false, text: "Ya hay profesorado cargado; vacíalo antes de recargar." },
   cerrado: { ok: true, text: "✓ Curso cerrado: las horas quedan bloqueadas." },
   vaciado: { ok: true, text: "✓ Profesorado de prueba vaciado. Puedes volver a cargarlo." },
+  noperm: { ok: false, text: "La Secretaría de Dirección no puede cerrar cursos." },
 };
 
 const AVAIL: Record<string, string> = { both: "Mañana y tarde", morning: "Solo mañana", afternoon: "Solo tarde" };
@@ -66,6 +68,8 @@ async function lockCourseAction(formData: FormData) {
   if (!session || !isStaffAdmin(session.role)) redirect("/login");
   const tenant = await getCurrentTenant();
   const startYear = Number(formData.get("curso"));
+  // La Secretaría de Dirección no puede cerrar cursos.
+  if ((await getStaffRole(session.userId)) === "secretaria") redirect("/panel/horas?m=noperm");
   if (tenant && startYear) await lockCourse(tenant.id, startYear);
   revalidatePath("/panel/horas");
   redirect(`/panel/horas?curso=${startYear}&m=cerrado`);
@@ -82,6 +86,7 @@ export default async function HorasPage({
   await requireAcademiaPanel();
 
   const tenant = await getCurrentTenant();
+  const isSecretaria = (await getStaffRole(session.userId)) === "secretaria";
   const sp = await searchParams;
   const msg = sp.m ? MSG[sp.m] : null;
 
@@ -111,6 +116,14 @@ export default async function HorasPage({
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
       <main className="mx-auto max-w-[1200px] space-y-5 p-6">
         <div className="flex flex-wrap justify-end gap-2 print:hidden">
+          <a
+            href="/panel/roles"
+            className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-acceso.png" alt="" className="h-6 w-6" />
+            Roles del centro
+          </a>
           <a
             href="/panel/docencia"
             className="flex items-center gap-2 rounded-xl border border-[#e7dcc4] bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow"
@@ -255,15 +268,17 @@ export default async function HorasPage({
                   Vaciar profesorado de prueba
                 </ConfirmButton>
               </form>
-              <form action={lockCourseAction}>
-                <input type="hidden" name="curso" value={startYear} />
-                <ConfirmButton
-                  confirm={`¿Cerrar el curso ${courseYearLabel(startYear)}? Las horas quedarán bloqueadas (no editables).`}
-                  className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  Cerrar curso {courseYearLabel(startYear)}
-                </ConfirmButton>
-              </form>
+              {!isSecretaria && (
+                <form action={lockCourseAction}>
+                  <input type="hidden" name="curso" value={startYear} />
+                  <ConfirmButton
+                    confirm={`¿Cerrar el curso ${courseYearLabel(startYear)}? Las horas quedarán bloqueadas (no editables).`}
+                    className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    Cerrar curso {courseYearLabel(startYear)}
+                  </ConfirmButton>
+                </form>
+              )}
             </div>
           )}
         </div>
