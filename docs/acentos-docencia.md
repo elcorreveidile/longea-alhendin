@@ -142,11 +142,80 @@ la subdirección):
 - **El puzzle**: encajar 1 mes vs 2×15 días en el mismo hueco/franja (un curso de
   mes ↔ dos quincenas encadenadas) sin chocar con la disponibilidad ni las horas.
 
-## Asignaturas
+## Asignaturas de CLCE / CEH (catálogo por áreas)
 
-> Pendiente: la subdirección pasará el listado completo de asignaturas. Aquí se
-> recogerá (nombre, programa/curso al que pertenece, nivel/requisito, idioma,
-> profesor(es) habitual(es), franja, horas).
+> Catálogo público "ASIGNATURAS CLCE" (mismas áreas valen de referencia para CEH;
+> **confirmar** si CEH tiene lista propia o comparte). Cada asignatura **45 h** y
+> ocupa una franja semanal (L-X o M-J). Idioma: **ES** español · **EN** inglés ·
+> **ES/EN** se ofrece en ambos. Periodo: **O** otoño · **P** primavera · **O+P** ambos.
+> Footnotes del folleto **(*1)** y **(*2)** pendientes de aclarar (¿obligatorias /
+> optativas / requisito de grupo?).
+
+**A. Lengua**
+- Producción Oral y Escrita (*1) — ES — O+P
+- Nociones de Gramática Española (*1) — ES — O+P
+- La Diversidad del Español en el Mundo — ES — O+P
+- Introducción al Español de los Negocios — ES — O+P
+- Lengua de Signos Española — ES — O+P
+- Introducción a la Lengua Árabe — ES — O+P
+
+**B. Literatura** (*2)
+- Literatura Española (hasta s. XVIII) — ES — O+P
+- Literatura Española del Siglo XIX a la Actualidad — ES — O+P
+- Literatura Española — EN — O+P
+- Escritoras en Español del Siglo XX — ES — O+P
+
+**C. Geografía** (*2)
+- Cambios Sociales y Demográficos en la Geografía Española — ES/EN — O+P
+- Sostenibilidad en el Mediterráneo: Acercamiento al Desarrollo Auto-Sostenible Local — EN — O+P
+
+**D. Historia** (*2)
+- Historia de España — ES/EN — O+P
+
+**E. Historia del Arte** (*2)
+- Historia del Arte en España — ES/EN — O+P
+- Música Andalusí: Historia, Poesía y Legado Cultural — EN — O+P
+
+**F. Cultura** (*2)
+- Civilización y Cultura Españolas — ES/EN — O+P
+- Civilización y Cultura Hispanoamericanas — ES/EN — O+P
+- Cultura Islámica en España — ES/EN — O+P
+- Canción Tradicional y Sociedad Española: Flamenco, Folclor y Canción Sefardí — ES — O+P
+- La España Actual en los Medios de Comunicación — ES — O+P
+
+**G. Sociología, Política y Economía** (*2)
+- El Mundo Árabe y Occidente: Pasado y Futuro — EN — O+P
+- Economía Española y Latinoamericana — ES/EN — O+P
+- Sistema Político en España y en la Unión Europea — ES/EN — O+P
+- Política Ambiental de la Unión Europea — EN — O+P
+- Marketing Internacional — ES/EN — O+P
+- Gestión Estratégica Internacional — EN — O+P
+- Comunicación Intercultural — EN — O+P
+
+**H. Ciencia y Tecnología** (*2)
+- Ciencias de la Salud y Salud Pública en España — ES/EN — O+P
+- Introducción al Cuidado de la Salud — ES — O+P
+- Ingeniería Civil y Territorio — EN — **solo O** (otoño)
+- Matemáticas y Realidad — EN — O+P
+- Introducción a la Psicología Cognitiva Aplicada — ES/EN — O+P
+
+### Proyecto "Acercamiento a las Culturas Mexicana y Española" (con la UNAM)
+
+> Programa **online** co-impartido entre **CEPE-UNAM** y **CLM-UGR** (solo el/la
+> docente CLM-UGR computa como profesorado nuestro). Sesiones por la tarde
+> (hora peninsular). Ejemplos reales de asignatura → profesor → fechas → horas:
+
+- **México y Granada. Historia de dos ciudades** — Luis de Pablo Hammeken
+  (CEPE-UNAM), Salvador Gallego Aranda (UGR), Francisco Sánchez-Montes González
+  (UGR). Fechas: 23, 28, 30 may; 4, 6, 11, 13, 25, 27 jun; 2, 4 jul. **22,5 h**
+  (10 sesiones de 2 h + 1 de 2,5 h). Horario 16:00–18:00 (peninsular).
+- **Escritura de mujeres en las literaturas mexicana y española: de la generación
+  del 27 a la actualidad** — Jorge Aguilera López (CEPE-UNAM), María Ángeles
+  Lamolda González (CLM-UGR). Fechas: 1, 3, 8, 10, 15, 17, 22, 24, 29, 31 oct y
+  5 nov. **22,5 h**. Horario 16:00–18:00 (peninsular).
+- **Herencia de saberes y sabores. La cultura culinaria entre España y México** —
+  Yolanda García (CEPE-UNAM), Lubna Sallakh (CLM-UGR). Fechas: 2 jun – 2 jul 2026.
+  **20 h** (10 sesiones de 2 h). Horario 18:00–20:00 (peninsular).
 
 ## Preguntas abiertas (para cuando construyamos)
 
