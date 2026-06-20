@@ -61,6 +61,23 @@ export async function deleteSubject(tenantId: string, id: string) {
   await db.delete(subjects).where(and(eq(subjects.id, id), eq(subjects.tenantId, tenantId)));
 }
 
+/** Inserta asignaturas del catálogo que aún no existan (por nombre). Devuelve cuántas añadió. */
+export async function addSubjectsBulk(
+  tenantId: string,
+  items: { name: string; area?: string | null; languages: string }[],
+): Promise<number> {
+  const existing = await db.select({ name: subjects.name }).from(subjects).where(eq(subjects.tenantId, tenantId));
+  const have = new Set(existing.map((s) => s.name.trim().toLowerCase()));
+  const toAdd = items.filter((i) => !have.has(i.name.trim().toLowerCase()));
+  if (toAdd.length === 0) return 0;
+  await db.insert(subjects).values(
+    toAdd.map((i) => ({
+      tenantId, name: i.name, area: i.area ?? null, languages: i.languages, staffing: "abierta",
+    })),
+  );
+  return toAdd.length;
+}
+
 // --- Grupos / plazas ---
 export type GroupRow = TeachingGroup & { subjectName: string | null };
 export async function listGroups(tenantId: string, termId: string): Promise<GroupRow[]> {
