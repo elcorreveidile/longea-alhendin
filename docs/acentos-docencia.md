@@ -24,34 +24,58 @@ la subdirección):
 - **B. Exámenes de acreditación de nivel** *(pendiente de detalle)*.
 - **C. Formación de profesores**, presencial y online *(pendiente de detalle)*.
 
-### A. Cursos de español — bloques de la oferta pública
+### A. Cursos de español — detalle del folleto oficial 2025/26
 
-> Tomado del catálogo público del CLM. Cada "curso" es un programa que por dentro
-> tiene asignaturas; algunos comparten asignaturas (p. ej. las de verano se pueden
-> cursar sueltas).
+> Fuente: folleto "Cursos de Lengua y Cultura Españolas del CLM 2025/2026
+> (Fechas/Precios)". Acrónimos oficiales entre paréntesis. Esto define cómo se
+> reparte la docencia: **duración, horas, nivel y franja horaria**.
 
-**A.1 Cursos de español** (lengua, generales)
-- **Curso Intensivo de Lengua Española** — a **tiempo completo**, muy popular entre
-  estudiantes internacionales. (Los "intensivos" del calendario.)
-- **Curso de Español como Lengua Extranjera (ELE)** — a **tiempo parcial**, para
-  estudiantes y profesionales con disponibilidad limitada.
+**CILE — Curso Intensivo de Lengua Española** (lengua, general)
+- A **tiempo completo**, modular: el alumno elige mes de inicio y duración.
+- Módulos: **40 h (2 sem) · 60 h (3 sem) · 80 h (4 sem)**; ampliable a
+  120/160/200/240/260/280 h. ≈ **20 h/semana**.
+- Inicios **quincenales** (1ª y 2ª mitad de cada mes), **todos los meses
+  sep–jul** (agosto cerrado). Es la columna vertebral; aquí entran las quincenas.
+- Niveles: todos. En los 40 h de 2ª mitad de mes no se admiten iniciales
+  absolutos.
 
-**A.2 Cursos de lengua y cultura**
-- **Curso de Lengua y Cultura Españolas** — programa integral de inmersión
-  lingüística y cultural.
-- **Curso de Estudios Hispánicos** — programa integral; requiere **mínimo B2**.
-- **Curso de verano de Lengua y Cultura** — intensivo combinado de lengua + cultura
-  en verano.
-- **Asignaturas de Lengua y Cultura Españolas en Verano** — asignaturas sueltas,
-  cursables de forma independiente en los meses de verano. (Encaja con que las
-  quincenas/cursos cortos sean sobre todo de jun/jul.)
-- **Acercamiento a las Culturas Mexicana y Española** (3ª edición) — proyecto en
-  colaboración con la **UNAM** (Universidad Nacional Autónoma de México).
+**CILYC — Curso de Verano de Lengua y Cultura Españolas**
+- **Junio y Julio**, **90 h** cada edición. Intensivo lengua + cultura.
 
-**A.3 Cursos en colaboración con el Instituto Cervantes** (programa "Cultura se
-escribe contigo")
-- **al-Ándalus: Granada y La Alhambra**.
-- **Cultura y comunicación en España**.
+**CEH — Curso de Estudios Hispánicos** (nivel **avanzado, exige prueba de nivel**)
+- **Otoño** (1 oct–18 dic) **225 h** · **Primavera** (2 feb–21 may) **225 h** ·
+  **ambos 450 h**.
+- Cada periodo: **mínimo 4 / máximo 5 asignaturas**. **Asignatura suelta = 45 h**.
+  Prácticas opcionales 120 h.
+- **Horario por franjas**: grupos de **Lunes y Miércoles** y de **Martes y
+  Jueves**, más algunos **viernes** (exámenes/última clase). Prueba de nivel en
+  **horario de tarde**.
+
+**CLCE — Curso de Lengua y Cultura Españolas** (nivel **intermedio**)
+- Misma estructura que CEH: Otoño/Primavera **225 h**, ambos **450 h**, **4–5
+  asignaturas** por periodo, **45 h/asignatura**, franjas L-X / M-J + viernes.
+
+**Asignaturas de Lengua y Cultura Españolas en Verano** (sueltas, por áreas)
+- **Junio / Julio**. Tamaños de asignatura: **10 h · 22,5 h · 45 h**. Permiten
+  estudio personalizado (una o varias).
+
+**CELE — Curso de Español como Lengua Extranjera** (tiempo parcial; incluye
+**Español de los Negocios**)
+- **6 h/semana**. Otoño **60 h** (6 oct–17 dic) · Primavera **60 h**
+  (2 mar–13 may) · ambos **120 h**.
+- Grupos por franja: **Lunes-Miércoles** y **Martes-Jueves**.
+
+> **Idea clave para el motor:** la unidad de horario son **franjas semanales
+> recurrentes** (L-X, M-J, viernes; mañana/tarde). Cada asignatura ocupa una
+> franja durante todo el semestre → **un profesor no puede tener dos asignaturas
+> en la misma franja**. CILE/CILYC son intensivos (bloque diario), CEH/CLCE/CELE
+> van por asignaturas en franjas.
+
+### Calendario de cierres 2025/26 (sin docencia)
+- **Agosto**: centro cerrado.
+- **Fines de semana** (sáb/dom) siempre cerrado.
+- Festivos: **13 oct 2025**, **8 dic 2025**, **Navidad 22 dic 2025–4 ene 2026**,
+  **Semana Santa 30 mar–3 abr 2026**, **1 may 2026**, **Corpus 4–5 jun 2026**.
 
 ### B. Exámenes de acreditación de nivel
 - *(Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)*
