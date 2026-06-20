@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
@@ -26,7 +29,38 @@ async function setRoleAction(formData: FormData) {
   redirect("/panel/roles");
 }
 
-export default async function RolesPage() {
+/** Crear/habilitar una cuenta del centro. SOLO el superadministrador. */
+async function createAdminAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/roles");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim() || null;
+  const staffRole = STAFF_ROLES.some((r) => r.value === formData.get("staffRole")) ? String(formData.get("staffRole")) : null;
+  if (!email.includes("@")) redirect("/panel/roles?m=mail");
+
+  const existing = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.email, email)).limit(1))[0];
+  if (existing) {
+    if (existing.role === "superadmin") redirect("/panel/roles?m=super");
+    await db.update(users).set({ role: "admin", tenantId: tenant.id, staffRole, ...(name ? { name } : {}) }).where(eq(users.id, existing.id));
+    revalidatePath("/panel/roles");
+    redirect("/panel/roles?m=asignada");
+  }
+  await db.insert(users).values({ email, name, role: "admin", tenantId: tenant.id, staffRole });
+  revalidatePath("/panel/roles");
+  redirect("/panel/roles?m=creada");
+}
+
+const MSG: Record<string, { ok: boolean; text: string }> = {
+  creada: { ok: true, text: "✓ Cuenta creada. Entrará con el enlace mágico que reciba al iniciar sesión con su correo." },
+  asignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora pertenece a este centro con el rol indicado." },
+  mail: { ok: false, text: "Introduce un correo válido." },
+  super: { ok: false, text: "Ese correo es de un superadministrador; no se puede asignar como cuenta del centro." },
+};
+
+export default async function RolesPage({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
@@ -34,6 +68,9 @@ export default async function RolesPage() {
   const tenant = await getCurrentTenant();
   const admins = tenant ? await listCenterAdmins(tenant.id) : [];
   const canManage = await canManageRoles(session.userId, session.role);
+  const isSuper = session.role === "superadmin";
+  const sp = await searchParams;
+  const msg = sp.m ? MSG[sp.m] : null;
 
   return (
     <div className="min-h-screen bg-[#faf6ee]">
@@ -47,10 +84,36 @@ export default async function RolesPage() {
           <a href="/panel/horas" className="text-sm font-medium text-cyan-700 hover:underline">← Control de horas</a>
         </div>
 
+        {msg && (
+          <p className={`rounded-lg p-3 text-sm ${msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"}`}>{msg.text}</p>
+        )}
+
         {!canManage && (
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
             Solo Dirección o Subdirección pueden cambiar los roles. Puedes consultarlos.
           </p>
+        )}
+
+        {isSuper && (
+          <section className="rounded-xl border border-cyan-200 bg-cyan-50/50 p-4">
+            <h2 className="text-sm font-semibold text-slate-800">Añadir cuenta al centro</h2>
+            <p className="mb-3 text-xs text-slate-500">Solo el superadministrador crea cuentas. Entrará con enlace mágico al iniciar sesión con su correo.</p>
+            <form action={createAdminAction} className="flex flex-wrap items-end gap-2">
+              <label className="flex flex-col text-xs text-slate-600">Correo
+                <input name="email" type="email" required placeholder="informa@blablaele.com" className="mt-1 w-64 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">Nombre (opcional)
+                <input name="name" type="text" className="mt-1 w-44 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+              </label>
+              <label className="flex flex-col text-xs text-slate-600">Rol
+                <select name="staffRole" defaultValue="" className="mt-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+                  <option value="">Sin rol</option>
+                  {STAFF_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+              </label>
+              <button className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white hover:bg-cyan-800">Crear cuenta</button>
+            </form>
+          </section>
         )}
 
         <section className="overflow-x-auto rounded-xl border border-[#e7dcc4] bg-white shadow-sm">
