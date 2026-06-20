@@ -11,6 +11,9 @@
 2. **Después, cuadrar los cursos en el calendario.** La parte más compleja:
    encajar **cursos de un mes** con **cursos de 15 días** sin solapes y respetando
    horas/disponibilidad de cada profesor.
+   - Los **cursos de 15 días son los menos frecuentes**: ocurren sobre todo en
+     **junio y julio**, aunque puede haber alguno en cualquier momento del año.
+     Lo habitual es el curso de mes; las quincenas son la excepción a encajar.
 
 ## Catálogo de cursos
 
@@ -52,6 +55,12 @@
   profesor; respetar las asignaciones recurrentes de contenido.
 - **El puzzle**: encajar 1 mes vs 2×15 días en el mismo hueco/franja (un curso de
   mes ↔ dos quincenas encadenadas) sin chocar con la disponibilidad ni las horas.
+
+## Asignaturas
+
+> Pendiente: la subdirección pasará el listado completo de asignaturas. Aquí se
+> recogerá (nombre, programa/curso al que pertenece, nivel/requisito, idioma,
+> profesor(es) habitual(es), franja, horas).
 
 ## Preguntas abiertas (para cuando construyamos)
 
