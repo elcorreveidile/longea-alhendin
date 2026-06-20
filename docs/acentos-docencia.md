@@ -217,6 +217,33 @@ la subdirección):
   Yolanda García (CEPE-UNAM), Lubna Sallakh (CLM-UGR). Fechas: 2 jun – 2 jul 2026.
   **20 h** (10 sesiones de 2 h). Horario 18:00–20:00 (peninsular).
 
+## Horarios y grupos (estructura real)
+
+> Fuente: "Horarios_grupos.pdf" — horario real de un **Curso Intensivo de Lengua y
+> Cultura (2–29 julio)**. Confirma la **unidad de reparto** y el formato de horario.
+> (Los nombres reales del profesorado se usan solo como referencia interna; los
+> datos de demo del producto siguen siendo ficticios.)
+
+- **Unidad = grupo de una asignatura**: `{ asignatura, código de grupo (p. ej.
+  0A01, 0401), profesor(es), aula, horario = franja(s) + días }`. Esto es lo que el
+  motor asigna.
+- **"SIN ASIGNAR"** aparece literalmente como profesor en varios grupos → **es justo
+  lo que el motor debe cubrir** (plazas docentes sin profesor).
+- **Franjas horarias concretas** (intensivo de verano, clases **L–V todos los
+  días**):
+  - Cultura/contenido: bloques de ~70 min — **08:40, 09:50, 11:00, 12:10, 13:20**
+    (hasta 14:30).
+  - Lengua: bloques largos — **08:30–10:45** o **12:10–14:25**.
+- Un **mismo profesor imparte varias asignaturas** en franjas distintas no
+  solapadas (p. ej. el de Geografía/Historia da varias en horas seguidas; el de
+  Literatura da una a las 08:40).
+- Hay **asignaturas combinadas** (dos asignaturas + dos profesores en franjas
+  contiguas, p. ej. "Civilización y Cultura Españolas e Hispanoamericanas").
+- **Aulas** como recurso: sedes A (Hospicio Viejo), B (Huerta de los Ángeles), ETSI.
+  No se puede doble-reservar un aula a la vez (restricción secundaria).
+- En CEH/CLCE el patrón será **L-X / M-J** (no L–V), pero la unidad es la misma:
+  asignatura → grupo → franja semanal → profesor.
+
 ## Preguntas abiertas (para cuando construyamos)
 
 1. ¿Los cursos tienen **horario concreto** (p. ej. L–V 9:00–11:00) o basta con
