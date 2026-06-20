@@ -90,13 +90,25 @@ la subdirección):
     (2 oct, 6 nov, 18 dic); finales 17–22 dic.
   - Franjas primavera: grupos **L-X** (5 mar / 7 may) y **M-J** (9 abr); finales
     18–21 may.
+- **CELE** (tiempo parcial, 6 h/semana): **Otoño 5 oct – 16 dic 2026** (60 h) ·
+  **Primavera 8 mar – 24 may 2027** (60 h) · **ambos 120 h**. Grupos por franja
+  L-X / M-J. Pruebas de nivel: 30 sep (otoño) y 3 mar (primavera).
 - **Cierres 26/27**: agosto cerrado; fines de semana; **12 oct 2026**,
   **2 nov 2026**, **7 y 8 dic 2026**, **Navidad 21 dic 2026–6 ene 2027**,
   **1 mar 2027** (Día de Andalucía), **Semana Santa 22–26 mar 2027**,
   **3 may 2027**, **Corpus 27–28 may 2027**.
 
+### Pruebas de nivel (acceso a los cursos)
+- Todos los cursos exigen **prueba de nivel** (las fechas constan por curso
+  arriba). Duran 2–3 h (3–4 h para CEH/CLCE); **no** cuentan como horas de
+  docencia, pero ocupan profesorado (las redactan/corrigen/vigilan).
+- **Estudiantes de programas de movilidad** (ERASMUS, ERASMUS MUNDUS…): prueba de
+  nivel **gratuita**. Convocatorias 26/27: **16 sep 2026** (9:00 y 16:00) y
+  **23 sep 2026** (16:00).
+
 ### B. Exámenes de acreditación de nivel
-- *(Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)*
+- *(Pendiente de detalle: tipos de examen —DELE/SIELE…—, fechas, profesorado que
+  examina/vigila.)*
 
 ### C. Formación de profesores
 - Modalidad **presencial** y **online**.
