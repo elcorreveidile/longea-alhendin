@@ -17,27 +17,48 @@
 
 ## Catálogo de cursos
 
-El centro organiza la actividad en **tres grandes categorías** (la subdirección
-detallará el contenido de cada una):
+La actividad del centro se agrupa, a alto nivel, en **tres grandes áreas** (según
+la subdirección):
 
-### 1. Cursos de español
-- **Intensivos.** Todos los meses del año **excepto agosto** (centro cerrado,
-  profesorado de vacaciones). En septiembre, "intensivos de septiembre".
-- **Estudios Hispánicos** (Estudios de Lengua y Cultura Española). Periodos:
-  **octubre–diciembre** y **febrero–mayo**.
-  - *Estudios Hispánicos*: requiere **mínimo B2**.
-  - *Estudios de Lengua y Cultura Española*: la diferencia es que **no** exige B2.
-  - Hay variante **impartida en inglés** (el profesor debe poder dar clase en
-    inglés → el idioma de impartición importa).
-- **Cursos de diseño especial** (a medida).
-- **Máster**, etc.
+- **A. Cursos de español** (lo más extenso; ver el detalle por bloques abajo).
+- **B. Exámenes de acreditación de nivel** *(pendiente de detalle)*.
+- **C. Formación de profesores**, presencial y online *(pendiente de detalle)*.
 
-### 2. Exámenes de acreditación de nivel
-- (Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)
+### A. Cursos de español — bloques de la oferta pública
 
-### 3. Formación de profesores
+> Tomado del catálogo público del CLM. Cada "curso" es un programa que por dentro
+> tiene asignaturas; algunos comparten asignaturas (p. ej. las de verano se pueden
+> cursar sueltas).
+
+**A.1 Cursos de español** (lengua, generales)
+- **Curso Intensivo de Lengua Española** — a **tiempo completo**, muy popular entre
+  estudiantes internacionales. (Los "intensivos" del calendario.)
+- **Curso de Español como Lengua Extranjera (ELE)** — a **tiempo parcial**, para
+  estudiantes y profesionales con disponibilidad limitada.
+
+**A.2 Cursos de lengua y cultura**
+- **Curso de Lengua y Cultura Españolas** — programa integral de inmersión
+  lingüística y cultural.
+- **Curso de Estudios Hispánicos** — programa integral; requiere **mínimo B2**.
+- **Curso de verano de Lengua y Cultura** — intensivo combinado de lengua + cultura
+  en verano.
+- **Asignaturas de Lengua y Cultura Españolas en Verano** — asignaturas sueltas,
+  cursables de forma independiente en los meses de verano. (Encaja con que las
+  quincenas/cursos cortos sean sobre todo de jun/jul.)
+- **Acercamiento a las Culturas Mexicana y Española** (3ª edición) — proyecto en
+  colaboración con la **UNAM** (Universidad Nacional Autónoma de México).
+
+**A.3 Cursos en colaboración con el Instituto Cervantes** (programa "Cultura se
+escribe contigo")
+- **al-Ándalus: Granada y La Alhambra**.
+- **Cultura y comunicación en España**.
+
+### B. Exámenes de acreditación de nivel
+- *(Pendiente de detalle: tipos de examen, fechas, profesorado que examina/vigila.)*
+
+### C. Formación de profesores
 - Modalidad **presencial** y **online**.
-- (Pendiente de detalle.)
+- *(Pendiente de detalle.)*
 
 ## Calendario (resumen)
 
