@@ -336,6 +336,19 @@ export type Worker = typeof workers.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Cuadrante = typeof cuadrantes.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
+
+// Lista de bloqueo de spam (términos, correos y dominios).
+export const spamBlocklist = pgTable(
+  "spam_blocklist",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    kind: text("kind").notNull(), // term | email | domain
+    value: text("value").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("spam_blocklist_kind_value_idx").on(t.kind, t.value)],
+);
+export type SpamBlock = typeof spamBlocklist.$inferSelect;
 export type TeacherProfile = typeof teacherProfiles.$inferSelect;
 export type HourEntry = typeof hourEntries.$inferSelect;
 export type CourseProgram = typeof coursePrograms.$inferSelect;

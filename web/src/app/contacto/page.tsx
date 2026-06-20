@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { sendContactEmail } from "@/lib/email";
 import { createLead } from "@/db/leads";
-import { scoreLeadSpam } from "@/lib/spam";
+import { scoreLeadSpam, matchesBlocklist } from "@/lib/spam";
+import { listBlocklist } from "@/db/spam-blocklist";
 import DevCredit from "@/components/DevCredit";
 
 const MSG: Record<string, string> = {
@@ -24,21 +25,28 @@ async function contactAction(formData: FormData) {
 
   if (!name || !email.includes("@") || !message) redirect("/contacto?error=faltan");
 
-  // Filtro antispam (agencias de marketing/web/apps). Se guarda igualmente para
-  // poder revisarlo, pero marcado como spam y SIN avisar por correo.
+  // Filtro antispam: lista de bloqueo gestionable + heurística por contenido.
+  // Se guarda igualmente para revisarlo, pero marcado como spam y SIN avisar.
+  let blocked = { blocked: false } as { blocked: boolean; reason?: string };
+  try {
+    blocked = matchesBlocklist({ name, email, org, message }, await listBlocklist());
+  } catch (e) {
+    console.error("[contacto] no se pudo leer la lista de bloqueo:", e);
+  }
   const verdict = scoreLeadSpam({ name, email, org, message });
-  if (verdict.spam) console.warn("[contacto] descartado como spam:", verdict.reasons.join("; "));
+  const isSpam = blocked.blocked || verdict.spam;
+  if (isSpam) console.warn("[contacto] descartado como spam:", blocked.reason ?? verdict.reasons.join("; "));
 
   // Guarda el interesado para que el superadmin pueda gestionarlo después.
   // Si la BD fallara, no debe impedir el aviso por email.
   try {
-    await createLead({ name, email, org: org || undefined, message, source: "contacto", spam: verdict.spam });
+    await createLead({ name, email, org: org || undefined, message, source: "contacto", spam: isSpam });
   } catch (e) {
     console.error("[contacto] no se pudo guardar el lead:", e);
   }
 
   // El spam no llega al buzón; al remitente se le muestra "enviado" igualmente.
-  if (verdict.spam) redirect("/contacto?enviado=1");
+  if (isSpam) redirect("/contacto?enviado=1");
 
   let ok = true;
   try {

@@ -25,6 +25,25 @@ export interface SpamVerdict {
   reasons: string[];
 }
 
+/** Comprueba la lista de bloqueo gestionable (términos, correos, dominios). */
+export function matchesBlocklist(
+  data: { name?: string; email?: string; org?: string; message?: string },
+  entries: { kind: string; value: string }[],
+): { blocked: boolean; reason?: string } {
+  const email = (data.email ?? "").trim().toLowerCase();
+  const domain = email.includes("@") ? email.split("@")[1] : "";
+  const text = `${data.name ?? ""} ${data.org ?? ""} ${data.message ?? ""}`.toLowerCase();
+
+  for (const e of entries) {
+    const v = e.value.toLowerCase();
+    if (!v) continue;
+    if (e.kind === "email" && email === v) return { blocked: true, reason: `correo bloqueado (${v})` };
+    if (e.kind === "domain" && (domain === v || domain.endsWith(`.${v}`))) return { blocked: true, reason: `dominio bloqueado (${v})` };
+    if (e.kind === "term" && text.includes(v)) return { blocked: true, reason: `término bloqueado (${v})` };
+  }
+  return { blocked: false };
+}
+
 export function scoreLeadSpam(data: {
   name?: string;
   email?: string;

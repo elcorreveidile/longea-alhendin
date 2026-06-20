@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
 import { listLeads, getLead, setLeadStatus, setLeadSpam, deleteLead, type LeadStatus } from "@/db/leads";
 import { sendLeadReply } from "@/lib/email";
+import { listBlocklist, addBlock, removeBlock, type BlockKind } from "@/db/spam-blocklist";
 import ConfirmButton from "@/components/ConfirmButton";
 import type { Lead } from "@/db/schema";
 
@@ -14,7 +15,11 @@ const MSG: Record<string, { ok: boolean; text: string }> = {
   borrado: { ok: true, text: "✓ Interesado eliminado." },
   spam: { ok: true, text: "✓ Marcado como spam y archivado. No volverá a avisarte por correo." },
   nospam: { ok: true, text: "✓ Restaurado: ya no está marcado como spam." },
+  bloqueado: { ok: true, text: "✓ Añadido a la lista de bloqueo. Sus próximos mensajes se descartarán." },
+  desbloqueado: { ok: true, text: "✓ Quitado de la lista de bloqueo." },
 };
+
+const BLOCK_LABEL: Record<BlockKind, string> = { term: "Término", email: "Correo", domain: "Dominio" };
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
   new: "Nuevo",
@@ -49,6 +54,31 @@ async function spamAction(formData: FormData) {
   if (id) await setLeadSpam(id, spam);
   revalidatePath("/admin/leads");
   redirect(`/admin/leads?m=${spam ? "spam" : "nospam"}`);
+}
+
+async function blockAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const kind = String(formData.get("kind") ?? "") as BlockKind;
+  const value = String(formData.get("value") ?? "").trim();
+  const leadId = String(formData.get("leadId") ?? "");
+  if (["term", "email", "domain"].includes(kind) && value) {
+    await addBlock(kind, value);
+    if (leadId) await setLeadSpam(leadId, true); // bloqueo desde un lead: márcalo spam
+  }
+  revalidatePath("/admin/leads");
+  redirect("/admin/leads?m=bloqueado");
+}
+
+async function unblockAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  if (id) await removeBlock(id);
+  revalidatePath("/admin/leads");
+  redirect("/admin/leads?m=desbloqueado");
 }
 
 async function deleteAction(formData: FormData) {
@@ -133,6 +163,20 @@ function LeadCard({ l, isSpam }: { l: Lead; isSpam: boolean }) {
             {isSpam ? "No es spam" : "Marcar spam"}
           </button>
         </form>
+        <form action={blockAction}>
+          <input type="hidden" name="kind" value="email" />
+          <input type="hidden" name="value" value={l.email} />
+          <input type="hidden" name="leadId" value={l.id} />
+          <button className="rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50">Bloquear correo</button>
+        </form>
+        {l.email.includes("@") && (
+          <form action={blockAction}>
+            <input type="hidden" name="kind" value="domain" />
+            <input type="hidden" name="value" value={l.email.split("@")[1]} />
+            <input type="hidden" name="leadId" value={l.id} />
+            <button className="rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50">Bloquear dominio</button>
+          </form>
+        )}
         <form action={deleteAction} className="ml-auto">
           <input type="hidden" name="id" value={l.id} />
           <ConfirmButton
@@ -187,6 +231,7 @@ export default async function LeadsPage({
   const ham = leads.filter((l) => !l.spam);
   const spam = leads.filter((l) => l.spam);
   const pending = ham.filter((l) => l.status !== "archived").length;
+  const blocklist = await listBlocklist();
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
@@ -205,6 +250,42 @@ export default async function LeadsPage({
         {ham.map((l) => <LeadCard key={l.id} l={l} isSpam={false} />)}
         {!ham.length && <p className="text-sm text-slate-500">Aún no hay interesados reales.</p>}
       </div>
+
+      <details className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+          Lista de bloqueo ({blocklist.length})
+        </summary>
+        <p className="mt-1 text-xs text-slate-400">
+          Cualquier mensaje que coincida con un <strong>término</strong>, <strong>correo</strong> o <strong>dominio</strong> de esta lista se descarta automáticamente, además del filtro por contenido.
+        </p>
+        <form action={blockAction} className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="flex flex-col text-xs text-slate-600">Tipo
+            <select name="kind" defaultValue="domain" className="mt-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+              <option value="domain">Dominio (p. ej. agencia.com)</option>
+              <option value="email">Correo exacto</option>
+              <option value="term">Término / frase</option>
+            </select>
+          </label>
+          <label className="flex flex-col text-xs text-slate-600">Valor
+            <input name="value" required placeholder="agencia.com" className="mt-1 w-64 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          </label>
+          <button className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900">Añadir a la lista</button>
+        </form>
+        {blocklist.length > 0 && (
+          <ul className="mt-4 divide-y divide-slate-100 text-sm">
+            {blocklist.map((b) => (
+              <li key={b.id} className="flex items-center gap-2 py-2">
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">{BLOCK_LABEL[b.kind as BlockKind] ?? b.kind}</span>
+                <span className="font-mono text-slate-700">{b.value}</span>
+                <form action={unblockAction} className="ml-auto">
+                  <input type="hidden" name="id" value={b.id} />
+                  <button className="text-xs font-medium text-cyan-700 hover:underline">Quitar</button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </details>
 
       {spam.length > 0 && (
         <details className="mt-8">
