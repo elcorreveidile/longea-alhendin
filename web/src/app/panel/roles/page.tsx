@@ -6,6 +6,7 @@ import { users } from "@/db/schema";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
+import { requestMagicLink } from "@/lib/auth";
 import { STAFF_ROLES, STAFF_ROLE_LABEL, listCenterAdmins, setStaffRole, getStaffRole } from "@/lib/staff-roles";
 import ConfirmButton from "@/components/ConfirmButton";
 import TopBar from "@/components/TopBar";
@@ -90,8 +91,21 @@ async function deleteAdminAction(formData: FormData) {
   redirect("/panel/roles?m=suprimida");
 }
 
+/** Envía el enlace mágico de acceso a una cuenta del centro. SOLO el superadministrador. */
+async function inviteAction(formData: FormData) {
+  "use server";
+  const session = await getSession();
+  if (!session || session.role !== "superadmin") redirect("/login");
+  const userId = String(formData.get("userId") ?? "");
+  const u = (await db.select({ email: users.email }).from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!u?.email) redirect("/panel/roles?m=mail");
+  await requestMagicLink(u.email);
+  redirect("/panel/roles?m=invitado");
+}
+
 const MSG: Record<string, { ok: boolean; text: string }> = {
-  creada: { ok: true, text: "✓ Cuenta creada. Entrará con el enlace mágico que reciba al iniciar sesión con su correo." },
+  creada: { ok: true, text: "✓ Cuenta creada. Pulsa «Enviar acceso» para mandarle el enlace de entrada por correo." },
+  invitado: { ok: true, text: "✓ Acceso enviado. Recibirá en su correo un enlace para iniciar sesión." },
   asignada: { ok: true, text: "✓ Esa cuenta ya existía y ahora pertenece a este centro con el rol indicado." },
   renombrada: { ok: true, text: "✓ Nombre actualizado." },
   actualizada: { ok: true, text: "✓ Cuenta actualizada (nombre y correo)." },
@@ -191,7 +205,11 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
                   </td>
                   {isSuper && (
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <form action={inviteAction}>
+                          <input type="hidden" name="userId" value={a.id} />
+                          <button className="rounded-lg border border-cyan-200 px-2 py-1.5 text-xs font-medium text-cyan-700 hover:bg-cyan-50">Enviar acceso</button>
+                        </form>
                         <form action={renameAction} className="flex flex-wrap items-center gap-1">
                           <input type="hidden" name="userId" value={a.id} />
                           <input name="name" defaultValue={a.name ?? ""} placeholder="Nombre" className="w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
