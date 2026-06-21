@@ -4,7 +4,7 @@ import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { magicTokens } from "@/db/schema";
 
-const TTL_MS = 15 * 60 * 1000; // 15 minutos
+const TTL_MS = 60 * 60 * 1000; // 60 minutos (margen para correos que tardan en llegar)
 
 export function hashToken(raw: string): string {
   return createHash("sha256").update(raw).digest("hex");

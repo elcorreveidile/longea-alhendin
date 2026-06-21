@@ -251,12 +251,12 @@ export async function sendMagicLink(email: string, url: string): Promise<void> {
     to: email,
     subject: "Tu acceso a PlanTurnos",
     html: brandedEmail({
-      preheader: "Tu enlace de acceso (caduca en 15 minutos)",
+      preheader: "Tu enlace de acceso (caduca en 60 minutos)",
       bodyHtml: `
         <h1 style="margin:0 0 14px;font-size:18px;color:#0E7490">Tu acceso a PlanTurnos</h1>
         <p style="margin:0">Has solicitado acceder a tu cuenta. Pulsa el botón para entrar:</p>
         ${ctaButton(url, "Entrar →")}
-        <p style="margin:18px 0 0;font-size:13px;color:#6b7280">Este enlace caduca en 15 minutos y solo puede usarse una vez. Si no has sido tú, ignora este correo.</p>
+        <p style="margin:18px 0 0;font-size:13px;color:#6b7280">Este enlace caduca en 60 minutos y solo puede usarse una vez. Si no has sido tú, ignora este correo.</p>
       `,
     }),
   });
