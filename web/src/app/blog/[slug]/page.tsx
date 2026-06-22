@@ -58,7 +58,7 @@ export default async function PostPage({
 
         {post.cover && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/img/${post.cover}.webp`} alt={post.title} className="mt-6 h-64 w-full rounded-2xl object-cover object-top shadow-sm sm:h-80" />
+          <img src={`/img/${post.cover}.webp`} alt={post.title} style={{ objectPosition: "center 18%" }} className="mt-6 h-64 w-full rounded-2xl object-cover shadow-sm sm:h-80" />
         )}
 
         <div

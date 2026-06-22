@@ -35,7 +35,7 @@ export default function BlogPage() {
             >
               {p.cover && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={`/img/${p.cover}.webp`} alt={p.title} className="h-48 w-full object-cover object-top" />
+                <img src={`/img/${p.cover}.webp`} alt={p.title} style={{ objectPosition: "center 18%" }} className="h-48 w-full object-cover" />
               )}
               <div className="p-6">
                 <p className="text-xs font-medium uppercase tracking-widest text-[#8a6d3b]">{p.dateLabel}</p>
