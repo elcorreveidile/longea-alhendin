@@ -3,10 +3,11 @@
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
-// Google Tag Manager: SOLO se carga si el usuario ha dado su consentimiento
-// (analítica/marketing). El consentimiento se guarda en localStorage y el
-// banner de cookies dispara el evento "pt-consent-granted" al aceptar.
+// Google Tag Manager y Google Analytics 4: SOLO se cargan si el usuario ha
+// dado su consentimiento (analítica). El consentimiento se guarda en
+// localStorage y el banner de cookies dispara "pt-consent-granted" al aceptar.
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-PHR2QZBQ";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-GQXYK5J72P";
 
 export default function Analytics() {
   const [granted, setGranted] = useState(false);
@@ -42,6 +43,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           title="gtm"
         />
       </noscript>
+
+      {/* Google Analytics 4 (gtag.js) */}
+      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+      <Script id="ga4" strategy="afterInteractive">
+        {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+      </Script>
     </>
   );
 }
