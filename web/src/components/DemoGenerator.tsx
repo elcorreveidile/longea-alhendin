@@ -31,6 +31,10 @@ export default function DemoGenerator() {
     setLoading(true);
     setError(null);
     setRes(null);
+    // Evento GA4: uso del simulador de la demo (si hay analítica cargada).
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "demo_generar", { team_size: n });
+    }
     const workers = Array.from({ length: n }, (_, i) => ({
       id: `P${i + 1}`,
       name: `Persona ${i + 1}`,

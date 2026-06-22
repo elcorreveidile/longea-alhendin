@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import TrackEvent from "@/components/TrackEvent";
 import { sendContactEmail } from "@/lib/email";
 import { createLead } from "@/db/leads";
 import { scoreLeadSpam, matchesBlocklist } from "@/lib/spam";
@@ -79,6 +80,7 @@ export default async function ContactoPage({
 
         {sent ? (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <TrackEvent name="contacto_enviado" />
             ✓ ¡Mensaje enviado! Te responderemos pronto. Gracias por tu interés.
           </div>
         ) : (
