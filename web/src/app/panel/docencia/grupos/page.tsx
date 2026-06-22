@@ -128,19 +128,19 @@ export default async function GruposPage({ searchParams }: { searchParams: Promi
               <h2 className="font-semibold text-slate-800">Añadir plaza</h2>
               <form action={addGroupAction} className="mt-3 space-y-3">
                 <input type="hidden" name="termId" value={termId} />
-                <div className="flex flex-wrap items-end gap-3">
-                  <label className="text-sm">Asignatura
-                    <select name="subjectId" className={`${input} mt-1 block`}><option value="">— (sin asignatura)</option>{subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
+                  <label className="col-span-2 text-sm sm:col-span-1">Asignatura
+                    <select name="subjectId" className={`${input} mt-1 block w-full sm:w-56`}><option value="">— (sin asignatura)</option>{subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
                   </label>
-                  <label className="text-sm">Grupo<input name="groupCode" placeholder="0A01" className={`${input} mt-1 block w-24`} /></label>
+                  <label className="text-sm">Grupo<input name="groupCode" placeholder="0A01" className={`${input} mt-1 block w-full sm:w-24`} /></label>
                   <label className="text-sm">Tipo
-                    <select name="kind" className={`${input} mt-1 block`}>{KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
+                    <select name="kind" className={`${input} mt-1 block w-full sm:w-44`}>{KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
                   </label>
                   <label className="text-sm">Idioma
-                    <select name="language" className={`${input} mt-1 block`}><option value="es">Español</option><option value="en">Inglés</option></select>
+                    <select name="language" className={`${input} mt-1 block w-full sm:w-32`}><option value="es">Español</option><option value="en">Inglés</option></select>
                   </label>
-                  <label className="text-sm">Nivel<input name="level" placeholder="B2" className={`${input} mt-1 block w-20`} /></label>
-                  <label className="text-sm">Horas<input name="hours" type="number" step="0.25" min="0" placeholder="45" className={`${input} mt-1 block w-24`} /></label>
+                  <label className="text-sm">Nivel<input name="level" placeholder="B2" className={`${input} mt-1 block w-full sm:w-20`} /></label>
+                  <label className="text-sm">Horas<input name="hours" type="number" step="0.25" min="0" placeholder="45" className={`${input} mt-1 block w-full sm:w-24`} /></label>
                 </div>
                 <div className="flex flex-wrap items-end gap-3">
                   <fieldset className="text-sm">
