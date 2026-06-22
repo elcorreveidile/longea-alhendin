@@ -25,7 +25,7 @@ export default async function DocenciaPage() {
   return (
     <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
-      <main className="mx-auto max-w-[1100px] space-y-5 p-6">
+      <main className="mx-auto max-w-[1100px] space-y-5 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Docencia (reparto)</h1>

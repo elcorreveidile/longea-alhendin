@@ -103,7 +103,7 @@ export default async function GruposPage({ searchParams }: { searchParams: Promi
   return (
     <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
-      <main className="mx-auto max-w-[1100px] space-y-6 p-6">
+      <main className="mx-auto max-w-[1100px] space-y-6 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Grupos / plazas</h1>
           <a href="/panel/docencia" className="text-sm font-medium text-cyan-700 hover:underline">← Docencia</a>

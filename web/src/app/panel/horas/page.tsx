@@ -114,7 +114,7 @@ export default async function HorasPage({
   return (
     <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
-      <main className="mx-auto max-w-[1200px] space-y-5 p-6">
+      <main className="mx-auto max-w-[1200px] space-y-5 p-4 sm:p-6">
         <div className="flex flex-wrap justify-end gap-2 print:hidden">
           <a
             href="/panel/roles"
