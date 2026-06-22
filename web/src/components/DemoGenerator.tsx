@@ -20,6 +20,36 @@ function nextMonday(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Personas mínimas estimadas para cubrir la cobertura una semana respetando
+ *  descansos (cada persona ~6 días/semana como mucho). Estimación, no exacta. */
+function minStaff(cov: { M: number; T: number; N: number }): number {
+  const perDay = cov.M + cov.T + cov.N;
+  if (perDay === 0) return 0;
+  return Math.max(perDay, Math.ceil((perDay * 7) / 6));
+}
+
+/** Comprueba, turno a turno, qué falta por cubrir respecto a lo pedido. */
+function coverageGaps(
+  assignments: Record<string, string[]>,
+  weekdays: string[],
+  cov: { M: number; T: number; N: number },
+) {
+  const ids = Object.keys(assignments);
+  const byShift: Record<"M" | "T" | "N", string[]> = { M: [], T: [], N: [] };
+  let total = 0;
+  for (let day = 0; day < weekdays.length; day++) {
+    (["M", "T", "N"] as const).forEach((s) => {
+      const have = ids.filter((id) => assignments[id][day] === s).length;
+      const miss = cov[s] - have;
+      if (miss > 0) {
+        total += miss;
+        byShift[s].push(weekdays[day]);
+      }
+    });
+  }
+  return { total, byShift };
+}
+
 export default function DemoGenerator() {
   const [n, setN] = useState(12);
   const [cov, setCov] = useState({ M: 4, T: 4, N: 2 });
@@ -109,6 +139,16 @@ export default function DemoGenerator() {
       <p className="mt-3 text-xs text-slate-400">
         Datos de ejemplo (Persona 1, 2, 3…). El motor cuadra una semana real respetando descansos y máximos.
       </p>
+      {(() => {
+        const min = minStaff(cov);
+        const tight = n < min;
+        return (
+          <p className={`mt-1 text-xs ${tight ? "font-medium text-amber-600" : "text-slate-400"}`}>
+            Para cubrir {cov.M}+{cov.T}+{cov.N} por turno toda la semana respetando descansos hacen falta ~{min} personas
+            {tight ? ` · con ${n} faltarán turnos por cubrir.` : "."}
+          </p>
+        );
+      })()}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {([["M", "Mañana"], ["T", "Tarde"], ["N", "Noche"], ["D", "Descanso"], ["V", "Vacaciones"]] as const).map(
@@ -121,6 +161,29 @@ export default function DemoGenerator() {
       </div>
 
       {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+
+      {res?.assignments && res.weekdays && (() => {
+        const { total, byShift } = coverageGaps(res.assignments, res.weekdays, cov);
+        const NAME: Record<string, string> = { M: "Mañana", T: "Tarde", N: "Noche" };
+        if (total === 0) {
+          return (
+            <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
+              ✓ Todos los turnos quedan cubiertos respetando descansos y máximos.
+            </p>
+          );
+        }
+        const detail = (["M", "T", "N"] as const)
+          .filter((s) => byShift[s].length)
+          .map((s) => `${NAME[s]} (${byShift[s].join(", ")})`)
+          .join("; ");
+        return (
+          <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            ⚠️ Con {n} personas no se pueden cubrir todos los turnos respetando los descansos:{" "}
+            <strong>faltan {total} turno{total === 1 ? "" : "s"}</strong> — {detail}. El motor genera igualmente el mejor
+            cuadrante posible y te marca lo que falta. Para cubrirlo todo harían falta ~{minStaff(cov)} personas.
+          </p>
+        );
+      })()}
 
       {res?.assignments && res.weekdays && (
         <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200">
