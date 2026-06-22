@@ -130,3 +130,13 @@ export const ABSENCE_STATUS: Record<string, { label: string; cls: string }> = {
   aprobada: { label: "Aprobada", cls: "bg-emerald-100 text-emerald-800" },
   rechazada: { label: "Rechazada", cls: "bg-red-100 text-red-700" },
 };
+
+// Color de banda por tipo de ausencia (fondo claro + texto).
+export const ABSENCE_BAND: Record<string, string> = {
+  vacaciones: "bg-sky-100 text-sky-900",
+  asuntos_propios: "bg-violet-100 text-violet-900",
+  permiso: "bg-cyan-100 text-cyan-900",
+  no_retribuido: "bg-slate-100 text-slate-700",
+  baja_medica: "bg-rose-100 text-rose-900",
+  otro: "bg-amber-100 text-amber-900",
+};

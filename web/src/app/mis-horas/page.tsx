@@ -9,7 +9,7 @@ import { listMessagesForRecipient } from "@/db/staff-messages";
 import { HOUR_CONCEPTS, conceptLabel, courseYearStart, courseYearLabel } from "@/data/hour-concepts";
 import ConfirmButton from "@/components/ConfirmButton";
 import DownloadJustificante from "@/components/DownloadJustificante";
-import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS } from "@/components/FichaAcademica";
+import { DocenciaSecciones, SeccionAcademica, ABSENCE_KINDS, ABSENCE_LABEL, ABSENCE_STATUS, ABSENCE_BAND } from "@/components/FichaAcademica";
 import WeeklyTimetable from "@/components/WeeklyTimetable";
 import HoursPicker from "@/components/HoursPicker";
 import TopBar from "@/components/TopBar";
@@ -234,23 +234,27 @@ export default async function MisHorasPage() {
               {absences.length === 0 ? (
                 <p className="font-serif text-sm text-slate-500">No has avisado de ninguna ausencia este curso.</p>
               ) : (
-                <ul className="mb-3 divide-y divide-slate-100 text-sm">
+                <ul className="mb-3 space-y-1.5">
                   {absences.map((a) => {
                     const st = ABSENCE_STATUS[a.status] ?? ABSENCE_STATUS.aprobada;
                     return (
-                      <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                        <span className="text-slate-700">
-                          <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
-                          <span className="ml-2">{fmtDate(a.startDate)} → {fmtDate(a.endDate)}</span>
-                          {a.note ? <span className="text-slate-400"> · {a.note}</span> : null}
-                          <span className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
-                        </span>
-                        {a.status === "solicitada" && (
-                          <form action={deleteMyAbsenceAction}>
-                            <input type="hidden" name="id" value={a.id} />
-                            <ConfirmButton confirm="¿Retirar esta solicitud de ausencia?" className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50">Retirar</ConfirmButton>
-                          </form>
-                        )}
+                      <li key={a.id}>
+                        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-xl px-3 py-2.5 ${ABSENCE_BAND[a.kind] ?? "bg-slate-100 text-slate-700"}`}>
+                          <div className="min-w-0">
+                            <span className="text-sm font-semibold">{ABSENCE_LABEL[a.kind] ?? a.kind}</span>
+                            <span className="ml-2 text-sm opacity-80">{fmtDate(a.startDate)} → {fmtDate(a.endDate)}</span>
+                            {a.note ? <span className="text-sm opacity-60"> · {a.note}</span> : null}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`rounded px-2 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
+                            {a.status === "solicitada" && (
+                              <form action={deleteMyAbsenceAction}>
+                                <input type="hidden" name="id" value={a.id} />
+                                <ConfirmButton confirm="¿Retirar esta solicitud de ausencia?" className="rounded border border-slate-300/60 bg-white/60 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-white">Retirar</ConfirmButton>
+                              </form>
+                            )}
+                          </div>
+                        </div>
                       </li>
                     );
                   })}
