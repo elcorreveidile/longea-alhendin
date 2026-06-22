@@ -3,8 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireAcademiaPanel } from "@/lib/panel-guard";
-import { listSubjects, addSubject, deleteSubject, addSubjectsBulk } from "@/db/docencia";
-import { ACENTOS_SUBJECTS } from "@/data/acentos-subjects";
+import { listSubjects, addSubject, deleteSubject } from "@/db/docencia";
 import ConfirmButton from "@/components/ConfirmButton";
 import TopBar from "@/components/TopBar";
 
@@ -32,17 +31,6 @@ async function addSubjectAction(formData: FormData) {
   redirect("/panel/docencia/asignaturas");
 }
 
-async function loadCatalogAction() {
-  "use server";
-  const session = await getSession();
-  if (!session || !isStaffAdmin(session.role)) redirect("/login");
-  const tenant = await getCurrentTenant();
-  let n = 0;
-  if (tenant) n = await addSubjectsBulk(tenant.id, ACENTOS_SUBJECTS);
-  revalidatePath("/panel/docencia/asignaturas");
-  redirect(`/panel/docencia/asignaturas?loaded=${n}`);
-}
-
 async function deleteSubjectAction(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -54,42 +42,22 @@ async function deleteSubjectAction(formData: FormData) {
   redirect("/panel/docencia/asignaturas");
 }
 
-export default async function AsignaturasPage({ searchParams }: { searchParams: Promise<{ loaded?: string }> }) {
+export default async function AsignaturasPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (!isStaffAdmin(session.role)) redirect("/mi-turno");
   await requireAcademiaPanel();
   const tenant = await getCurrentTenant();
   const subjects = tenant ? await listSubjects(tenant.id) : [];
-  const sp = await searchParams;
-  const loaded = sp.loaded != null ? Number(sp.loaded) : null;
 
   return (
     <div className="min-h-screen bg-[#faf6ee]">
       <TopBar name={session.name} role={session.role} tenantName={tenant?.name} logoUrl={tenant?.logoUrl} />
-      <main className="mx-auto max-w-[1100px] space-y-6 p-6">
+      <main className="mx-auto max-w-[1100px] space-y-6 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Asignaturas</h1>
           <a href="/panel/docencia" className="text-sm font-medium text-cyan-700 hover:underline">← Docencia</a>
         </div>
-
-        {loaded != null && (
-          <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-            {loaded > 0 ? `✓ Añadidas ${loaded} asignaturas del catálogo CLM.` : "Ya estaban todas las del catálogo (no se duplicó ninguna)."}
-          </p>
-        )}
-
-        <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[#e7dcc4] bg-white p-4 shadow-sm">
-          <div className="text-sm text-slate-600">
-            <strong>Catálogo CLM:</strong> carga de una vez las {ACENTOS_SUBJECTS.length} asignaturas de
-            CLCE/CEH y verano (no duplica las que ya tengas).
-          </div>
-          <form action={loadCatalogAction} className="ml-auto">
-            <button className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
-              Cargar catálogo CLM ({ACENTOS_SUBJECTS.length})
-            </button>
-          </form>
-        </section>
 
         <section className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
           <h2 className="font-semibold text-slate-800">Añadir asignatura</h2>
