@@ -60,11 +60,11 @@ export default async function MiTurnoPage({
   const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month;
   const todayIdx = isCurrentMonth && now.getDate() - 1 < days ? now.getDate() - 1 : null;
 
-  // Próximos turnos de trabajo (M/T/N)
+  // Agenda de los próximos días (turnos como tarjeta, estados como banda).
   const from = todayIdx != null ? todayIdx + 1 : 0;
-  const upcoming: { day: number; wl: string; code: string }[] = [];
-  for (let i = from; i < days && upcoming.length < 6; i++) {
-    if (isWork(row[i])) upcoming.push({ day: i + 1, wl: weekdays[i], code: row[i] });
+  const agenda: { day: number; wl: string; code: string }[] = [];
+  for (let i = from; i < days && agenda.length < 7; i++) {
+    agenda.push({ day: i + 1, wl: weekdays[i], code: row[i] ?? "" });
   }
 
   // Resumen del mes
@@ -163,28 +163,43 @@ export default async function MiTurnoPage({
           </section>
         )}
 
-        {/* Próximos turnos */}
+        {/* Próximos días: turnos como tarjeta, estados (descanso/vacaciones…) como banda */}
         <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-semibold text-slate-700">Próximos turnos</h3>
-          {upcoming.length === 0 ? (
-            <p className="text-sm text-slate-400">No hay más turnos de trabajo este mes.</p>
+          <h3 className="mb-2 text-sm font-semibold text-slate-700">Próximos días</h3>
+          {agenda.length === 0 ? (
+            <p className="text-sm text-slate-400">No quedan más días este mes.</p>
           ) : (
             <ul className="space-y-1.5">
-              {upcoming.map((u) => (
-                <li key={u.day} className="flex items-stretch gap-3 rounded-xl border border-slate-100 bg-white py-2 pl-0 pr-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                  <span className={`w-1.5 shrink-0 rounded-full ${barFor(u.code)}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-800">{FULL[u.code] ?? shiftDef(u.code).label}</p>
-                    <p className="text-xs capitalize text-slate-400">{DAYNAME[u.wl] ?? u.wl} {u.day}</p>
-                  </div>
-                  {HOURS[u.code] && (
-                    <span className="flex items-center gap-1 self-center whitespace-nowrap text-sm font-medium text-slate-600">
-                      {HOURS[u.code]}
-                      <span className="text-slate-300" title="Incluye descanso">☕</span>
-                    </span>
-                  )}
-                </li>
-              ))}
+              {agenda.map((u) => {
+                const label = FULL[u.code] || shiftDef(u.code).label || "—";
+                const dayLabel = `${DAYNAME[u.wl] ?? u.wl} ${u.day}`;
+                if (isWork(u.code)) {
+                  return (
+                    <li key={u.day} className="flex items-stretch gap-3 rounded-xl border border-slate-100 bg-white py-2 pl-0 pr-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                      <span className={`w-1.5 shrink-0 rounded-full ${barFor(u.code)}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-800">{label}</p>
+                        <p className="text-xs capitalize text-slate-400">{dayLabel}</p>
+                      </div>
+                      {HOURS[u.code] && (
+                        <span className="flex items-center gap-1 self-center whitespace-nowrap text-sm font-medium text-slate-600">
+                          {HOURS[u.code]}
+                          <span className="text-slate-300" title="Incluye descanso">☕</span>
+                        </span>
+                      )}
+                    </li>
+                  );
+                }
+                // Estado especial (descanso, vacaciones…) como banda de color a todo el ancho.
+                return (
+                  <li key={u.day}>
+                    <div className={`flex items-center justify-between rounded-xl px-3 py-2.5 ${shiftDef(u.code).className}`}>
+                      <span className="text-sm font-semibold">{label}</span>
+                      <span className="text-xs capitalize opacity-70">{dayLabel}</span>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
