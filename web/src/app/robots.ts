@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = process.env.APP_URL || "https://planturnos.com";
+// Dominio canónico público para SEO. Independiente de APP_URL.
+const SITE_URL = process.env.SITE_URL || "https://planturnos.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {

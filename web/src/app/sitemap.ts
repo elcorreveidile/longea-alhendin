@@ -2,7 +2,9 @@ import type { MetadataRoute } from "next";
 import { SECTORES } from "@/data/sectores";
 import { POSTS } from "@/data/blog";
 
-const SITE_URL = process.env.APP_URL || "https://planturnos.com";
+// Dominio canónico público para SEO. Independiente de APP_URL (que en algunos
+// entornos apunta al dominio de Vercel). Se puede forzar con SITE_URL.
+const SITE_URL = process.env.SITE_URL || "https://planturnos.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
