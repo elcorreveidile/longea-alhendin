@@ -8,6 +8,7 @@ import { workers as workersT, users as usersT } from "@/db/schema";
 import { normalizePhone } from "@/lib/phone";
 import { requestMagicLink } from "@/lib/auth";
 import { getAccessCode, setAccessCode } from "@/lib/worker-access";
+import Avatar from "@/components/Avatar";
 import TopBar from "@/components/TopBar";
 
 const MSG: Record<string, { ok: boolean; text: string }> = {
@@ -166,7 +167,8 @@ export default async function AccesosPage({
                 <form action={saveAccessAction} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="workerId" value={w.id} />
                   <div className="flex min-w-[9rem] items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${hasPin ? "bg-emerald-500" : "bg-slate-300"}`} />
+                    <Avatar name={w.name} size={26} />
+                    <span className={`h-2 w-2 rounded-full ${hasPin ? "bg-emerald-500" : "bg-slate-300"}`} title={hasPin ? "PIN creado" : "Sin PIN"} />
                     <span className="font-medium text-slate-800">{w.name}</span>
                   </div>
                   <input

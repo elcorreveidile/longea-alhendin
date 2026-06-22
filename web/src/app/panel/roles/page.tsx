@@ -9,6 +9,7 @@ import { requireAcademiaPanel } from "@/lib/panel-guard";
 import { requestMagicLink } from "@/lib/auth";
 import { STAFF_ROLES, STAFF_ROLE_LABEL, listCenterAdmins, setStaffRole, getStaffRole } from "@/lib/staff-roles";
 import ConfirmButton from "@/components/ConfirmButton";
+import Avatar from "@/components/Avatar";
 import TopBar from "@/components/TopBar";
 
 /** Solo dirección/subdirección (o el superadmin) gestionan los roles del centro. */
@@ -183,8 +184,13 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
               {admins.map((a) => (
                 <tr key={a.id} className="border-b border-slate-100">
                   <td className="px-4 py-2">
-                    <div className="font-medium text-slate-800">{a.name || "—"}</div>
-                    <div className="text-xs text-slate-400">{a.email}</div>
+                    <div className="flex items-center gap-2">
+                      <Avatar name={a.name || a.email || "?"} size={28} />
+                      <div>
+                        <div className="font-medium text-slate-800">{a.name || "—"}</div>
+                        <div className="text-xs text-slate-400">{a.email}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     {a.staffRole
