@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { shiftDef } from "@/data/shifts";
 
+const SHIFT_NAME: Record<"M" | "T" | "N", string> = { M: "Mañana", T: "Tarde", N: "Noche" };
+
 interface Result {
   ok?: boolean;
   status?: string;
@@ -164,7 +166,6 @@ export default function DemoGenerator() {
 
       {res?.assignments && res.weekdays && (() => {
         const { total, byShift } = coverageGaps(res.assignments, res.weekdays, cov);
-        const NAME: Record<string, string> = { M: "Mañana", T: "Tarde", N: "Noche" };
         if (total === 0) {
           return (
             <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
@@ -174,7 +175,7 @@ export default function DemoGenerator() {
         }
         const detail = (["M", "T", "N"] as const)
           .filter((s) => byShift[s].length)
-          .map((s) => `${NAME[s]} (${byShift[s].join(", ")})`)
+          .map((s) => `${SHIFT_NAME[s]} (${byShift[s].join(", ")})`)
           .join("; ");
         return (
           <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
@@ -210,9 +211,40 @@ export default function DemoGenerator() {
                   })}
                 </tr>
               ))}
+              {/* Cobertura por turno: en rojo los días en que no se llega a lo pedido. */}
+              {(["M", "T", "N"] as const).filter((s) => cov[s] > 0).map((s, idx) => (
+                <tr key={`cov-${s}`} className={idx === 0 ? "border-t-2 border-slate-300" : "border-t border-slate-100"}>
+                  <td className="sticky left-0 z-10 whitespace-nowrap bg-slate-50 px-3 py-1 text-left font-medium text-slate-500">
+                    {SHIFT_NAME[s]} · piden {cov[s]}
+                  </td>
+                  {res.weekdays!.map((_, i) => {
+                    const have = ids.filter((id) => res.assignments![id][i] === s).length;
+                    const short = have < cov[s];
+                    return (
+                      <td key={i} className="bg-slate-50 p-0.5 text-center">
+                        <span
+                          className={`inline-block h-6 w-7 rounded text-center leading-6 font-semibold ${
+                            short ? "bg-red-100 text-red-700 ring-1 ring-red-300" : "bg-emerald-50 text-emerald-700"
+                          }`}
+                          title={short ? `Faltan ${cov[s] - have}` : "Cubierto"}
+                        >
+                          {have}
+                        </span>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {res?.assignments && (
+        <p className="mt-2 text-xs text-slate-400">
+          Las filas inferiores muestran la cobertura por turno cada día (personas asignadas). En{" "}
+          <span className="rounded bg-red-100 px-1 font-semibold text-red-700">rojo</span>, los turnos que quedan sin cubrir.
+        </p>
       )}
     </div>
   );
