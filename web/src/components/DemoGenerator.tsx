@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { shiftDef } from "@/data/shifts";
+import Avatar from "@/components/Avatar";
 
 const SHIFT_NAME: Record<"M" | "T" | "N", string> = { M: "Mañana", T: "Tarde", N: "Noche" };
 
@@ -200,7 +201,12 @@ export default function DemoGenerator() {
             <tbody>
               {ids.map((id) => (
                 <tr key={id} className="border-t border-slate-100">
-                  <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 font-medium text-slate-700">{id.replace("P", "Persona ")}</td>
+                  <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 font-medium text-slate-700">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Avatar name={id.replace("P", "Persona ")} size={18} />
+                      {id.replace("P", "Persona ")}
+                    </span>
+                  </td>
                   {res.assignments![id].map((c, i) => {
                     const def = shiftDef(c);
                     return (

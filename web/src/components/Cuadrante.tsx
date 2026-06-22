@@ -1,6 +1,7 @@
 "use client";
 
 import { shiftDef, WEEKEND_LETTERS } from "@/data/shifts";
+import Avatar from "@/components/Avatar";
 
 const MONTH_NAMES = [
   "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -113,7 +114,10 @@ export default function Cuadrante({
           return (
             <tr key={id} className={isSup ? "bg-slate-200/60" : ""}>
               <td className={`sticky left-0 z-10 whitespace-nowrap px-3 py-1 font-medium ${isSup ? "bg-slate-200" : "bg-white"}`}>
-                {data.names?.[id] ?? nameFor(id)}
+                <span className="inline-flex items-center gap-1.5">
+                  <Avatar name={data.names?.[id] ?? nameFor(id)} size={18} />
+                  {data.names?.[id] ?? nameFor(id)}
+                </span>
               </td>
               {row.map((code, d) => {
                 const floor = frow ? frow[d] : null;
