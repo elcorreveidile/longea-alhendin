@@ -21,6 +21,13 @@ const FULL: Record<string, string> = { M: "Mañana", T: "Tarde", N: "Noche", D: 
 const DAYNAME: Record<string, string> = {
   L: "lunes", M: "martes", X: "miércoles", J: "jueves", V: "viernes", S: "sábado", D: "domingo",
 };
+// Barra de color sólido por turno (acento lateral estilo app móvil).
+const BAR: Record<string, string> = {
+  M: "bg-emerald-400", T: "bg-amber-400", N: "bg-indigo-500", D: "bg-slate-300", V: "bg-sky-400",
+};
+function barFor(code: string): string {
+  return BAR[code.startsWith("M") ? "M" : code] ?? "bg-slate-300";
+}
 
 function isWork(code: string) {
   return !!code && (code.startsWith("M") || code === "T" || code === "N");
@@ -162,20 +169,20 @@ export default async function MiTurnoPage({
           {upcoming.length === 0 ? (
             <p className="text-sm text-slate-400">No hay más turnos de trabajo este mes.</p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="space-y-1.5">
               {upcoming.map((u) => (
-                <li key={u.day} className="flex items-center gap-3 py-2">
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${shiftDef(u.code).className}`}>
-                    {u.code}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-700">
-                      {DAYNAME[u.wl] ?? u.wl} {u.day}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {FULL[u.code] ?? shiftDef(u.code).label}{HOURS[u.code] ? ` · ${HOURS[u.code]}` : ""}
-                    </p>
+                <li key={u.day} className="flex items-stretch gap-3 rounded-xl border border-slate-100 bg-white py-2 pl-0 pr-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                  <span className={`w-1.5 shrink-0 rounded-full ${barFor(u.code)}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-800">{FULL[u.code] ?? shiftDef(u.code).label}</p>
+                    <p className="text-xs capitalize text-slate-400">{DAYNAME[u.wl] ?? u.wl} {u.day}</p>
                   </div>
+                  {HOURS[u.code] && (
+                    <span className="flex items-center gap-1 self-center whitespace-nowrap text-sm font-medium text-slate-600">
+                      {HOURS[u.code]}
+                      <span className="text-slate-300" title="Incluye descanso">☕</span>
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
