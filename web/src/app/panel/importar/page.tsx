@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { getSession, isStaffAdmin } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireResidencePanel } from "@/lib/panel-guard";
 import { db } from "@/db";
-import { workers as workersT } from "@/db/schema";
+import { workers as workersT, vacations as vacationsT } from "@/db/schema";
 import { saveCuadrante } from "@/db/cuadrantes";
 import TopBar from "@/components/TopBar";
 
@@ -120,6 +120,46 @@ async function loadJunioAction() {
   redirect(`/panel/importar?ok=${matched}&u=${encodeURIComponent(unmatched.slice(0, 8).join(", "))}&j=1`);
 }
 
+// Vacaciones de agosto 2026 (Alhendín), facilitadas por la administradora.
+// El día 31 se trabaja (los rangos llegan al 30).
+const AGOSTO_2026_VAC: { name: string; alt?: string; start: string; end: string }[] = [
+  { name: "Azelais", start: "2026-08-01", end: "2026-08-15" },
+  { name: "Ana Montoro", start: "2026-08-01", end: "2026-08-15" },
+  { name: "Mónica", start: "2026-08-16", end: "2026-08-30" },
+  { name: "Cloe", alt: "Chloe", start: "2026-08-16", end: "2026-08-30" },
+];
+
+/** Carga (idempotente) las vacaciones de agosto 2026. Casa nombres por
+ *  normalización; reemplaza las vacaciones que ya solapen agosto para esa
+ *  trabajadora, así pulsarlo dos veces no duplica. */
+async function loadAgostoVacacionesAction() {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/importar?m=vacio");
+
+  const ws = await db.select().from(workersT).where(and(eq(workersT.tenantId, tenant.id), eq(workersT.active, true)));
+  const byName = new Map(ws.map((w) => [norm(w.name), w]));
+
+  const unmatched: string[] = [];
+  let n = 0;
+  for (const v of AGOSTO_2026_VAC) {
+    const w = byName.get(norm(v.name)) ?? (v.alt ? byName.get(norm(v.alt)) : undefined);
+    if (!w) { unmatched.push(v.name); continue; }
+    await db.delete(vacationsT).where(and(
+      eq(vacationsT.workerId, w.id),
+      lte(vacationsT.startDate, "2026-08-31"),
+      gte(vacationsT.endDate, "2026-08-01"),
+    ));
+    await db.insert(vacationsT).values({ workerId: w.id, startDate: v.start, endDate: v.end, note: "Agosto 2026" });
+    n++;
+  }
+  revalidatePath("/panel/vacaciones");
+  revalidatePath("/panel");
+  redirect(`/panel/importar?vac=${n}&vu=${encodeURIComponent(unmatched.join(", "))}`);
+}
+
 async function importAction(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -168,7 +208,7 @@ async function importAction(formData: FormData) {
 export default async function ImportarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ m?: string; ok?: string; u?: string; j?: string }>;
+  searchParams: Promise<{ m?: string; ok?: string; u?: string; j?: string; vac?: string; vu?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -209,6 +249,26 @@ export default async function ImportarPage({
             continuidad.
           </p>
         )}
+
+        {sp.vac != null && (
+          <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
+            ✓ Cargadas {sp.vac} vacaciones de agosto 2026.
+            {sp.vu ? ` No se reconocieron: ${decodeURIComponent(sp.vu)}.` : ""}
+          </p>
+        )}
+
+        <div className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Vacaciones de agosto 2026</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Carga de un clic: Azelais y Ana Montoro (1–15 ago), Mónica y Cloe (16–30 ago). El día 31 se trabaja.
+            Es idempotente (pulsarlo dos veces no duplica).
+          </p>
+          <form action={loadAgostoVacacionesAction} className="mt-3">
+            <button className="rounded-lg bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+              Cargar vacaciones de agosto 2026
+            </button>
+          </form>
+        </div>
 
         <div className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">Semilla de junio 2026</h2>
