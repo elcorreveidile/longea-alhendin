@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
+import { slugFromHost } from "@/lib/tenant";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
 import Analytics from "@/components/Analytics";
@@ -17,31 +19,54 @@ const geistMono = Geist_Mono({
 
 const SITE_URL = process.env.APP_URL || "https://planturnos.com";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: "PlanTurnos · Cuadrantes de turnos para tu equipo",
-  description:
-    "Genera los cuadrantes de tu equipo en segundos cumpliendo el convenio de tu sector. Especialistas en digitalización del sector productivo.",
-  keywords: [
-    "cuadrantes", "gestor de turnos", "software de turnos", "planificación de turnos",
-    "cuadrante de trabajo", "turnos residencias", "digitalización sector productivo",
-  ],
-  openGraph: {
-    type: "website",
-    locale: "es_ES",
-    siteName: "PlanTurnos",
-    url: SITE_URL,
-    title: "PlanTurnos · Cuadrantes de turnos, listos en segundos",
-    description: "Genera los cuadrantes de tu equipo cumpliendo el convenio de tu sector. Cada trabajador ve su turno en el móvil.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "PlanTurnos" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "PlanTurnos · Cuadrantes de turnos, listos en segundos",
-    description: "Genera los cuadrantes de tu equipo cumpliendo el convenio de tu sector.",
-    images: ["/og.png"],
+// Favicon/iconos por empresa según el subdominio (acentos.planturnos.com → "á").
+// La convención de fichero (app/icon.png…) se sirve ahora desde /public para
+// que estos iconos por host no queden anulados.
+const TENANT_ICONS: Record<string, Metadata["icons"]> = {
+  acentos: {
+    icon: "/logo-acentos.png",
+    shortcut: "/favicon-acentos.ico",
+    apple: "/apple-acentos.png",
   },
 };
+const DEFAULT_ICONS: Metadata["icons"] = {
+  icon: "/icon.png",
+  shortcut: "/favicon.ico",
+  apple: "/apple-icon.png",
+};
+
+export async function generateMetadata(): Promise<Metadata> {
+  const host = (await headers()).get("host");
+  const slug = slugFromHost(host);
+  const icons = (slug && TENANT_ICONS[slug]) || DEFAULT_ICONS;
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: "PlanTurnos · Cuadrantes de turnos para tu equipo",
+    description:
+      "Genera los cuadrantes de tu equipo en segundos cumpliendo el convenio de tu sector. Especialistas en digitalización del sector productivo.",
+    keywords: [
+      "cuadrantes", "gestor de turnos", "software de turnos", "planificación de turnos",
+      "cuadrante de trabajo", "turnos residencias", "digitalización sector productivo",
+    ],
+    icons,
+    openGraph: {
+      type: "website",
+      locale: "es_ES",
+      siteName: "PlanTurnos",
+      url: SITE_URL,
+      title: "PlanTurnos · Cuadrantes de turnos, listos en segundos",
+      description: "Genera los cuadrantes de tu equipo cumpliendo el convenio de tu sector. Cada trabajador ve su turno en el móvil.",
+      images: [{ url: "/og.png", width: 1200, height: 630, alt: "PlanTurnos" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "PlanTurnos · Cuadrantes de turnos, listos en segundos",
+      description: "Genera los cuadrantes de tu equipo cumpliendo el convenio de tu sector.",
+      images: ["/og.png"],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

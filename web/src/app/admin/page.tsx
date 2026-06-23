@@ -4,6 +4,7 @@ import { and, asc, count, eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
 import { getSession } from "@/lib/session";
 import { getTenantKind, setTenantKind, type TenantKind } from "@/lib/tenant-kind";
+import { defaultLogoFor } from "@/lib/tenant";
 import { db } from "@/db";
 import { tenants, workers, users } from "@/db/schema";
 
@@ -143,7 +144,7 @@ export default async function AdminHome({
         .from(users)
         .where(and(eq(users.tenantId, t.id), eq(users.role, "admin")));
       const kind = await getTenantKind(t.id);
-      return { ...t, workerCount: wc?.n ?? 0, admins, kind };
+      return { ...t, logoUrl: t.logoUrl ?? defaultLogoFor(t.slug), workerCount: wc?.n ?? 0, admins, kind };
     }),
   );
 

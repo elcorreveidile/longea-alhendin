@@ -33,9 +33,15 @@ const DEFAULT_LOGOS: Record<string, string> = {
   acentos: "https://planturnos.com/logo-acentos.png",
 };
 
+/** Devuelve el logo por defecto del slug, o null si no hay. */
+export function defaultLogoFor(slug: string | null | undefined): string | null {
+  return (slug && DEFAULT_LOGOS[slug]) || null;
+}
+
 function withDefaultLogo<T extends { slug: string; logoUrl: string | null }>(t: T | null): T | null {
-  if (t && !t.logoUrl && DEFAULT_LOGOS[t.slug]) {
-    return { ...t, logoUrl: DEFAULT_LOGOS[t.slug] };
+  if (t && !t.logoUrl) {
+    const def = defaultLogoFor(t.slug);
+    if (def) return { ...t, logoUrl: def };
   }
   return t;
 }
