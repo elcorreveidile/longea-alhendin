@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, eq, gte, lte } from "drizzle-orm";
-import { getSession, isStaffAdmin } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { getCurrentTenant } from "@/lib/tenant";
 import { requireResidencePanel } from "@/lib/panel-guard";
 import { db } from "@/db";
@@ -118,7 +118,7 @@ function mapCell(raw: string): string {
 async function loadJunioAction() {
   "use server";
   const session = await getSession();
-  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  if (!session || session.role !== "superadmin") redirect("/login");
   const tenant = await getCurrentTenant();
   if (!tenant) redirect("/panel/importar?m=vacio");
 
@@ -164,7 +164,7 @@ async function loadJunioAction() {
 async function loadJulioAction() {
   "use server";
   const session = await getSession();
-  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  if (!session || session.role !== "superadmin") redirect("/login");
   const tenant = await getCurrentTenant();
   if (!tenant) redirect("/panel/importar?m=vacio");
 
@@ -218,7 +218,7 @@ const AGOSTO_2026_VAC: { name: string; alt?: string; start: string; end: string 
 async function loadAgostoVacacionesAction() {
   "use server";
   const session = await getSession();
-  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  if (!session || session.role !== "superadmin") redirect("/login");
   const tenant = await getCurrentTenant();
   if (!tenant) redirect("/panel/importar?m=vacio");
 
@@ -246,7 +246,7 @@ async function loadAgostoVacacionesAction() {
 async function importAction(formData: FormData) {
   "use server";
   const session = await getSession();
-  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  if (!session || session.role !== "superadmin") redirect("/login");
   const tenant = await getCurrentTenant();
   const year = Number(formData.get("year"));
   const month = Number(formData.get("month"));
@@ -295,7 +295,7 @@ export default async function ImportarPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (!isStaffAdmin(session.role)) redirect("/mi-turno");
+  if (session.role !== "superadmin") redirect("/panel");
   await requireResidencePanel();
 
   const tenant = await getCurrentTenant();
