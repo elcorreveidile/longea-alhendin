@@ -27,6 +27,19 @@ export function slugFromHost(host: string | null): string | null {
  * 2. Si no (público, trabajadora antes de entrar, o superadmin que no tiene
  *    empresa propia), se resuelve por el subdominio; y si no, la por defecto.
  */
+/** Logo por defecto por empresa cuando no se ha subido uno propio en /admin.
+ *  URL absoluta para que también funcione en los correos. */
+const DEFAULT_LOGOS: Record<string, string> = {
+  acentos: "https://planturnos.com/logo-acentos.png",
+};
+
+function withDefaultLogo<T extends { slug: string; logoUrl: string | null }>(t: T | null): T | null {
+  if (t && !t.logoUrl && DEFAULT_LOGOS[t.slug]) {
+    return { ...t, logoUrl: DEFAULT_LOGOS[t.slug] };
+  }
+  return t;
+}
+
 export async function getCurrentTenant() {
   const session = await getSession();
   // El superadmin NO pertenece a ninguna empresa: siempre se resuelve por el
@@ -36,12 +49,12 @@ export async function getCurrentTenant() {
     const own = (
       await db.select().from(tenants).where(eq(tenants.id, session.tenantId)).limit(1)
     )[0];
-    if (own) return own;
+    if (own) return withDefaultLogo(own);
   }
 
   const host = (await headers()).get("host");
   const slug = slugFromHost(host) ?? DEFAULT_SLUG;
   let t = (await db.select().from(tenants).where(eq(tenants.slug, slug)).limit(1))[0];
   if (!t) t = (await db.select().from(tenants).limit(1))[0];
-  return t ?? null;
+  return withDefaultLogo(t ?? null);
 }
