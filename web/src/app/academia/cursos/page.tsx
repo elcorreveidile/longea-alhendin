@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getLang } from "../lang";
 import { DICT, PROGRAMS, PROGRAM_SLUG } from "../content";
 import { SECTION_ICON } from "../icons";
-import { Spot } from "../media";
+import { Spot, WithBackground } from "../media";
 
 export default async function CursosPage() {
   const lang = await getLang();
@@ -11,6 +11,7 @@ export default async function CursosPage() {
   const Icon = SECTION_ICON.cursos;
 
   return (
+    <WithBackground src="/academia/bg/pincelada.jpg" fade={0.88}>
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
         <Icon className="text-cyan-700" /> {t.cursos.title}
@@ -33,5 +34,6 @@ export default async function CursosPage() {
 
       <p className="mt-8 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{t.cursos.pending}</p>
     </div>
+    </WithBackground>
   );
 }
