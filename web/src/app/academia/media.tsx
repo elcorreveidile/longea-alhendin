@@ -5,6 +5,34 @@
 
 const TEAL_OVERLAY = "linear-gradient(to top, rgba(8,79,94,.88), rgba(8,79,94,.30))";
 
+/** Envoltorio con imagen de fondo a toda la página detrás del contenido.
+ *  Mismo patrón que el hero: velo crema por encima de la foto (legibilidad) y
+ *  el contenido como hijos. `fade` = opacidad del velo (más alto = más sutil).
+ *  background-attachment: fixed => fijo en escritorio; en móvil cae a flotante. */
+export function WithBackground({
+  src,
+  fade = 0.86,
+  children,
+}: {
+  src: string;
+  fade?: number;
+  children: React.ReactNode;
+}) {
+  const veil = `linear-gradient(rgba(250,246,238,${fade}), rgba(250,246,238,${fade}))`;
+  return (
+    <div
+      style={{
+        backgroundImage: `${veil}, url(${src})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 /** Banner de cabecera (fondos 16:9 de área / hero). Texto blanco encima. */
 export function Banner({
   src,

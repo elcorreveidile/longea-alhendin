@@ -1,7 +1,7 @@
 import { getLang } from "../lang";
 import { DICT } from "../content";
 import { SECTION_ICON } from "../icons";
-import { Spot } from "../media";
+import { Spot, WithBackground } from "../media";
 
 export default async function SobrePage() {
   const lang = await getLang();
@@ -9,6 +9,7 @@ export default async function SobrePage() {
   const Icon = SECTION_ICON.sobre;
 
   return (
+    <WithBackground src="/academia/bg/azulejo.jpg" fade={0.88}>
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
         <Icon className="text-cyan-700" /> {t.sobre.title}
@@ -20,5 +21,6 @@ export default async function SobrePage() {
         <p>{t.sobre.p3}</p>
       </div>
     </div>
+    </WithBackground>
   );
 }
