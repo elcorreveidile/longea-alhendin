@@ -85,7 +85,9 @@ const JULIO_2026_TAIL: { name: string; alt?: string[]; tail: string[] }[] = [
   { name: "Isabel María", tail: ["M2", "M2", "T", "T", "N", "D"] },
   { name: "Yolanda", tail: ["T", "N", "N", "D", "D", "M2"] },
   { name: "Laura", tail: ["M4", "T", "T", "D", "D", "M1"] },
-  { name: "Diana", tail: ["D", "M", "M", "M", "M", "D"] },
+  // Diana se OMITE a propósito de la semilla: en julio trabajaba de gerocultora
+  // pero su rol de SUPERVISORA empieza en agosto. Sin cola, el motor le arranca
+  // el patrón 2-2-2 limpio en agosto (en julio: D M M M M D, no aplica).
   { name: "Toñi", tail: ["V", "V", "V", "V", "V", "M"] },
   { name: "M.Mar", alt: ["M. Mar"], tail: ["D", "M4", "M1", "M2", "M3", "M4"] },
   { name: "Wissan", alt: ["Wisan"], tail: ["M1", "M1", "T", "N", "N", "D"] },
