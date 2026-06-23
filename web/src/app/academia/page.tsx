@@ -11,7 +11,7 @@ export default async function AcademiaHome() {
   const totalSubjects = areas.reduce((n, a) => n + a.subjects.length, 0);
 
   return (
-    <WithBackground src="/academia/bg/cafe.jpg" fade={0.9}>
+    <WithBackground src="/academia/bg/claustro.jpg" fade={0.9}>
       {/* Hero (hueco de fondo: /academia/hero.jpg) */}
       <section
         className="relative overflow-hidden bg-teal-900 text-white"
