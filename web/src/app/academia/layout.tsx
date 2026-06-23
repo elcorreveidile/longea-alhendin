@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLang } from "./lang";
 import { DICT } from "./content";
 import LangToggle from "./LangToggle";
+import MobileNav from "./MobileNav";
 
 export const metadata: Metadata = {
   title: "Acentos del español · Español y estudios hispánicos",
@@ -26,7 +27,7 @@ export default async function AcademiaLayout({ children }: { children: React.Rea
   return (
     <div className="flex min-h-screen flex-col bg-[#faf6ee] text-slate-800">
       <header className="sticky top-0 z-30 border-b border-[#e7dcc4] bg-[#faf6ee]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link href="/academia" className="flex shrink-0 items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo-acentos.png" alt="Acentos del español" className="h-9 w-9" />
@@ -34,17 +35,16 @@ export default async function AcademiaLayout({ children }: { children: React.Rea
               Acentos<span className="text-cyan-700"> del español</span>
             </span>
           </Link>
-          <div className="ml-auto order-3 w-full overflow-x-auto sm:order-2 sm:w-auto">
-            <nav className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-slate-600">
+          <div className="ml-auto flex items-center gap-3">
+            <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
               {nav.map((n) => (
                 <Link key={n.href} href={n.href} className="rounded-lg px-3 py-1.5 hover:bg-white hover:text-cyan-700">
                   {n.label}
                 </Link>
               ))}
             </nav>
-          </div>
-          <div className="order-2 shrink-0 sm:order-3">
             <LangToggle lang={lang} />
+            <MobileNav items={nav} />
           </div>
         </div>
       </header>
