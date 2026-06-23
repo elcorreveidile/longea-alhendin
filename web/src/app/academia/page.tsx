@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getLang } from "./lang";
-import { DICT, PROGRAMS, groupedAreas, areaLabel } from "./content";
+import { DICT, PROGRAMS, PROGRAM_SLUG, groupedAreas, areaLabel } from "./content";
+import { AREA_ICON } from "./icons";
+import { Spot } from "./media";
 
 export default async function AcademiaHome() {
   const lang = await getLang();
@@ -10,8 +12,16 @@ export default async function AcademiaHome() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-cyan-700 to-teal-900 text-white">
+      {/* Hero (hueco de fondo: /academia/hero.jpg) */}
+      <section
+        className="relative overflow-hidden bg-teal-900 text-white"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(8,79,94,.92), rgba(8,79,94,.55)), url(/academia/hero.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
           <p className="text-sm font-semibold uppercase tracking-wide text-cyan-100">{t.hero.kicker}</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">{t.hero.title}</h1>
@@ -39,13 +49,14 @@ export default async function AcademiaHome() {
         </div>
       </section>
 
-      {/* Programas */}
+      {/* Programas (hueco de ilustración: /academia/spot/<slug>.png) */}
       <section className="bg-white py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold text-slate-900">{t.home.programsTitle}</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             {PROGRAMS.map((p) => (
               <Link key={p.code} href="/academia/cursos" className="group rounded-xl border border-[#e7dcc4] bg-[#faf6ee] p-6 transition hover:border-cyan-300 hover:shadow-md">
+                <Spot src={`/academia/spot/${PROGRAM_SLUG[p.code]}.png`} className="mb-4 h-28 w-full" />
                 <span className="text-xs font-semibold uppercase tracking-wide text-cyan-700">{p[lang].tag}</span>
                 <h3 className="mt-1 text-lg font-bold text-slate-900 group-hover:text-cyan-700">{p[lang].name}</h3>
                 <p className="mt-2 text-sm text-slate-600">{p[lang].desc}</p>
@@ -67,11 +78,15 @@ export default async function AcademiaHome() {
           </Link>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          {areas.map((a) => (
-            <span key={a.area} className="rounded-full border border-[#e7dcc4] bg-white px-3 py-1.5 text-sm text-slate-700">
-              {areaLabel(a.area, lang)} <span className="text-slate-400">· {a.subjects.length}</span>
-            </span>
-          ))}
+          {areas.map((a) => {
+            const Icon = AREA_ICON[a.area];
+            return (
+              <span key={a.area} className="inline-flex items-center gap-2 rounded-full border border-[#e7dcc4] bg-white px-3 py-1.5 text-sm text-slate-700">
+                {Icon && <Icon size={15} className="text-cyan-700" />}
+                {areaLabel(a.area, lang)} <span className="text-slate-400">· {a.subjects.length}</span>
+              </span>
+            );
+          })}
         </div>
         <p className="mt-4 text-sm text-slate-500">{totalSubjects} {t.areas.subjects}.</p>
       </section>

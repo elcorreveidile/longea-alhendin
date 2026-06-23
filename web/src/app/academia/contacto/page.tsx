@@ -1,15 +1,19 @@
 import { getLang } from "../lang";
 import { DICT } from "../content";
+import { SECTION_ICON } from "../icons";
 
 const input = "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
 export default async function ContactoPage() {
   const lang = await getLang();
   const t = DICT[lang];
+  const Icon = SECTION_ICON.contacto;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-slate-900">{t.contacto.title}</h1>
+      <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
+        <Icon className="text-cyan-700" /> {t.contacto.title}
+      </h1>
       <p className="mt-2 text-slate-600">{t.contacto.intro}</p>
 
       {/* Formulario provisional: se conectará cuando confirmemos el correo de destino. */}

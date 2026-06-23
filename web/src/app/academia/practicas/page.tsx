@@ -1,5 +1,6 @@
 import { getLang } from "../lang";
 import { DICT, PRACTICAS } from "../content";
+import { PRACTICA_ICON } from "../icons";
 
 export default async function PracticasPage() {
   const lang = await getLang();
@@ -11,12 +12,22 @@ export default async function PracticasPage() {
       <p className="mt-2 max-w-2xl text-slate-600">{t.practicas.intro}</p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
-        {PRACTICAS.map((p) => (
-          <div key={p.key} className="rounded-xl border border-[#e7dcc4] bg-white p-6 shadow-sm">
-            <h2 className="font-bold text-slate-900">{lang === "es" ? p.es : p.en}</h2>
-            <p className="mt-1 text-sm text-slate-600">{lang === "es" ? p.descEs : p.descEn}</p>
-          </div>
-        ))}
+        {PRACTICAS.map((p) => {
+          const Icon = PRACTICA_ICON[p.key];
+          return (
+            <div key={p.key} className="flex gap-4 rounded-xl border border-[#e7dcc4] bg-white p-6 shadow-sm">
+              {Icon && (
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
+                  <Icon size={22} />
+                </span>
+              )}
+              <div>
+                <h2 className="font-bold text-slate-900">{lang === "es" ? p.es : p.en}</h2>
+                <p className="mt-1 text-sm text-slate-600">{lang === "es" ? p.descEs : p.descEn}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

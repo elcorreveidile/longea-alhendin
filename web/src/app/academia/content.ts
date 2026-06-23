@@ -104,6 +104,13 @@ export const PROGRAMS = [
   },
 ] as const;
 
+/** Nombre de archivo de la ilustración spot por programa. */
+export const PROGRAM_SLUG: Record<string, string> = {
+  CLCE: "lengua-cultura",
+  CEH: "estudios-hispanicos",
+  VERANO: "verano",
+};
+
 export const PRACTICAS = [
   { key: "empresa", es: "Prácticas en empresa", en: "Company internships", descEs: "Experiencia profesional real en empresas españolas.", descEn: "Real professional experience in Spanish companies." },
   { key: "sanitarias", es: "Prácticas en centros sanitarios", en: "Healthcare internships", descEs: "Estancias formativas en el ámbito de la salud.", descEn: "Training placements in the healthcare field." },
