@@ -55,6 +55,44 @@ const JUNIO_2026_TAIL: Record<string, string[]> = {
   "Susana": ["D", "D", "T", "T", "D", "D"],
 };
 
+// Cola (últimos 6 días: 26–31) de JULIO 2026, dictada por la administradora.
+// Los M1–M4 indican planta; para la continuidad el motor solo usa M/T/N/D/V.
+// `alt`: nombres alternativos por si la plantilla los tiene escritos distinto.
+const JULIO_2026_TAIL: { name: string; alt?: string[]; tail: string[] }[] = [
+  { name: "Mónica", tail: ["N", "D", "D", "M4", "M1", "T"] },
+  { name: "Ángela", tail: ["T", "T", "D", "M3", "M2", "T"] },
+  { name: "Rocío", tail: ["D", "D", "M", "M2", "T", "T"] },
+  { name: "Pamela", tail: ["N", "D", "D", "M", "M", "D"] },
+  { name: "Irene León", tail: ["T", "D", "D", "M1", "M3", "T"] },
+  { name: "Desiree", tail: ["D", "M3", "M1", "T", "T", "D"] },
+  { name: "Cloe", alt: ["Chloe"], tail: ["D", "M2", "M4", "T", "T", "D"] },
+  { name: "Laura Padilla", tail: ["T", "T", "D", "D", "M1", "M"] },
+  { name: "Lorena", tail: ["T", "T", "D", "D", "T", "T"] },
+  { name: "Mar", tail: ["V", "V", "V", "V", "V", "T"] },
+  { name: "Araceli", tail: ["M4", "M3", "T", "T", "D", "D"] },
+  { name: "Dulce", tail: ["M3", "T", "D", "D", "T", "T"] },
+  { name: "Mª José", alt: ["María José", "Maria Jose"], tail: ["T", "T", "T", "D", "D", "M1"] },
+  { name: "Sandra", tail: ["D", "D", "M2", "T", "T", "T"] },
+  { name: "Ana Montoro", tail: ["D", "D", "M3", "T", "T", "V"] },
+  { name: "Isabel", tail: ["V", "V", "V", "V", "V", "M2"] },
+  { name: "Noemí", tail: ["D", "D", "M2", "M1", "M2", "N"] },
+  { name: "Ainhoa", tail: ["M3", "T", "N", "N", "D", "D"] },
+  { name: "Conce", tail: ["T", "T", "T", "D", "D", "M3"] },
+  { name: "Ana Isabel", tail: ["M2", "M1", "T", "T", "D", "D"] },
+  { name: "Sara", tail: ["T", "N", "D", "D", "M", "M3"] },
+  { name: "Azelais", alt: ["Azblais"], tail: ["M", "T", "T", "D", "D", "D"] },
+  { name: "Diego", tail: ["M1", "M", "T", "T", "D", "D"] },
+  { name: "Isabel María", tail: ["M2", "M2", "T", "T", "N", "D"] },
+  { name: "Yolanda", tail: ["T", "N", "N", "D", "D", "M2"] },
+  { name: "Laura", tail: ["M4", "T", "T", "D", "D", "M1"] },
+  { name: "Diana", tail: ["D", "M", "M", "M", "M", "D"] },
+  { name: "Toñi", tail: ["V", "V", "V", "V", "V", "M"] },
+  { name: "M.Mar", alt: ["M. Mar"], tail: ["D", "M4", "M1", "M2", "M3", "M4"] },
+  { name: "Wissan", alt: ["Wisan"], tail: ["M1", "M1", "T", "N", "N", "D"] },
+  { name: "Nuria", tail: ["D", "D", "M3", "M3", "T", "N"] },
+  { name: "Marta", tail: ["T", "D", "D", "M4", "M4", "T"] },
+];
+
 /** Normaliza un nombre para casarlo (sin acentos, mayúsculas, espacios simples). */
 function norm(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
@@ -118,6 +156,51 @@ async function loadJunioAction() {
   });
   revalidatePath("/panel");
   redirect(`/panel/importar?ok=${matched}&u=${encodeURIComponent(unmatched.slice(0, 8).join(", "))}&j=1`);
+}
+
+/** Carga la cola de julio 2026 (días 1–25 como descanso placeholder + los 6
+ *  días reales 26–31 dictados). El motor solo lee los últimos 6 días, así que
+ *  con la cola agosto arranca con continuidad y la regla de 6 días seguidos. */
+async function loadJulioAction() {
+  "use server";
+  const session = await getSession();
+  if (!session || !isStaffAdmin(session.role)) redirect("/login");
+  const tenant = await getCurrentTenant();
+  if (!tenant) redirect("/panel/importar?m=vacio");
+
+  const year = 2026;
+  const month = 7;
+  const days = 31;
+  const weekdays = Array.from({ length: days }, (_, i) => LETTERS[(new Date(year, month - 1, i + 1).getDay() + 6) % 7]);
+
+  const ws = await db.select().from(workersT).where(and(eq(workersT.tenantId, tenant.id), eq(workersT.active, true)));
+  const byName = new Map(ws.map((w) => [norm(w.name), w]));
+
+  const assignments: Record<string, string[]> = {};
+  const names: Record<string, string> = {};
+  const unmatched: string[] = [];
+  let matched = 0;
+
+  for (const row of JULIO_2026_TAIL) {
+    const w = byName.get(norm(row.name)) ?? row.alt?.map((a) => byName.get(norm(a))).find(Boolean);
+    if (!w) {
+      unmatched.push(row.name);
+      continue;
+    }
+    assignments[w.id] = [...Array(days - row.tail.length).fill("D"), ...row.tail.map(mapCell)];
+    names[w.id] = w.name;
+    matched++;
+  }
+
+  if (matched === 0) redirect("/panel/importar?m=nadie");
+
+  await saveCuadrante(tenant.id, year, month, {
+    year, month, days, weekdays, assignments,
+    // @ts-expect-error: names es un extra que usa la vista del cuadrante
+    names,
+  });
+  revalidatePath("/panel");
+  redirect(`/panel/importar?ok=${matched}&u=${encodeURIComponent(unmatched.slice(0, 8).join(", "))}&jul=1`);
 }
 
 // Vacaciones de agosto 2026 (Alhendín), facilitadas por la administradora.
@@ -208,7 +291,7 @@ async function importAction(formData: FormData) {
 export default async function ImportarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ m?: string; ok?: string; u?: string; j?: string; vac?: string; vu?: string }>;
+  searchParams: Promise<{ m?: string; ok?: string; u?: string; j?: string; jul?: string; vac?: string; vu?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -244,7 +327,7 @@ export default async function ImportarPage({
         {err && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{err.text}</p>}
         {okN != null && (
           <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-            ✓ {sp.j ? "Junio 2026 cargado" : "Importadas"} {okN} trabajadoras.
+            ✓ {sp.jul ? "Julio 2026 cargado" : sp.j ? "Junio 2026 cargado" : "Importadas"} {okN} trabajadoras.
             {sp.u ? ` No se reconocieron: ${decodeURIComponent(sp.u)}.` : ""} Ya puedes regenerar el mes siguiente con
             continuidad.
           </p>
@@ -256,6 +339,20 @@ export default async function ImportarPage({
             {sp.vu ? ` No se reconocieron: ${decodeURIComponent(sp.vu)}.` : ""}
           </p>
         )}
+
+        <div className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Semilla de julio 2026 (cola)</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Carga los últimos 6 días (26–31) de julio 2026, dictados por la administradora, para que <strong>agosto</strong>{" "}
+            arranque con continuidad y la regla de 6 días seguidos. Los días 1–25 quedan como descanso (placeholder): esta
+            semilla sirve para enlazar con agosto, no para mostrar julio completo.
+          </p>
+          <form action={loadJulioAction} className="mt-3">
+            <button className="rounded-lg bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+              Cargar julio 2026 (semilla)
+            </button>
+          </form>
+        </div>
 
         <div className="rounded-xl border border-[#e7dcc4] bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">Vacaciones de agosto 2026</h2>
