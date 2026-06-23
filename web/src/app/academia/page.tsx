@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getLang } from "./lang";
 import { DICT, PROGRAMS, PROGRAM_SLUG, groupedAreas, areaLabel } from "./content";
 import { AREA_ICON } from "./icons";
-import { Spot } from "./media";
+import { Spot, WithBackground } from "./media";
 
 export default async function AcademiaHome() {
   const lang = await getLang();
@@ -11,7 +11,7 @@ export default async function AcademiaHome() {
   const totalSubjects = areas.reduce((n, a) => n + a.subjects.length, 0);
 
   return (
-    <>
+    <WithBackground src="/academia/bg/cafe.jpg" fade={0.9}>
       {/* Hero (hueco de fondo: /academia/hero.jpg) */}
       <section
         className="relative overflow-hidden bg-teal-900 text-white"
@@ -90,6 +90,6 @@ export default async function AcademiaHome() {
         </div>
         <p className="mt-4 text-sm text-slate-500">{totalSubjects} {t.areas.subjects}.</p>
       </section>
-    </>
+    </WithBackground>
   );
 }

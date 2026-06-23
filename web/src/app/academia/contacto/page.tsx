@@ -1,7 +1,7 @@
 import { getLang } from "../lang";
 import { DICT } from "../content";
 import { SECTION_ICON } from "../icons";
-import { Spot } from "../media";
+import { Spot, WithBackground } from "../media";
 
 const input = "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
@@ -11,6 +11,7 @@ export default async function ContactoPage() {
   const Icon = SECTION_ICON.contacto;
 
   return (
+    <WithBackground src="/academia/bg/carta.jpg" fade={0.88}>
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
         <Icon className="text-cyan-700" /> {t.contacto.title}
@@ -43,5 +44,6 @@ export default async function ContactoPage() {
         <a href="/login" className="font-medium text-cyan-700 hover:underline">{t.contacto.staff}</a>
       </p>
     </div>
+    </WithBackground>
   );
 }

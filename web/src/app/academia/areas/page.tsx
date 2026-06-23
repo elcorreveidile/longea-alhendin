@@ -1,7 +1,7 @@
 import { getLang } from "../lang";
 import { DICT, groupedAreas, areaLabel, langBadge } from "../content";
 import { AREA_ICON } from "../icons";
-import { Banner } from "../media";
+import { Banner, WithBackground } from "../media";
 
 /** slug de archivo de fondo por área (coincide con /public/academia/areas/<slug>.jpg). */
 const AREA_SLUG: Record<string, string> = {
@@ -23,6 +23,7 @@ export default async function AreasPage() {
   const areas = groupedAreas();
 
   return (
+    <WithBackground src="/academia/bg/yeseria.jpg" fade={0.9}>
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="text-3xl font-bold text-slate-900">{t.areas.title}</h1>
       <p className="mt-2 max-w-2xl text-slate-600">{t.areas.intro}</p>
@@ -62,5 +63,6 @@ export default async function AreasPage() {
         })}
       </div>
     </div>
+    </WithBackground>
   );
 }
