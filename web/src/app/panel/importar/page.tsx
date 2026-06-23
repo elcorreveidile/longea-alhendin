@@ -208,7 +208,7 @@ async function loadJulioAction() {
 // Vacaciones de agosto 2026 (Alhendín), facilitadas por la administradora.
 // El día 31 se trabaja (los rangos llegan al 30).
 const AGOSTO_2026_VAC: { name: string; alt?: string; start: string; end: string }[] = [
-  { name: "Azelais", start: "2026-08-01", end: "2026-08-15" },
+  { name: "Azelais", alt: "Azblais", start: "2026-08-01", end: "2026-08-15" },
   { name: "Ana Montoro", start: "2026-08-01", end: "2026-08-15" },
   { name: "Mónica", start: "2026-08-16", end: "2026-08-30" },
   { name: "Cloe", alt: "Chloe", start: "2026-08-16", end: "2026-08-30" },
