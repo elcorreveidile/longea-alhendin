@@ -56,7 +56,7 @@ export default async function AcademiaHome() {
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             {PROGRAMS.map((p) => (
               <Link key={p.code} href="/academia/cursos" className="group rounded-xl border border-[#e7dcc4] bg-[#faf6ee] p-6 transition hover:border-cyan-300 hover:shadow-md">
-                <Spot src={`/academia/spot/${PROGRAM_SLUG[p.code]}.png`} className="mb-4 h-28 w-full" />
+                <Spot src={`/academia/spot/${PROGRAM_SLUG[p.code]}.png`} className="mx-auto mb-4 h-32 w-32" />
                 <span className="text-xs font-semibold uppercase tracking-wide text-cyan-700">{p[lang].tag}</span>
                 <h3 className="mt-1 text-lg font-bold text-slate-900 group-hover:text-cyan-700">{p[lang].name}</h3>
                 <p className="mt-2 text-sm text-slate-600">{p[lang].desc}</p>

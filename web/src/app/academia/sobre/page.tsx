@@ -13,7 +13,7 @@ export default async function SobrePage() {
       <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
         <Icon className="text-cyan-700" /> {t.sobre.title}
       </h1>
-      <Spot src="/academia/spot/academia.png" className="mt-6 h-40 w-full" />
+      <Spot src="/academia/spot/academia.png" className="mx-auto mt-6 h-48 w-48" />
       <div className="mt-6 space-y-4 text-slate-700">
         <p>{t.sobre.p1}</p>
         <p>{t.sobre.p2}</p>

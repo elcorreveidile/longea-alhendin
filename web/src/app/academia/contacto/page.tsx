@@ -1,6 +1,7 @@
 import { getLang } from "../lang";
 import { DICT } from "../content";
 import { SECTION_ICON } from "../icons";
+import { Spot } from "../media";
 
 const input = "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
@@ -14,6 +15,7 @@ export default async function ContactoPage() {
       <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
         <Icon className="text-cyan-700" /> {t.contacto.title}
       </h1>
+      <Spot src="/academia/spot/sobre.png" className="mt-4 h-32 w-32" />
       <p className="mt-2 text-slate-600">{t.contacto.intro}</p>
 
       {/* Formulario provisional: se conectará cuando confirmemos el correo de destino. */}

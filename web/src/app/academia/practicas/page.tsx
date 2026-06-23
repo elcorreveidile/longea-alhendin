@@ -1,6 +1,7 @@
 import { getLang } from "../lang";
 import { DICT, PRACTICAS } from "../content";
 import { PRACTICA_ICON } from "../icons";
+import { Spot } from "../media";
 
 export default async function PracticasPage() {
   const lang = await getLang();
@@ -8,6 +9,7 @@ export default async function PracticasPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <Spot src="/academia/spot/practicas.png" className="mb-2 h-40 w-40" />
       <h1 className="text-3xl font-bold text-slate-900">{t.practicas.title}</h1>
       <p className="mt-2 max-w-2xl text-slate-600">{t.practicas.intro}</p>
 

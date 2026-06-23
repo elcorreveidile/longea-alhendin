@@ -29,7 +29,7 @@ export function Banner({
 export function Spot({ src, className = "" }: { src: string; className?: string }) {
   return (
     <div
-      className={`rounded-xl bg-cyan-50 ${className}`}
+      className={`rounded-xl bg-[#faf6ee] ${className}`}
       style={{ backgroundImage: `url(${src})`, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}
       aria-hidden
     />

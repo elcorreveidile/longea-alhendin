@@ -20,7 +20,7 @@ export default async function CursosPage() {
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         {PROGRAMS.map((p) => (
           <article key={p.code} className="flex flex-col rounded-xl border border-[#e7dcc4] bg-white p-6 shadow-sm">
-            <Spot src={`/academia/spot/${PROGRAM_SLUG[p.code]}.png`} className="mb-4 h-28 w-full" />
+            <Spot src={`/academia/spot/${PROGRAM_SLUG[p.code]}.png`} className="mx-auto mb-4 h-32 w-32" />
             <span className="text-xs font-semibold uppercase tracking-wide text-cyan-700">{p[lang].tag}</span>
             <h2 className="mt-1 text-xl font-bold text-slate-900">{p[lang].name}</h2>
             <p className="mt-3 flex-1 text-sm text-slate-600">{p[lang].desc}</p>
