@@ -1,9 +1,16 @@
-# Cuadrantes · Residencia Alhendín (Teresa Montes) — Grupo Longea
+# PlanTurnos — cuadrantes de turnos (motor + web)
 
-Aplicación para montar los **cuadrantes y turnos** de una residencia de mayores.
-Sustituye el Excel manual por un **generador automático** que cuadra el mes (o la
-semana) respetando el convenio, y una **web** donde la administradora revisa,
-ajusta y publica, y cada trabajadora consulta su turno.
+**PlanTurnos** es un SaaS **multi-empresa** para organizar el trabajo de equipos.
+Este README documenta su **núcleo de cuadrantes y turnos**: el motor de generación
+y la web de la residencia (el primer cliente: **Alhendín / Teresa Montes — Grupo
+Longea**). Sustituye el Excel manual por un **generador automático** que cuadra el
+mes (o la semana) respetando el convenio, con una **web** donde la administradora
+revisa, ajusta y publica, y cada trabajadora consulta su turno.
+
+> 🗺️ **¿Buscas la visión de PRODUCTO** —qué es `planturnos.com`, el modelo
+> multi-empresa, los roles, la academia **Acentos** y su web pública—? Léelo en
+> **[`docs/planturnos.md`](docs/planturnos.md)**. Este README se centra en el
+> **motor de cuadrantes** y la app de la residencia.
 
 > Estado: **en producción** (Vercel + Neon). Motor conectado a la web,
 > generación por mes y por semana, edición manual, reglas configurables, gestión
