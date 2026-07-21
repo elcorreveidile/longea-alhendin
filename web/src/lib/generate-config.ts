@@ -18,6 +18,7 @@ interface EngineWorker {
   only_shift?: string;
   prev_tail?: string[]; // últimos días del mes anterior (continuidad)
   fixed_floor?: 0 | 1 | 2; // planta fija (p. ej. Mar siempre planta 0)
+  sup_pattern?: "2-2-2" | "4-2"; // patrón de supervisora (Toñi 2-2-2, Diana 4-2)
 }
 
 /** Días del mes (1..n) que caen dentro de un rango de fechas [start, end]. */
@@ -65,6 +66,10 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
     if (w.noNight) ew.no_night = true;
     if (w.onlyShift) ew.only_shift = w.onlyShift;
     if (fixedFloors[w.id] !== undefined) ew.fixed_floor = fixedFloors[w.id];
+    if (ew.role === "supervisora") {
+      const nm = w.name.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+      ew.sup_pattern = nm === "diana" ? "4-2" : "2-2-2"; // Diana: 4M+2D; el resto 2-2-2
+    }
     return ew;
   });
 
@@ -102,6 +107,8 @@ export async function buildGenerateConfig(tenantId: string, year: number, month:
       no_morning_or_afternoon_after_night: true,
       min_hours_between_shifts: 12,
       rest_after_streak: { threshold: gen.restAfterStreak.threshold, min_rest: gen.restAfterStreak.minRest },
+      min_rest_days_per_month: gen.minRestDaysPerMonth,
+      min_work_run: gen.minWorkRun,
     },
     time_limit_seconds: 35,
     workers,
@@ -154,6 +161,10 @@ export async function buildGenerateConfigWeek(tenantId: string, startDate: strin
     if (w.noNight) ew.no_night = true;
     if (w.onlyShift) ew.only_shift = w.onlyShift;
     if (fixedFloors[w.id] !== undefined) ew.fixed_floor = fixedFloors[w.id];
+    if (ew.role === "supervisora") {
+      const nm = w.name.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+      ew.sup_pattern = nm === "diana" ? "4-2" : "2-2-2"; // Diana: 4M+2D; el resto 2-2-2
+    }
     return ew;
   });
 
@@ -172,6 +183,8 @@ export async function buildGenerateConfigWeek(tenantId: string, startDate: strin
       no_morning_or_afternoon_after_night: true,
       min_hours_between_shifts: 12,
       rest_after_streak: { threshold: gen.restAfterStreak.threshold, min_rest: gen.restAfterStreak.minRest },
+      min_rest_days_per_month: gen.minRestDaysPerMonth,
+      min_work_run: gen.minWorkRun,
     },
     time_limit_seconds: 25,
     workers,

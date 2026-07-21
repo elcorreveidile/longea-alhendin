@@ -252,7 +252,7 @@ def _attempt(cfg, hard_coverage):
             return 1
         return is_state(wid, d, "D")
 
-    # --- M.Mar: solo L-V mañana ---
+    # --- M.Mar: L-V mañana o tarde, findes libres ---
     for w in workers:
         if w["role"] != "gerocultora_lv":
             continue
@@ -260,8 +260,12 @@ def _attempt(cfg, hard_coverage):
         for d in range(days):
             if d + 1 in vac[wid]:
                 continue
-            if weekdays[d] < 5:  # lunes-viernes
-                model.Add(x[wid, d, "M"] == 1)
+            if weekdays[d] < 5:  # lunes-viernes: mañana o tarde (ni noche ni descanso)
+                model.Add(x[wid, d, "M"] + x[wid, d, "T"] == 1)
+                if (wid, d, "N") in x:
+                    model.Add(x[wid, d, "N"] == 0)
+                if (wid, d, "D") in x:
+                    model.Add(x[wid, d, "D"] == 0)
             else:  # finde libre
                 model.Add(x[wid, d, "D"] == 1)
 
@@ -307,6 +311,27 @@ def _attempt(cfg, hard_coverage):
                 # Si N hoy -> mañana no M ni T
                 model.Add(x[wid, d + 1, "M"] == 0).OnlyEnforceIf(x[wid, d, "N"])
                 model.Add(x[wid, d + 1, "T"] == 0).OnlyEnforceIf(x[wid, d, "N"])
+
+    # --- Tras la(s) noche(s): 2 descansos; y como mucho 2 noches seguidas ---
+    # Regla de Diana: se pueden hacer hasta 2 noches seguidas y después 2 descansos.
+    # (El bloque anterior ya impide M/T el día siguiente a una noche; aquí exigimos
+    # que ese descanso sean DOS días y que no haya 3 noches encadenadas.)
+    for w in workers:
+        if "N" not in allowed_states(w):
+            continue
+        wid = w["id"]
+        for d in range(days - 2):
+            if any((d + k) in vac[wid] for k in range(1, 4)):
+                continue
+            nd, nd1, nd2 = x.get((wid, d, "N")), x.get((wid, d + 1, "N")), x.get((wid, d + 2, "N"))
+            dd1, dd2 = x.get((wid, d + 1, "D")), x.get((wid, d + 2, "D"))
+            if nd is not None and nd1 is not None and nd2 is not None:
+                model.Add(nd + nd1 + nd2 <= 2)  # no más de 2 noches seguidas
+            if nd is not None and dd1 is not None and dd2 is not None:
+                end_block = model.NewBoolVar(f"nightend_{wid}_{d}")
+                model.AddBoolAnd([nd, dd1]).OnlyEnforceIf(end_block)
+                model.AddBoolOr([nd.Not(), dd1.Not()]).OnlyEnforceIf(end_block.Not())
+                model.Add(dd2 == 1).OnlyEnforceIf(end_block)  # fin de bloque noche -> 2 D
 
     # --- Descanso mínimo entre jornadas (12h por defecto) ---
     # Prohíbe encadenar turnos con menos de 'min_hours_between_shifts' horas de
@@ -480,17 +505,27 @@ def _attempt(cfg, hard_coverage):
                 return (len(tail) + d) < 0  # fuera de la cola: ventana no evaluable
             return (d + 1) in vac[wid]
 
+        # Patrón por supervisora: "2-2-2" (Toñi: 2M+2T+2D por cada 6 días) o
+        # "4-2" (Diana: 4 mañanas + 2 descansos, sin tardes).
+        pat = w.get("sup_pattern", "2-2-2")
+        if pat == "4-2":
+            for d in range(days):
+                if (d + 1) not in vac[wid] and (wid, d, "T") in x:
+                    model.Add(x[wid, d, "T"] == 0)  # Diana no hace tardes
+            targets = (("M", 4),)
+        else:
+            targets = (("M", 2), ("T", 2))
+
         # Ventanas de 6 días: desde -min(len(tail),5) hasta el final del mes.
         for start in range(-min(len(tail), 5), days - 5):
             win = list(range(start, start + 6))
             if any(sup_has_vac(d) for d in win):
                 continue  # ventana con vacaciones o fuera de la cola: no se fuerza
-            n_m = sum(sup_term(d, "M") for d in win)
-            n_t = sum(sup_term(d, "T") for d in win)
-            for n_expr, lbl in ((n_m, "m"), (n_t, "t")):
-                pos = model.NewIntVar(0, 4, f"suppat_pos_{wid}_{start}_{lbl}")
-                neg = model.NewIntVar(0, 4, f"suppat_neg_{wid}_{start}_{lbl}")
-                model.Add(n_expr - 2 == pos - neg)  # desviación respecto a 2
+            for s, tgt in targets:
+                n_expr = sum(sup_term(d, s) for d in win)
+                pos = model.NewIntVar(0, 6, f"suppat_pos_{wid}_{start}_{s}")
+                neg = model.NewIntVar(0, 6, f"suppat_neg_{wid}_{start}_{s}")
+                model.Add(n_expr - tgt == pos - neg)  # desviación respecto al objetivo
                 sup_pattern_slacks.append(pos)
                 sup_pattern_slacks.append(neg)
 
@@ -508,6 +543,51 @@ def _attempt(cfg, hard_coverage):
             nobody = model.NewBoolVar(f"supcov_{d}")  # 1 si NADIE cubre ese día
             model.Add(sum(present) + nobody >= 1)
             sup_cover_slacks.append(nobody)
+
+    # --- Mínimo de descansos (D, sin contar vacaciones) al mes por gerocultora ---
+    # Regla de Diana: al menos 10 descansos/mes, aparte de las vacaciones. SOFT:
+    # se cumple siempre que se puede; si un mes no llega, se penaliza y se avisa.
+    rest_min = int(rules.get("min_rest_days_per_month", 0))
+    rest_min_slacks = []
+    if rest_min and days >= 20:
+        for w in workers:
+            if w["role"] != "gerocultora":
+                continue
+            wid = w["id"]
+            d_days = sum(is_state(wid, d, "D") for d in range(days))
+            short = model.NewIntVar(0, rest_min, f"restmin_{wid}")
+            model.Add(d_days + short >= rest_min)
+            rest_min_slacks.append(short)
+
+    # --- Bloques de trabajo de al menos 'min_work_run' días (gerocultoras) ---
+    # Diana: "secuencia de 4 o máximo 5 turnos". El máximo lo fija max_consec (5);
+    # aquí penalizamos (SOFT) las rachas de trabajo demasiado cortas (1-3 días).
+    minrun_slacks = []
+    min_run = int(rules.get("min_work_run", 0))
+    if min_run >= 2:
+        for w in workers:
+            if w["role"] != "gerocultora":
+                continue
+            wid = w["id"]
+            wb = {}
+            for d in range(days):
+                b = model.NewBoolVar(f"wb_{wid}_{d}")
+                model.Add(b == works(wid, d))
+                wb[d] = b
+            for d in range(min_run - 1, days):
+                if d + 1 < days:
+                    end = model.NewBoolVar(f"runend_{wid}_{d}")
+                    model.AddBoolAnd([wb[d], wb[d + 1].Not()]).OnlyEnforceIf(end)
+                    model.AddBoolOr([wb[d].Not(), wb[d + 1]]).OnlyEnforceIf(end.Not())
+                else:
+                    end = wb[d]
+                full = model.NewBoolVar(f"runfull_{wid}_{d}")
+                model.AddBoolAnd([wb[d - k] for k in range(min_run)]).OnlyEnforceIf(full)
+                model.AddBoolOr([wb[d - k].Not() for k in range(min_run)]).OnlyEnforceIf(full.Not())
+                short_run = model.NewBoolVar(f"runshort_{wid}_{d}")
+                model.AddBoolAnd([end, full.Not()]).OnlyEnforceIf(short_run)
+                model.AddBoolOr([end.Not(), full]).OnlyEnforceIf(short_run.Not())
+                minrun_slacks.append(short_run)
 
     # --- Objetivo: minimizar déficit de cobertura y equilibrar noches ---
     # Solo se equilibran las noches entre quienes PUEDEN hacerlas (excluye
@@ -543,7 +623,9 @@ def _attempt(cfg, hard_coverage):
         + 300 * sum(streak_slacks)
         + 250 * sum(sup_pattern_slacks)  # ritmo 2M-2T-2D de supervisoras (prioritario)
         + 200 * sum(rest_run_slacks)
+        + 150 * sum(rest_min_slacks)     # >= 10 descansos/mes por gerocultora
         + 120 * sum(sup_cover_slacks)    # tener una supervisora cubriendo (cede ante el patrón)
+        + 100 * sum(minrun_slacks)       # bloques de trabajo de >= 4 días
         + 15 * night_balance
         - 5 * sum(all_blocks)
         + 1 * sum(surplus_terms)

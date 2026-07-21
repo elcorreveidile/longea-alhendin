@@ -10,15 +10,19 @@ export interface GenConfig {
   restAfterStreak: { threshold: number; minRest: number };
   sundayOff: number;
   supervisorsCountInCoverage: boolean;
+  minRestDaysPerMonth: number;
+  minWorkRun: number;
 }
 
 export const DEFAULT_GEN: GenConfig = {
   coverage: { M: 9, T: 9, N: 2 },
-  maxConsecutive: 6,
+  maxConsecutive: 5,          // gerocultoras: bloques de 4-5 días (Diana)
   maxConsecutiveRest: 2,
-  restAfterStreak: { threshold: 5, minRest: 2 },
+  restAfterStreak: { threshold: 4, minRest: 2 },
   sundayOff: 1,
   supervisorsCountInCoverage: true,
+  minRestDaysPerMonth: 10,    // >= 10 descansos/mes por gerocultora (aparte de vacaciones)
+  minWorkRun: 4,              // bloques de trabajo de >= 4 días
 };
 
 const KEY = "gen_config";
