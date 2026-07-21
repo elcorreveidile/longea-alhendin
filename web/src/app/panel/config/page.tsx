@@ -29,6 +29,8 @@ async function saveConfigAction(formData: FormData) {
     },
     sundayOff: num(formData, "sundayOff", DEFAULT_GEN.sundayOff, 0, 5),
     supervisorsCountInCoverage: formData.get("supCount") === "on",
+    minRestDaysPerMonth: num(formData, "minRestMonth", DEFAULT_GEN.minRestDaysPerMonth, 0, 20),
+    minWorkRun: num(formData, "minWorkRun", DEFAULT_GEN.minWorkRun, 0, 7),
   });
   redirect("/panel/config?ok=1");
 }
@@ -97,6 +99,16 @@ export default async function ConfigPage({
                 Máximo de descansos seguidos
                 <input name="maxRest" type="number" min={0} max={7} defaultValue={cfg.maxConsecutiveRest} className={numCls} />
                 <span className="ml-2 text-xs text-slate-400">0 = sin límite. Las vacaciones no cuentan.</span>
+              </label>
+              <label className="block text-sm">
+                Bloque mínimo de días de trabajo seguidos
+                <input name="minWorkRun" type="number" min={0} max={7} defaultValue={cfg.minWorkRun} className={numCls} />
+                <span className="ml-2 text-xs text-slate-400">Preferencia: rachas de 4-5. 0 = sin mínimo.</span>
+              </label>
+              <label className="block text-sm">
+                Descansos mínimos al mes (por gerocultora)
+                <input name="minRestMonth" type="number" min={0} max={20} defaultValue={cfg.minRestDaysPerMonth} className={numCls} />
+                <span className="ml-2 text-xs text-slate-400">Aparte de vacaciones. 0 = desactivado.</span>
               </label>
               <div className="rounded-lg bg-slate-50 p-3">
                 <p className="text-sm font-medium text-slate-700">Descanso tras una racha larga</p>
